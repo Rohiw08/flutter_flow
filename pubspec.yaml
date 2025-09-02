@@ -1,0 +1,28 @@
+name: flutter_flow
+description: "An example application for the flutter_workflow library."
+publish_to: 'none' 
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  flutter_riverpod: ^2.5.1
+  vector_math: ^2.1.4
+  rxdart: ^0.28.0
+  
+  # This is the most important part:
+  # It tells the main app to use the local package we created.
+  flutter_workflow:
+    path: packages/flutter_workflow
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
