@@ -184,29 +184,43 @@ class FlowCanvasThemeBuilder {
   }
 
   FlowCanvasThemeBuilder controls({
-    Color? backgroundColor,
+    // Simple properties
+    Color? containerColor,
     Color? buttonColor,
     Color? buttonHoverColor,
     Color? iconColor,
     Color? iconHoverColor,
-    Color? dividerColor,
     double? buttonSize,
-    BorderRadius? borderRadius,
+    Size? containerSize,
+    double? buttonCornerRadius,
+    double? containerCornerRadius,
+    EdgeInsetsGeometry? padding,
     List<BoxShadow>? shadows,
-    EdgeInsets? padding,
+
+    // Advanced properties
+    BoxDecoration? containerDecoration,
+    BoxDecoration? buttonDecoration,
+    BoxDecoration? buttonHoverDecoration,
+    TextStyle? iconStyle,
+    TextStyle? iconHoverStyle,
   }) {
     _theme = _theme.copyWith(
       controls: _theme.controls.copyWith(
-        backgroundColor: backgroundColor,
+        containerColor: containerColor,
         buttonColor: buttonColor,
         buttonHoverColor: buttonHoverColor,
         iconColor: iconColor,
         iconHoverColor: iconHoverColor,
-        dividerColor: dividerColor,
         buttonSize: buttonSize,
-        borderRadius: borderRadius,
-        shadows: shadows,
+        buttonCornerRadius: buttonCornerRadius,
+        containerCornerRadius: containerCornerRadius,
         padding: padding,
+        shadows: shadows,
+        containerDecoration: containerDecoration,
+        buttonDecoration: buttonDecoration,
+        buttonHoverDecoration: buttonHoverDecoration,
+        iconStyle: iconStyle,
+        iconHoverStyle: iconHoverStyle,
       ),
     );
     return this;

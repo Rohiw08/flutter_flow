@@ -23,8 +23,4 @@ export 'src/shared/enums.dart';
 
 // --- THEMING ---
 // The public theme data, providers, and builders.
-export 'src/theme/theme.dart';
-export 'src/theme/theme_provider.dart';
-export 'src/theme/theme_builder.dart';
-export 'src/theme/theme_extensions.dart';
-export 'src/theme/flow_canvas_theme_data.dart'; // Predefined themes
+export 'src/theme/theme_export.dart';

@@ -1,40 +1,114 @@
 import 'package:flutter/material.dart';
 
 class FlowCanvasControlTheme {
-  final Color backgroundColor;
-  final Color buttonColor;
-  final Color buttonHoverColor;
-  final Color iconColor;
-  final Color iconHoverColor;
-  final Color dividerColor;
-  final double buttonSize;
-  final BorderRadius borderRadius;
-  final List<BoxShadow> shadows;
-  final EdgeInsets padding;
+  final Color? containerColor;
+  final Color? buttonColor;
+  final Color? buttonHoverColor;
+  final Color? iconColor;
+  final Color? iconHoverColor;
+  final double? buttonSize;
+  final double? buttonCornerRadius;
+  final double? containerCornerRadius;
+  final EdgeInsetsGeometry? padding;
+  final List<BoxShadow>? shadows;
+
+  final BoxDecoration? containerDecoration;
+  final BoxDecoration? buttonDecoration;
+  final BoxDecoration? buttonHoverDecoration;
+  final TextStyle? iconStyle;
+  final TextStyle? iconHoverStyle;
 
   const FlowCanvasControlTheme({
-    required this.backgroundColor,
-    required this.buttonColor,
-    required this.buttonHoverColor,
-    required this.iconColor,
-    required this.iconHoverColor,
-    required this.dividerColor,
-    this.buttonSize = 32.0,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
-    this.shadows = const [],
-    this.padding = const EdgeInsets.all(4.0),
+    this.containerColor,
+    this.buttonColor,
+    this.buttonHoverColor,
+    this.iconColor,
+    this.iconHoverColor,
+    this.buttonSize,
+    this.buttonCornerRadius,
+    this.containerCornerRadius,
+    this.padding,
+    this.shadows,
+    this.containerDecoration,
+    this.buttonDecoration,
+    this.buttonHoverDecoration,
+    this.iconStyle,
+    this.iconHoverStyle,
   });
+
+  BoxDecoration get effectiveContainerDecoration {
+    if (containerDecoration != null) {
+      return containerDecoration!;
+    }
+    return BoxDecoration(
+      color: containerColor,
+      borderRadius: BorderRadius.circular(
+        containerCornerRadius ?? 8.0,
+      ),
+      boxShadow: shadows,
+    );
+  }
+
+  BoxDecoration get effectiveButtonDecoration {
+    if (buttonDecoration != null) {
+      return buttonDecoration!;
+    }
+    return BoxDecoration(
+      color: buttonColor,
+      borderRadius: BorderRadius.circular(
+        buttonCornerRadius ?? 8.0,
+      ),
+    );
+  }
+
+  BoxDecoration get effectiveButtonHoverDecoration {
+    if (buttonHoverDecoration != null) {
+      return buttonHoverDecoration!;
+    }
+    return BoxDecoration(
+      color: buttonHoverColor,
+      borderRadius: BorderRadius.circular(
+        buttonCornerRadius ?? 8.0,
+      ),
+    );
+  }
+
+  TextStyle get effectiveIconStyle {
+    if (iconStyle != null) {
+      return iconStyle!;
+    }
+    return TextStyle(
+      color: iconColor,
+      fontSize: (buttonSize ?? 32.0) * 0.6,
+    );
+  }
+
+  TextStyle get effectiveIconHoverStyle {
+    if (iconHoverStyle != null) {
+      return iconHoverStyle!;
+    }
+    return TextStyle(
+      color: iconHoverColor,
+      fontSize: (buttonSize ?? 32.0) * 0.6,
+    );
+  }
+
+  // Added effective padding getter for consistency
+  EdgeInsetsGeometry get effectivePadding {
+    return padding ?? const EdgeInsets.all(8.0);
+  }
 
   factory FlowCanvasControlTheme.light() {
     return FlowCanvasControlTheme(
-      backgroundColor: Colors.white,
+      containerColor: Colors.white,
       buttonColor: const Color(0xFFF9FAFB),
       buttonHoverColor: const Color(0xFFF3F4F6),
       iconColor: const Color(0xFF6B7280),
       iconHoverColor: const Color(0xFF374151),
-      dividerColor: const Color(0xFFE5E7EB),
       buttonSize: 32.0,
-      borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+      buttonCornerRadius: 8.0,
+      containerCornerRadius: 8.0,
+      padding: const EdgeInsets.all(8.0), // Added consistent padding
       shadows: [
         BoxShadow(
           color: Colors.black.withAlpha(25),
@@ -42,54 +116,65 @@ class FlowCanvasControlTheme {
           offset: const Offset(0, 4),
         ),
       ],
-      padding: const EdgeInsets.all(4.0),
     );
   }
 
   factory FlowCanvasControlTheme.dark() {
     return FlowCanvasControlTheme(
-      backgroundColor: const Color(0xFF1F2937),
+      containerColor: const Color(0xFF1F2937),
       buttonColor: const Color(0xFF374151),
       buttonHoverColor: const Color(0xFF4B5563),
-      iconColor: Colors.white,
+      iconColor: const Color(0xFF9CA3AF),
       iconHoverColor: const Color(0xFFF9FAFB),
-      dividerColor: const Color(0xFF374151),
       buttonSize: 32.0,
-      borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+      buttonCornerRadius: 8.0,
+      containerCornerRadius: 8.0,
+      padding: const EdgeInsets.all(8.0), // Added consistent padding
       shadows: [
         BoxShadow(
-          color: Colors.black.withAlpha(77),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
+          color: Colors.black.withAlpha(102),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
         ),
       ],
-      padding: const EdgeInsets.all(4.0),
     );
   }
 
   FlowCanvasControlTheme copyWith({
-    Color? backgroundColor,
+    Color? containerColor,
     Color? buttonColor,
     Color? buttonHoverColor,
     Color? iconColor,
     Color? iconHoverColor,
-    Color? dividerColor,
     double? buttonSize,
-    BorderRadius? borderRadius,
+    double? buttonCornerRadius,
+    double? containerCornerRadius,
+    EdgeInsetsGeometry? padding,
     List<BoxShadow>? shadows,
-    EdgeInsets? padding,
+    BoxDecoration? containerDecoration,
+    BoxDecoration? buttonDecoration,
+    BoxDecoration? buttonHoverDecoration,
+    TextStyle? iconStyle,
+    TextStyle? iconHoverStyle,
   }) {
     return FlowCanvasControlTheme(
-      backgroundColor: backgroundColor ?? this.backgroundColor,
+      containerColor: containerColor ?? this.containerColor,
       buttonColor: buttonColor ?? this.buttonColor,
       buttonHoverColor: buttonHoverColor ?? this.buttonHoverColor,
       iconColor: iconColor ?? this.iconColor,
       iconHoverColor: iconHoverColor ?? this.iconHoverColor,
-      dividerColor: dividerColor ?? this.dividerColor,
       buttonSize: buttonSize ?? this.buttonSize,
-      borderRadius: borderRadius ?? this.borderRadius,
-      shadows: shadows ?? this.shadows,
+      buttonCornerRadius: buttonCornerRadius ?? this.buttonCornerRadius,
+      containerCornerRadius:
+          containerCornerRadius ?? this.containerCornerRadius,
       padding: padding ?? this.padding,
+      shadows: shadows ?? this.shadows,
+      containerDecoration: containerDecoration ?? this.containerDecoration,
+      buttonDecoration: buttonDecoration ?? this.buttonDecoration,
+      buttonHoverDecoration:
+          buttonHoverDecoration ?? this.buttonHoverDecoration,
+      iconStyle: iconStyle ?? this.iconStyle,
+      iconHoverStyle: iconHoverStyle ?? this.iconHoverStyle,
     );
   }
 }

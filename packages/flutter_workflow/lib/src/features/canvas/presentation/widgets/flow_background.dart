@@ -1,32 +1,57 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/painters/background_painter.dart';
 import 'package:flutter_workflow/src/theme/components/background_theme.dart';
+import 'package:flutter_workflow/src/theme/theme_resolver/background_theme_resolver.dart';
 
-/// A widget that renders the canvas background using a high-performance shader.
 class FlowBackground extends StatelessWidget {
-  final ui.FragmentProgram shader;
-  final Matrix4 matrix;
-  final FlowCanvasBackgroundTheme theme;
+  final FlowCanvasFacade facade;
+  final FlowCanvasBackgroundTheme? backgroundTheme;
 
   const FlowBackground({
     super.key,
-    required this.shader,
-    required this.matrix,
-    required this.theme,
+    required this.facade,
+    this.backgroundTheme,
   });
+
+  Future<ui.FragmentProgram> _loadShader() {
+    // Use the path as registered in pubspec.yaml
+    return ui.FragmentProgram.fromAsset(
+      'packages/flutter_workflow/lib/src/features/canvas/presentation/shaders/background.frag',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = resolveBackgroundTheme(context, backgroundTheme);
+    final matrix = facade.transformationController.value;
+
     return Positioned.fill(
-      child: RepaintBoundary(
-        child: CustomPaint(
-          painter: BackgroundPainter(
-            program: shader,
-            matrix: matrix,
-            theme: theme,
-          ),
-        ),
+      child: FutureBuilder<ui.FragmentProgram>(
+        future: _loadShader(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            // Debug: Show error if shader loading fails
+            debugPrint('Shader loading error: ${snapshot.error}');
+            return Container(color: theme.backgroundColor);
+          }
+
+          if (!snapshot.hasData) {
+            // Show fallback background until the shader is ready
+            return Container(color: theme.backgroundColor);
+          }
+
+          return RepaintBoundary(
+            child: CustomPaint(
+              painter: BackgroundPainter(
+                program: snapshot.data!,
+                matrix: matrix,
+                theme: theme,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

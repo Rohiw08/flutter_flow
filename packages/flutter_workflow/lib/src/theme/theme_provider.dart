@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/theme/theme.dart' show FlowCanvasTheme;
 
-/// Provides FlowCanvas theme to the widget tree
 class FlowCanvasThemeProvider extends StatelessWidget {
-  final FlowCanvasTheme theme;
+  final FlowCanvasTheme? theme;
   final Widget child;
 
   const FlowCanvasThemeProvider({
     super.key,
-    required this.theme,
+    this.theme,
     required this.child,
   });
 
@@ -26,24 +25,32 @@ class FlowCanvasThemeProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveTheme = theme ?? _getDefaultTheme(context);
+
     return Theme(
       data: Theme.of(context).copyWith(
         extensions: [
-          ...Theme.of(context).extensions.values,
+          ...Theme.of(context)
+              .extensions
+              .values
+              .where((e) => e is! FlowCanvasTheme),
+          effectiveTheme,
         ],
       ),
       child: child,
     );
   }
 
+  static FlowCanvasTheme _getDefaultTheme(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark
+        ? FlowCanvasTheme.dark()
+        : FlowCanvasTheme.light();
+  }
+
   /// Get the FlowCanvas theme from the context
   static FlowCanvasTheme of(BuildContext context) {
     return Theme.of(context).extension<FlowCanvasTheme>() ??
-        FlowCanvasTheme.light();
-  }
-
-  /// Get the FlowCanvas theme from the context or null if not found
-  static FlowCanvasTheme? maybeOf(BuildContext context) {
-    return Theme.of(context).extension<FlowCanvasTheme>();
+        _getDefaultTheme(context);
   }
 }

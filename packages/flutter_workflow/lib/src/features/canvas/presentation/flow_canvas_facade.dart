@@ -95,14 +95,14 @@ class FlowCanvasFacade {
   }
 
   /// A combined stream for efficiently rebuilding the entire canvas painter.
-  Stream<FullCanvasState> get fullCanvasStream => Rx.combineLatest6(
+  Stream<FlowCanvasState> get fullCanvasStream => Rx.combineLatest6(
       nodesStream,
       edgesStream,
       connectionStream,
       selectionRectStream,
       zoomStream,
       isPanZoomLockedStream,
-      (a, b, c, d, e, f) => FullCanvasState(
+      (a, b, c, d, e, f) => FlowCanvasState(
           nodes: a,
           edges: b,
           connection: c,
@@ -114,23 +114,4 @@ class FlowCanvasFacade {
   void dispose() {
     _container.dispose();
   }
-}
-
-/// A helper class to bundle all painter-related state for a single stream emission.
-class FullCanvasState {
-  final List<FlowNode> nodes;
-  final List<FlowEdge> edges;
-  final FlowConnectionState? connection;
-  final Rect? selectionRect;
-  final double zoom;
-  final bool isPanZoomLocked;
-
-  FullCanvasState({
-    required this.nodes,
-    required this.edges,
-    required this.connection,
-    required this.selectionRect,
-    required this.zoom,
-    required this.isPanZoomLocked,
-  });
 }

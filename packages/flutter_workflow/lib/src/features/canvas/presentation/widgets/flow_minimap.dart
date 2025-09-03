@@ -18,7 +18,7 @@ class FlowMiniMap extends ConsumerWidget {
   final double width;
   final double height;
   final Alignment position;
-  final EdgeInsets margin;
+  final EdgeInsetsGeometry margin;
 
   // --- Theming & Overrides ---
   final FlowCanvasMiniMapTheme? theme;
@@ -36,7 +36,7 @@ class FlowMiniMap extends ConsumerWidget {
     this.width = 200,
     this.height = 150,
     this.position = Alignment.bottomRight,
-    this.margin = const EdgeInsets.all(20),
+    this.margin = const EdgeInsetsGeometry.all(20),
     this.theme,
     this.backgroundColor,
     this.nodeColor,

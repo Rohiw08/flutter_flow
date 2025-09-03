@@ -4,14 +4,14 @@ class EdgeLabelTheme {
   final TextStyle textStyle;
   final Color backgroundColor;
   final Color borderColor;
-  final EdgeInsets padding;
+  final EdgeInsetsGeometry padding;
   final BorderRadius borderRadius;
 
   const EdgeLabelTheme({
     required this.textStyle,
     required this.backgroundColor,
     required this.borderColor,
-    this.padding = const EdgeInsets.all(4.0),
+    this.padding = const EdgeInsetsGeometry.all(4.0),
     this.borderRadius = const BorderRadius.all(Radius.circular(4.0)),
   });
 
@@ -24,7 +24,7 @@ class EdgeLabelTheme {
       ),
       backgroundColor: Colors.white,
       borderColor: Color(0xFFE0E0E0),
-      padding: EdgeInsets.all(4.0),
+      padding: EdgeInsetsGeometry.all(4.0),
       borderRadius: BorderRadius.all(Radius.circular(4.0)),
     );
   }
@@ -38,7 +38,7 @@ class EdgeLabelTheme {
       ),
       backgroundColor: Color(0xFF2D2D2D),
       borderColor: Color(0xFF404040),
-      padding: EdgeInsets.all(4.0),
+      padding: EdgeInsetsGeometry.all(4.0),
       borderRadius: BorderRadius.all(Radius.circular(4.0)),
     );
   }

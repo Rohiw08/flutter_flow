@@ -92,7 +92,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         .reduce((value, element) => value.expandToInclude(element));
     if (bounds.width <= 0 || bounds.height <= 0) return;
 
-    const padding = EdgeInsets.all(50);
+    const padding = EdgeInsetsGeometry.all(50);
     final viewportSize = state.viewportSize!;
     final scaleX = (viewportSize.width - padding.horizontal) / bounds.width;
     final scaleY = (viewportSize.height - padding.vertical) / bounds.height;

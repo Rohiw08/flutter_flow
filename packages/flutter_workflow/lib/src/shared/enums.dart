@@ -6,7 +6,12 @@ enum HandleType { both, source, target }
 
 enum EdgePathType { bezier, step, straight }
 
-enum BackgroundVariant { none, dots, cross, grid }
+enum BackgroundVariant {
+  dots, // index 0
+  grid, // index 1
+  cross, // index 2
+  none, // index 3 (or wherever)
+}
 
 enum ControlPanelAlignment {
   topLeft,

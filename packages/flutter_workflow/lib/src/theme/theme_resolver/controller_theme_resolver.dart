@@ -1,35 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/theme_export.dart';
+import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/theme.dart';
 
 FlowCanvasControlTheme resolveControlTheme(
   BuildContext context,
   FlowCanvasControlTheme? controlsTheme, {
-  // Local property overrides
-  Color? backgroundColor,
+  Color? containerColor,
   Color? buttonColor,
   Color? buttonHoverColor,
   Color? iconColor,
   Color? iconHoverColor,
-  Color? dividerColor,
   double? buttonSize,
-  BorderRadius? borderRadius,
+  double? buttonCornerRadius,
+  double? containerCornerRadius,
+  EdgeInsetsGeometry? padding,
   List<BoxShadow>? shadows,
-  EdgeInsets? padding,
+  BoxDecoration? containerDecoration,
+  BoxDecoration? buttonDecoration,
+  BoxDecoration? buttonHoverDecoration,
+  TextStyle? iconStyle,
+  TextStyle? iconHoverStyle,
 }) {
-  // Start with the theme object if provided, otherwise fall back to the context theme.
-  final base = controlsTheme ?? context.flowCanvasTheme.controls;
+  // First, try to get the provided theme
+  FlowCanvasControlTheme base = controlsTheme ??
+      // Then try to get from Flutter theme extension (assuming FlowCanvasTheme exists)
+      _getThemeFromContext(context) ??
+      // Finally fall back to light theme
+      FlowCanvasControlTheme.light();
 
-  // Apply all local overrides on top of the base theme.
   return base.copyWith(
-    backgroundColor: backgroundColor,
+    containerColor: containerColor,
     buttonColor: buttonColor,
     buttonHoverColor: buttonHoverColor,
     iconColor: iconColor,
     iconHoverColor: iconHoverColor,
-    dividerColor: dividerColor,
     buttonSize: buttonSize,
-    borderRadius: borderRadius,
-    shadows: shadows,
+    buttonCornerRadius: buttonCornerRadius,
+    containerCornerRadius: containerCornerRadius,
     padding: padding,
+    shadows: shadows,
+    containerDecoration: containerDecoration,
+    buttonDecoration: buttonDecoration,
+    buttonHoverDecoration: buttonHoverDecoration,
+    iconStyle: iconStyle,
+    iconHoverStyle: iconHoverStyle,
   );
+}
+
+// Helper function to extract theme from context
+FlowCanvasControlTheme? _getThemeFromContext(BuildContext context) {
+  try {
+    // This assumes you have a FlowCanvasTheme extension
+    // You'll need to implement this based on your theme structure
+    final themeExtension = Theme.of(context).extension<FlowCanvasTheme>();
+    return themeExtension?.controls;
+  } catch (e) {
+    // If FlowCanvasTheme doesn't exist, fall back to brightness-based theme
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark
+        ? FlowCanvasControlTheme.dark()
+        : FlowCanvasControlTheme.light();
+  }
 }

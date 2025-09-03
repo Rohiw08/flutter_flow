@@ -1,11 +1,9 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/widgets/flow_background.dart';
 import 'package:flutter_workflow/src/theme/theme_export.dart';
 
 import 'painters/flow_painter.dart';
@@ -19,7 +17,6 @@ class FlowCanvas extends StatefulWidget {
   final EdgeRegistry edgeRegistry;
   final double minScale;
   final double maxScale;
-  final ui.FragmentProgram? backgroundShader;
 
   const FlowCanvas({
     super.key,
@@ -27,7 +24,6 @@ class FlowCanvas extends StatefulWidget {
     required this.edgeRegistry,
     this.minScale = 0.1,
     this.maxScale = 2.0,
-    this.backgroundShader,
   });
 
   @override
@@ -79,7 +75,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
           minScale: widget.minScale,
           maxScale: widget.maxScale,
           clipBehavior: Clip.none,
-          child: StreamBuilder<FullCanvasState>(
+          child: StreamBuilder<FlowCanvasState>(
             stream: facade.fullCanvasStream,
             builder: (context, snapshot) {
               final canvasState = snapshot.data;
@@ -96,12 +92,6 @@ class _FlowCanvasState extends State<FlowCanvas> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    if (widget.backgroundShader != null)
-                      FlowBackground(
-                        shader: widget.backgroundShader!,
-                        matrix: facade.transformationController.value,
-                        theme: theme.background,
-                      ),
                     CustomPaint(
                       size: Size.infinite,
                       painter: FlowPainter(

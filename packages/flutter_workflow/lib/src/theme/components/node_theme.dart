@@ -21,7 +21,7 @@ class FlowCanvasNodeTheme {
   final double? hoverBorderWidth;
   final Duration animationDuration;
   final Curve animationCurve;
-  final EdgeInsets defaultPadding;
+  final EdgeInsetsGeometry defaultPadding;
   final double? minWidth;
   final double? minHeight;
   final double? maxWidth;
@@ -46,7 +46,7 @@ class FlowCanvasNodeTheme {
     this.hoverBorderWidth,
     this.animationDuration = const Duration(milliseconds: 200),
     this.animationCurve = Curves.easeInOut,
-    this.defaultPadding = const EdgeInsets.all(12.0),
+    this.defaultPadding = const EdgeInsetsGeometry.all(12.0),
     this.minWidth,
     this.minHeight,
     this.maxWidth,
@@ -81,7 +81,7 @@ class FlowCanvasNodeTheme {
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      defaultPadding: const EdgeInsets.all(12.0),
+      defaultPadding: const EdgeInsetsGeometry.all(12.0),
       minWidth: 100.0,
       minHeight: 60.0,
     );
@@ -115,7 +115,7 @@ class FlowCanvasNodeTheme {
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      defaultPadding: const EdgeInsets.all(12.0),
+      defaultPadding: const EdgeInsetsGeometry.all(12.0),
       minWidth: 100.0,
       minHeight: 60.0,
     );
@@ -265,7 +265,7 @@ class NodeStyleData {
   final double borderRadius;
   final List<BoxShadow> shadows;
   final TextStyle textStyle;
-  final EdgeInsets padding;
+  final EdgeInsetsGeometry padding;
 
   const NodeStyleData({
     required this.backgroundColor,

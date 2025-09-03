@@ -24,5 +24,6 @@ dev_dependencies:
   rxdart: ^0.28.0
 
 flutter:
-  assets:
+  shaders:
     - lib/src/features/canvas/presentation/shaders/background.frag
+    # - lib/src/features/canvas/test_files/fragment_shader.frag

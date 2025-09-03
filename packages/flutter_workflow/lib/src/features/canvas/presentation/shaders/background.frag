@@ -1,48 +1,58 @@
-#version 460 core
-#include <flutter/runtime_effect.glsl>
+precision highp float;
 
-//_Resolution is a built-in from Flutter for the widget's size
-uniform vec2 uOffset;
-uniform float uScale;
-uniform vec4 uColor;
-uniform float uGap;
-// Pattern Type: 0=Dots, 1=Grid, 2=Cross
-uniform int uPatternType; 
-uniform float uDotRadius;
-uniform float uCrossSize;
+// Packed uniforms
+uniform vec2 u_resolution;     // (0,1)
+uniform mat4 u_matrix;         // (2..17) 
+uniform vec4 u_bgColor;        // (18..21)
+uniform vec4 u_patternColor;   // (22..25)
+uniform vec4 u_params;         // (26..29) gap, lineWidth, dotRadius, crossSize
+uniform vec2 u_config;         // (30,31) opacity, variant
 
 out vec4 fragColor;
 
+// Branchless pattern functions
+float dotPattern(vec2 pos, float gap, float radius) {
+    vec2 grid = mod(pos, gap) - gap * 0.5;
+    float dist = length(grid);
+    return smoothstep(radius + 1.0, radius, dist);
+}
+
+float gridPattern(vec2 pos, float gap, float lineWidth) {
+    vec2 grid = abs(mod(pos, gap) - gap * 0.5);
+    float lineX = step(grid.x, lineWidth);
+    float lineY = step(grid.y, lineWidth);
+    return clamp(lineX + lineY, 0.0, 1.0);
+}
+
+float crossPattern(vec2 pos, float gap, float lineWidth, float crossSize) {
+    vec2 grid = mod(pos, gap) - gap * 0.5;
+    float lineX = step(abs(grid.x), lineWidth) * step(abs(grid.y), crossSize);
+    float lineY = step(abs(grid.y), lineWidth) * step(abs(grid.x), crossSize);
+    return lineX + lineY;
+}
+
 void main() {
-    // Get pixel coordinate from Flutter
-    vec2 pos = FlutterGetPosition();
+    // Transform position once
+    vec2 pos = (u_matrix * vec4(gl_FragCoord.xy, 0.0, 1.0)).xy;
     
-    // Apply pan and zoom from the InteractiveViewer
-    pos = (pos + uOffset) / uScale;
+    // Unpack parameters
+    float gap = u_params.x;
+    float lineWidth = u_params.y;
+    float dotRadius = u_params.z;
+    float crossSize = u_params.w;
+    float opacity = u_config.x;
+    int variant = int(u_config.y + 0.5);
     
-    // Calculate grid coordinates
-    vec2 grid_coord = mod(pos, uGap);
+    // Branchless pattern selection (if you want single shader)
+    float dotMask = float(variant == 0);
+    float gridMask = float(variant == 1);
+    float crossMask = float(variant == 2);
     
-    float alpha = 0.0;
+    float pattern = dotMask * dotPattern(pos, gap, dotRadius) +
+                   gridMask * gridPattern(pos, gap, lineWidth) +
+                   crossMask * crossPattern(pos, gap, lineWidth, crossSize);
     
-    if (uPatternType == 0) { // Dots
-        vec2 center = vec2(uGap * 0.5);
-        float dist = distance(grid_coord, center);
-        alpha = 1.0 - smoothstep(uDotRadius - 1.0, uDotRadius, dist);
-    } else if (uPatternType == 1) { // Grid
-        float lineWidth = 1.0;
-        if (grid_coord.x < lineWidth || grid_coord.y < lineWidth) {
-            alpha = 1.0;
-        }
-    } else if (uPatternType == 2) { // Cross
-        vec2 center = vec2(uGap * 0.5);
-        float half_cross = uCrossSize * 0.5;
-        bool is_horizontal = abs(grid_coord.y - center.y) < 1.0 && abs(grid_coord.x - center.x) <= half_cross;
-        bool is_vertical = abs(grid_coord.x - center.x) < 1.0 && abs(grid_coord.y - center.y) <= half_cross;
-        if (is_horizontal || is_vertical) {
-            alpha = 1.0;
-        }
-    }
-    
-    fragColor = vec4(uColor.rgb, uColor.a * alpha);
+    // Mix colors
+    vec4 color = mix(u_bgColor, u_patternColor, pattern);
+    fragColor = vec4(color.rgb, color.a * opacity);
 }

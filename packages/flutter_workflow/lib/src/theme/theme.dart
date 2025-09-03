@@ -12,7 +12,7 @@ import 'package:flutter_workflow/src/theme/components/selection_theme.dart';
 
 /// The core theme for the Flow Canvas.
 @immutable
-class FlowCanvasTheme {
+class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   final FlowCanvasBackgroundTheme background;
   final FlowCanvasNodeTheme node;
   final FlowCanvasEdgeTheme edge;
@@ -62,6 +62,7 @@ class FlowCanvasTheme {
   }
 
   /// Creates a copy of this theme with the given fields replaced by the new values.
+  @override
   FlowCanvasTheme copyWith({
     FlowCanvasBackgroundTheme? background,
     FlowCanvasNodeTheme? node,
@@ -138,12 +139,22 @@ class FlowCanvasTheme {
         borderColor: colorScheme.primary,
       ),
       controls: FlowCanvasControlTheme(
-        backgroundColor: colorScheme.surfaceContainer,
+        containerColor: colorScheme.surfaceContainer,
         buttonColor: colorScheme.surfaceContainerHigh,
         buttonHoverColor: colorScheme.surfaceContainerHighest,
         iconColor: colorScheme.onSurfaceVariant,
         iconHoverColor: colorScheme.onSurface,
-        dividerColor: colorScheme.outlineVariant,
+        containerCornerRadius: 12.0,
+        buttonCornerRadius: 8.0,
+        buttonSize: 32.0,
+        padding: const EdgeInsets.all(5.0),
+        shadows: [
+          BoxShadow(
+            color: colorScheme.shadow.withAlpha(25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       miniMap: FlowCanvasMiniMapTheme(
         backgroundColor: colorScheme.surfaceContainerLow,
@@ -159,5 +170,15 @@ class FlowCanvasTheme {
         invalidTargetColor: colorScheme.error,
       ),
     );
+  }
+
+  @override
+  ThemeExtension<FlowCanvasTheme> lerp(
+      covariant ThemeExtension<FlowCanvasTheme>? other, double t) {
+    // TODO: implement lerp
+    if (other is! FlowCanvasTheme) return this;
+    // For now, just do a simple switch at t=0.5
+    // You can implement proper lerping later if needed
+    return t < 0.5 ? this : other;
   }
 }

@@ -1,19 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/theme_resolver/controller_button_inherited_theme.dart';
 
-/// A standardized button for use in control panels.
 class ControlButton extends StatefulWidget {
   final IconData icon;
   final String tooltip;
-  final VoidCallback onPressed;
-  final FlowCanvasControlTheme theme;
+  final VoidCallback? onPressed;
+
+  // Simple theme overrides
+  final Color? buttonColor;
+  final Color? buttonHoverColor;
+  final Color? iconColor;
+  final Color? iconHoverColor;
+  final double? buttonSize;
+  final double? cornerRadius;
+  final EdgeInsetsGeometry? padding; // Added missing padding parameter
+
+  // Advanced theme overrides
+  final BoxDecoration? buttonDecoration;
+  final BoxDecoration? buttonHoverDecoration;
+  final TextStyle? iconStyle;
+  final TextStyle? iconHoverStyle;
 
   const ControlButton({
     super.key,
     required this.icon,
     required this.tooltip,
-    required this.onPressed,
-    required this.theme,
+    this.onPressed,
+    // Theme overrides
+    this.buttonColor,
+    this.buttonHoverColor,
+    this.iconColor,
+    this.iconHoverColor,
+    this.buttonSize,
+    this.cornerRadius,
+    this.padding, // Added padding parameter
+    this.buttonDecoration,
+    this.buttonHoverDecoration,
+    this.iconStyle,
+    this.iconHoverStyle,
   });
 
   @override
@@ -25,30 +50,58 @@ class _ControlButtonState extends State<ControlButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        _isHovered ? widget.theme.buttonHoverColor : widget.theme.buttonColor;
-    final iconColor =
-        _isHovered ? widget.theme.iconHoverColor : widget.theme.iconColor;
+    final baseTheme = ControlThemeProvider.of(context);
+
+    // Provide fallback if no theme is found
+    final fallbackTheme = Theme.of(context).brightness == Brightness.dark
+        ? FlowCanvasControlTheme.dark()
+        : FlowCanvasControlTheme.light();
+
+    final theme = (baseTheme ?? fallbackTheme).copyWith(
+      buttonColor: widget.buttonColor,
+      buttonHoverColor: widget.buttonHoverColor,
+      iconColor: widget.iconColor,
+      iconHoverColor: widget.iconHoverColor,
+      buttonSize: widget.buttonSize,
+      buttonCornerRadius: widget.cornerRadius,
+      padding: widget.padding, // Use the padding parameter
+      buttonDecoration: widget.buttonDecoration,
+      buttonHoverDecoration: widget.buttonHoverDecoration,
+      iconStyle: widget.iconStyle,
+      iconHoverStyle: widget.iconHoverStyle,
+    );
+
+    // Use the effective theme properties
+    final currentDecoration = _isHovered
+        ? theme.effectiveButtonHoverDecoration
+        : theme.effectiveButtonDecoration;
+
+    final currentIconStyle =
+        _isHovered ? theme.effectiveIconHoverStyle : theme.effectiveIconStyle;
+
+    final isDisabled = widget.onPressed == null;
+    final cursor =
+        isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click;
 
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        cursor: SystemMouseCursors.click,
+        cursor: cursor,
         child: GestureDetector(
           onTap: widget.onPressed,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: widget.theme.borderRadius,
-            ),
-            child: Icon(
-              widget.icon,
-              color: iconColor,
-              size: widget.theme.buttonSize * 0.6,
+            width: theme.buttonSize,
+            height: theme.buttonSize,
+            decoration: currentDecoration,
+            child: Center(
+              child: Icon(
+                widget.icon,
+                size: currentIconStyle.fontSize,
+                color: currentIconStyle.color,
+              ),
             ),
           ),
         ),
