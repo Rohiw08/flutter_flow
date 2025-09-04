@@ -6,7 +6,7 @@ uniform mat4 u_matrix;         // (2..17)
 uniform vec4 u_bgColor;        // (18..21)
 uniform vec4 u_patternColor;   // (22..25)
 uniform vec4 u_params;         // (26..29) gap, lineWidth, dotRadius, crossSize
-uniform vec2 u_config;         // (30,31) opacity, variant
+uniform float u_variant;       // (30) variant
 
 out vec4 fragColor;
 
@@ -40,8 +40,7 @@ void main() {
     float lineWidth = u_params.y;
     float dotRadius = u_params.z;
     float crossSize = u_params.w;
-    float opacity = u_config.x;
-    int variant = int(u_config.y + 0.5);
+    int variant = int(u_variant + 0.5);
     
     // Branchless pattern selection (if you want single shader)
     float dotMask = float(variant == 0);
@@ -52,7 +51,6 @@ void main() {
                    gridMask * gridPattern(pos, gap, lineWidth) +
                    crossMask * crossPattern(pos, gap, lineWidth, crossSize);
     
-    // Mix colors
-    vec4 color = mix(u_bgColor, u_patternColor, pattern);
-    fragColor = vec4(color.rgb, color.a * opacity);
+    // Mix colors (no opacity multiplication)
+    fragColor = mix(u_bgColor, u_patternColor, pattern);
 }

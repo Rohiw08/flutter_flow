@@ -24,7 +24,6 @@ class FlowCanvasThemeBuilder {
     Gradient? gradient,
     Offset? patternOffset,
     BlendMode? blendMode,
-    double? opacity,
     List<Color>? alternateColors,
   }) {
     _theme = _theme.copyWith(
@@ -40,7 +39,6 @@ class FlowCanvasThemeBuilder {
         gradient: gradient,
         patternOffset: patternOffset,
         blendMode: blendMode,
-        opacity: opacity,
         alternateColors: alternateColors,
       ),
     );

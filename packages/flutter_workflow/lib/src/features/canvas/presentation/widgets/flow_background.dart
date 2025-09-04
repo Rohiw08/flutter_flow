@@ -16,7 +16,6 @@ class FlowBackground extends StatelessWidget {
   });
 
   Future<ui.FragmentProgram> _loadShader() {
-    // Use the path as registered in pubspec.yaml
     return ui.FragmentProgram.fromAsset(
       'packages/flutter_workflow/lib/src/features/canvas/presentation/shaders/background.frag',
     );

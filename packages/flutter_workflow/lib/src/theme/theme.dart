@@ -93,7 +93,6 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         backgroundColor: colorScheme.surface,
         variant: BackgroundVariant.dots,
         patternColor: colorScheme.outline.withAlpha(isDark ? 60 : 40),
-        opacity: 1.0,
         fadeOnZoom: true,
       ),
       node: FlowCanvasNodeTheme(

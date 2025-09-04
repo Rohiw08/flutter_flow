@@ -51,7 +51,14 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   /// Called by the UI to inform the controller of its current size.
   void setViewportSize(Size size) {
     if (state.viewportSize == size) return;
-    // Update the state with the new size and the resulting viewport rectangle.
+
+    // If this is the first time the size is set, center the view
+    if (state.viewportSize == null) {
+      final initialMatrix = Matrix4.identity()
+        ..translate(size.width / 2, size.height / 2);
+      transformationController.value = initialMatrix;
+    }
+
     state = state.copyWith(
       viewportSize: size,
       viewport: _calculateViewport(size),

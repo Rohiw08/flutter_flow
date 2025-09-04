@@ -41,7 +41,7 @@ class FlowCanvasControls extends StatelessWidget {
     this.orientation = Axis.vertical,
     this.children = const [],
     this.spacing = 6.0,
-    this.padding = const EdgeInsets.all(8.0),
+    this.padding = const EdgeInsets.all(5.0),
     this.controlsTheme,
     this.containerColor,
     this.buttonColor,

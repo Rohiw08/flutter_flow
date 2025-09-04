@@ -17,6 +17,7 @@ class FlowCanvas extends StatefulWidget {
   final EdgeRegistry edgeRegistry;
   final double minScale;
   final double maxScale;
+  final List<Widget> children;
 
   const FlowCanvas({
     super.key,
@@ -24,6 +25,7 @@ class FlowCanvas extends StatefulWidget {
     required this.edgeRegistry,
     this.minScale = 0.1,
     this.maxScale = 2.0,
+    this.children = const [],
   });
 
   @override
@@ -52,65 +54,68 @@ class _FlowCanvasState extends State<FlowCanvas> {
   Widget build(BuildContext context) {
     final theme = FlowCanvasThemeProvider.of(context);
 
-    return Listener(
-      onPointerMove: (details) {
-        // Pass pointer move events to the facade for connection line updates
-        facade.updateConnection(details.localPosition);
-      },
-      child: GestureDetector(
-        onPanStart: (details) {
-          // Start box selection when panning on the canvas background
-          facade.startSelection(details.localPosition);
-        },
-        onPanUpdate: (details) {
-          facade.updateSelection(details.localPosition);
-        },
-        onPanEnd: (details) {
-          facade.endSelection();
-        },
-        child: InteractiveViewer(
-          transformationController: facade.transformationController,
-          constrained: false,
-          boundaryMargin: const EdgeInsets.all(double.infinity),
-          minScale: widget.minScale,
-          maxScale: widget.maxScale,
-          clipBehavior: Clip.none,
-          child: StreamBuilder<FlowCanvasState>(
-            stream: facade.fullCanvasStream,
-            builder: (context, snapshot) {
-              final canvasState = snapshot.data;
-              if (canvasState == null) {
-                return SizedBox(
-                  width: facade.state.canvasWidth,
-                  height: facade.state.canvasHeight,
-                );
-              }
+    return Stack(
+      children: [
+        Listener(
+          onPointerMove: (details) {
+            facade.updateConnection(details.localPosition);
+          },
+          child: GestureDetector(
+            onPanStart: (details) =>
+                facade.startSelection(details.localPosition),
+            onPanUpdate: (details) =>
+                facade.updateSelection(details.localPosition),
+            onPanEnd: (details) => facade.endSelection(),
+            child: InteractiveViewer(
+              transformationController: facade.transformationController,
+              constrained: false,
+              boundaryMargin: const EdgeInsets.all(double.infinity),
+              minScale: widget.minScale,
+              maxScale: widget.maxScale,
+              clipBehavior: Clip.none,
+              child: StreamBuilder<FlowCanvasState>(
+                stream: facade.fullCanvasStream,
+                builder: (context, snapshot) {
+                  final canvasState = snapshot.data;
+                  if (canvasState == null) {
+                    return SizedBox(
+                      width: facade.state.canvasWidth,
+                      height: facade.state.canvasHeight,
+                    );
+                  }
 
-              return SizedBox(
-                width: facade.state.canvasWidth,
-                height: facade.state.canvasHeight,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CustomPaint(
-                      size: Size.infinite,
-                      painter: FlowPainter(
-                        nodes: canvasState.nodes,
-                        edges: canvasState.edges,
-                        connection: canvasState.connection,
-                        selectionRect: canvasState.selectionRect,
-                        theme: theme,
-                        zoom: canvasState.zoom,
-                      ),
+                  return SizedBox(
+                    width: facade.state.canvasWidth,
+                    height: facade.state.canvasHeight,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        if (widget.children.isNotEmpty)
+                          widget.children[0], // Background
+                        CustomPaint(
+                          size: Size.infinite,
+                          painter: FlowPainter(
+                            nodes: canvasState.nodes,
+                            edges: canvasState.edges,
+                            connection: canvasState.connection,
+                            selectionRect: canvasState.selectionRect,
+                            theme: theme,
+                            zoom: canvasState.zoom,
+                          ),
+                        ),
+                        ...canvasState.nodes.map((node) => _buildNode(node)),
+                      ],
                     ),
-                    ...canvasState.nodes.map((node) => _buildNode(node)),
-                  ],
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
         ),
-      ),
+
+        // Overlay UI (NOT transformed by InteractiveViewer)
+        if (widget.children.length > 1) ...widget.children.sublist(1),
+      ],
     );
   }
 

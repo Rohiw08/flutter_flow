@@ -18,7 +18,6 @@ FlowCanvasBackgroundTheme resolveBackgroundTheme(
   Gradient? gradient,
   Offset? patternOffset,
   BlendMode? blendMode,
-  double? opacity,
   List<Color>? alternateColors,
 }) {
   // Start with the theme object if provided, otherwise fall back to the context theme.
@@ -37,7 +36,6 @@ FlowCanvasBackgroundTheme resolveBackgroundTheme(
     gradient: gradient,
     patternOffset: patternOffset,
     blendMode: blendMode,
-    opacity: opacity,
     alternateColors: alternateColors,
   );
 }

@@ -102,38 +102,25 @@ class _CanvasScreenState extends State<CanvasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      body: FlowCanvas(
+        nodeRegistry: nodeRegistry,
+        edgeRegistry: edgeRegistry,
         children: [
           FlowBackground(
             facade: facade,
-            backgroundTheme: const FlowCanvasBackgroundTheme(
-              backgroundColor: Colors.white,
-              variant: BackgroundVariant.dots,
-              patternColor: Colors.black,
-              dotRadius: 1.0,
-              gap: 30.0,
-              opacity: 0.3,
+            backgroundTheme: FlowCanvasBackgroundTheme.light(),
+          ),
+          FlowMiniMap(facade: facade),
+          Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: FlowCanvasControls(
+                facade: facade,
+                containerCornerRadius: 12,
+              ),
             ),
           ),
-          // // The main canvas widget
-          // FlowCanvas(
-          //   nodeRegistry: nodeRegistry,
-          //   edgeRegistry: edgeRegistry,
-          // ),
-
-          // // Peripheral UI widgets that interact with the canvas via the facade
-          // FlowMiniMap(facade: facade),
-
-          // Padding(
-          //   padding: const EdgeInsets.all(18.0),
-          //   child: Align(
-          //     alignment: Alignment.bottomLeft,
-          //     child: FlowCanvasControls(
-          //       facade: facade,
-          //       containerCornerRadius: 12,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
       // floatingActionButton: FloatingActionButton(

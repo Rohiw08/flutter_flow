@@ -57,7 +57,6 @@ class BackgroundPainter extends CustomPainter {
     shader.setFloat(index++, theme.lineWidth);
     shader.setFloat(index++, theme.dotRadius ?? 2.0);
     shader.setFloat(index++, theme.crossSize ?? 6.0);
-    shader.setFloat(index++, theme.opacity);
     shader.setFloat(index++, theme.variant.index.toDouble());
 
     return shader;

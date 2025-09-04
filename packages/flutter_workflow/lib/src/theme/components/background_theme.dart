@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
@@ -17,7 +16,6 @@ class FlowCanvasBackgroundTheme
   final Gradient? gradient;
   final Offset patternOffset;
   final BlendMode? blendMode;
-  final double opacity;
   final List<Color>? alternateColors;
 
   const FlowCanvasBackgroundTheme({
@@ -32,7 +30,6 @@ class FlowCanvasBackgroundTheme
     this.gradient,
     this.patternOffset = Offset.zero,
     this.blendMode,
-    this.opacity = 1.0,
     this.alternateColors,
   });
 
@@ -40,11 +37,10 @@ class FlowCanvasBackgroundTheme
     return const FlowCanvasBackgroundTheme(
       backgroundColor: Color(0xFFFAFAFA),
       variant: BackgroundVariant.dots,
-      patternColor: Color(0xFFE0E0E0),
-      gap: 30.0,
-      lineWidth: 1.0,
+      patternColor: Color.fromARGB(75, 0, 0, 0),
+      dotRadius: 0.75,
+      gap: 25.0,
       fadeOnZoom: true,
-      opacity: 1.0,
     );
   }
 
@@ -53,10 +49,9 @@ class FlowCanvasBackgroundTheme
       backgroundColor: Color(0xFF1A1A1A),
       variant: BackgroundVariant.dots,
       patternColor: Color(0xFF404040),
-      gap: 30.0,
-      lineWidth: 1.0,
+      dotRadius: 0.75,
+      gap: 25.0,
       fadeOnZoom: true,
-      opacity: 1.0,
     );
   }
 
@@ -88,7 +83,6 @@ class FlowCanvasBackgroundTheme
     Gradient? gradient,
     Offset? patternOffset,
     BlendMode? blendMode,
-    double? opacity,
     List<Color>? alternateColors,
   }) {
     return FlowCanvasBackgroundTheme(
@@ -103,7 +97,6 @@ class FlowCanvasBackgroundTheme
       gradient: gradient ?? this.gradient,
       patternOffset: patternOffset ?? this.patternOffset,
       blendMode: blendMode ?? this.blendMode,
-      opacity: opacity ?? this.opacity,
       alternateColors: alternateColors ?? this.alternateColors,
     );
   }
@@ -125,45 +118,8 @@ class FlowCanvasBackgroundTheme
       patternOffset:
           Offset.lerp(patternOffset, other.patternOffset, t) ?? Offset.zero,
       blendMode: t < 0.5 ? blendMode : other.blendMode,
-      opacity: lerpDouble(opacity, other.opacity, t)!,
       alternateColors:
           t < 0.5 ? alternateColors : other.alternateColors, // Simplified
     );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is FlowCanvasBackgroundTheme &&
-        backgroundColor == other.backgroundColor &&
-        variant == other.variant &&
-        patternColor == other.patternColor &&
-        gap == other.gap &&
-        lineWidth == other.lineWidth &&
-        dotRadius == other.dotRadius &&
-        crossSize == other.crossSize &&
-        fadeOnZoom == other.fadeOnZoom &&
-        gradient == other.gradient &&
-        patternOffset == other.patternOffset &&
-        blendMode == other.blendMode &&
-        opacity == other.opacity &&
-        listEquals(alternateColors, other.alternateColors);
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        backgroundColor,
-        variant,
-        patternColor,
-        gap,
-        lineWidth,
-        dotRadius,
-        crossSize,
-        fadeOnZoom,
-        gradient,
-        patternOffset,
-        blendMode,
-        opacity,
-        Object.hashAll(alternateColors ?? []),
-      );
 }
