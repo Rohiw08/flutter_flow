@@ -35,10 +35,8 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   }
 
   void _onTransformChanged() {
-    // When the InteractiveViewer transform changes, update the zoom and viewport
-    // in our immutable state. This allows other parts of the UI (like the minimap)
-    // to react to viewport changes.
     state = state.copyWith(
+      matrix: transformationController.value,
       zoom: transformationController.value.getMaxScaleOnAxis(),
       viewport: state.viewportSize != null
           ? _calculateViewport(state.viewportSize!)
@@ -52,11 +50,18 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void setViewportSize(Size size) {
     if (state.viewportSize == size) return;
 
-    // If this is the first time the size is set, center the view
     if (state.viewportSize == null) {
-      final initialMatrix = Matrix4.identity()
-        ..translate(size.width / 2, size.height / 2);
-      transformationController.value = initialMatrix;
+      // This is the first time the size is set, so we correctly center the view.
+      final canvasCenter = state.canvasCenter;
+      const initialScale = 1.0;
+
+      // Calculate the translation needed to move the canvas center to the viewport center
+      final translateX = -canvasCenter.dx * initialScale + size.width / 2;
+      final translateY = -canvasCenter.dy * initialScale + size.height / 2;
+
+      transformationController.value = Matrix4.identity()
+        ..translate(translateX, translateY)
+        ..scale(initialScale);
     }
 
     state = state.copyWith(
@@ -145,6 +150,11 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       ..scale(currentScale);
   }
 
+  void centerView() {
+    if (state.isPanZoomLocked || state.viewportSize == null) return;
+    centerOnPosition(state.canvasCenter);
+  }
+
   void togglePanZoomLock() {
     state = state.copyWith(isPanZoomLocked: !state.isPanZoomLocked);
   }
@@ -155,6 +165,9 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       debugPrint('Error: Node type "${node.type}" is not registered.');
       return;
     }
+    final newNodePosition =
+        state.coordinateTransform.logicalToCanvas(node.position);
+    node = node.copyWith(position: newNodePosition);
     final intermediateState =
         _ref.read(nodeServiceProvider).addNode(state, node);
     final newHash = _ref
@@ -170,6 +183,15 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         .read(handleServiceProvider)
         .buildSpatialHash(intermediateState.nodes);
     state = intermediateState.copyWith(spatialHash: newHash);
+  }
+
+  Offset? getNodeLogicalPosition(String nodeId) {
+    final node = state.nodes.cast<FlowNode?>().firstWhere(
+          (n) => n?.id == nodeId,
+          orElse: () => null,
+        );
+    if (node == null) return null;
+    return state.coordinateTransform.canvasToLogical(node.position);
   }
 
   void dragSelectedNodes(Offset delta) {

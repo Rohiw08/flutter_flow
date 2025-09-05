@@ -11,23 +11,27 @@ import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_regi
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
 import 'package:flutter_workflow/src/shared/providers.dart';
 // ignore: depend_on_referenced_packages
-import 'package:rxdart/rxdart.dart';
-// ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart';
 
-/// The public-facing API for interacting with a FlowCanvas.
-///
-/// This class provides a clean, un-opinionated API that hides the internal
-/// state management implementation (Riverpod).
 class FlowCanvasFacade {
   final ProviderContainer _container;
   final ({NodeRegistry nodeRegistry, EdgeRegistry edgeRegistry}) _registries;
+
+  // StreamControllers for managing combined streams
+  StreamController<List<Object?>>? _nodesAndViewportController;
+  StreamSubscription? _nodesSubscription;
+  StreamSubscription? _viewportSubscription;
+
+  List<FlowNode>? _lastNodes;
+  Rect? _lastViewport;
 
   FlowCanvasFacade({
     required NodeRegistry nodeRegistry,
     required EdgeRegistry edgeRegistry,
   })  : _registries = (nodeRegistry: nodeRegistry, edgeRegistry: edgeRegistry),
-        _container = ProviderContainer();
+        _container = ProviderContainer() {
+    _initializeCombinedStreams();
+  }
 
   // --- INTERNAL GETTERS ---
   StateNotifierProviderFamily<FlowCanvasController, FlowCanvasState,
@@ -50,6 +54,7 @@ class FlowCanvasFacade {
   void removeSelectedNodes() => _controller.removeSelectedNodes();
   void deselectAll() => _controller.deselectAll();
   void fitView(Size viewportSize) => _controller.fitView();
+  void centerView() => _controller.centerView();
   void pan(Offset delta) => _controller.pan(delta);
   void zoom(double delta) => _controller.zoom(delta);
   void centerOnPosition(Offset canvasPosition) =>
@@ -91,27 +96,39 @@ class FlowCanvasFacade {
   }
 
   Stream<List<Object?>> get nodesAndViewportStream {
-    return Rx.combineLatest2(nodesStream, viewportStream, (a, b) => [a, b]);
+    return _nodesAndViewportController!.stream;
   }
 
-  /// A combined stream for efficiently rebuilding the entire canvas painter.
-  Stream<FlowCanvasState> get fullCanvasStream => Rx.combineLatest6(
-      nodesStream,
-      edgesStream,
-      connectionStream,
-      selectionRectStream,
-      zoomStream,
-      isPanZoomLockedStream,
-      (a, b, c, d, e, f) => FlowCanvasState(
-          nodes: a,
-          edges: b,
-          connection: c,
-          selectionRect: d,
-          zoom: e,
-          isPanZoomLocked: f));
+  Stream<FlowCanvasState> get fullCanvasStream => _controller.stream.distinct();
+
+  // --- PRIVATE METHODS ---
+  void _initializeCombinedStreams() {
+    _nodesAndViewportController = StreamController<List<Object?>>.broadcast();
+
+    _nodesSubscription = nodesStream.listen((nodes) {
+      _lastNodes = nodes;
+      _emitCombinedUpdate();
+    });
+
+    _viewportSubscription = viewportStream.listen((viewport) {
+      _lastViewport = viewport;
+      _emitCombinedUpdate();
+    });
+  }
+
+  void _emitCombinedUpdate() {
+    if (_lastNodes != null &&
+        _nodesAndViewportController != null &&
+        !_nodesAndViewportController!.isClosed) {
+      _nodesAndViewportController!.add([_lastNodes!, _lastViewport]);
+    }
+  }
 
   /// Disposes the internal ProviderContainer to prevent memory leaks.
   void dispose() {
+    _nodesSubscription?.cancel();
+    _viewportSubscription?.cancel();
+    _nodesAndViewportController?.close();
     _container.dispose();
   }
 }

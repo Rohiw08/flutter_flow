@@ -4,6 +4,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/widgets/flow_background.dart';
 import 'package:flutter_workflow/src/theme/theme_export.dart';
 
 import 'painters/flow_painter.dart';
@@ -17,7 +18,7 @@ class FlowCanvas extends StatefulWidget {
   final EdgeRegistry edgeRegistry;
   final double minScale;
   final double maxScale;
-  final List<Widget> children;
+  final List<Widget> overlays;
 
   const FlowCanvas({
     super.key,
@@ -25,7 +26,7 @@ class FlowCanvas extends StatefulWidget {
     required this.edgeRegistry,
     this.minScale = 0.1,
     this.maxScale = 2.0,
-    this.children = const [],
+    this.overlays = const [],
   });
 
   @override
@@ -42,6 +43,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
       nodeRegistry: widget.nodeRegistry,
       edgeRegistry: widget.edgeRegistry,
     );
+    facade.centerView();
   }
 
   @override
@@ -77,7 +79,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
                 stream: facade.fullCanvasStream,
                 builder: (context, snapshot) {
                   final canvasState = snapshot.data;
-                  if (canvasState == null) {
+                  if (canvasState == null || canvasState.matrix == null) {
                     return SizedBox(
                       width: facade.state.canvasWidth,
                       height: facade.state.canvasHeight,
@@ -90,8 +92,10 @@ class _FlowCanvasState extends State<FlowCanvas> {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        if (widget.children.isNotEmpty)
-                          widget.children[0], // Background
+                        if (widget.overlays.isNotEmpty &&
+                            widget.overlays[0] is FlowBackground)
+                          widget.overlays[0],
+                        // Background
                         CustomPaint(
                           size: Size.infinite,
                           painter: FlowPainter(
@@ -114,7 +118,10 @@ class _FlowCanvasState extends State<FlowCanvas> {
         ),
 
         // Overlay UI (NOT transformed by InteractiveViewer)
-        if (widget.children.length > 1) ...widget.children.sublist(1),
+        if (widget.overlays.length > 1 && widget.overlays[0] is FlowBackground)
+          ...widget.overlays.sublist(1)
+        else
+          ...widget.overlays
       ],
     );
   }

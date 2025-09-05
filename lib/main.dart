@@ -105,7 +105,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
       body: FlowCanvas(
         nodeRegistry: nodeRegistry,
         edgeRegistry: edgeRegistry,
-        children: [
+        overlays: [
           FlowBackground(
             facade: facade,
             backgroundTheme: FlowCanvasBackgroundTheme.light(),
@@ -123,31 +123,6 @@ class _CanvasScreenState extends State<CanvasScreen> {
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     // Example of interacting with the canvas from external buttons
-      //     facade.addNode(
-      //       FlowNode.create(
-      //           position: const Offset(250, 100),
-      //           size: const Size(150, 80),
-      //           type: 'custom_node',
-      //           data: {
-      //             'label': 'New Node'
-      //           },
-      //           handles: const [
-      //             NodeHandle(
-      //                 id: 'in1',
-      //                 type: HandleType.target,
-      //                 position: Offset(0, 40)),
-      //             NodeHandle(
-      //                 id: 'out1',
-      //                 type: HandleType.source,
-      //                 position: Offset(150, 40)),
-      //           ]),
-      //     );
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
     );
   }
 }

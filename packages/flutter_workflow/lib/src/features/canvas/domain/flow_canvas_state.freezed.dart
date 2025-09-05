@@ -30,7 +30,8 @@ mixin _$FlowCanvasState {
   bool get enableKeyboardShortcuts;
   bool get enableBoxSelection;
   double get canvasWidth;
-  double get canvasHeight;
+  double get canvasHeight; // Controller
+  Matrix4? get matrix;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -74,7 +75,8 @@ mixin _$FlowCanvasState {
             (identical(other.canvasWidth, canvasWidth) ||
                 other.canvasWidth == canvasWidth) &&
             (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight));
+                other.canvasHeight == canvasHeight) &&
+            const DeepCollectionEquality().equals(other.matrix, matrix));
   }
 
   @override
@@ -95,11 +97,12 @@ mixin _$FlowCanvasState {
       enableKeyboardShortcuts,
       enableBoxSelection,
       canvasWidth,
-      canvasHeight);
+      canvasHeight,
+      const DeepCollectionEquality().hash(matrix));
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, matrix: $matrix)';
   }
 }
 
@@ -125,7 +128,8 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       bool enableKeyboardShortcuts,
       bool enableBoxSelection,
       double canvasWidth,
-      double canvasHeight});
+      double canvasHeight,
+      Matrix4? matrix});
 
   $FlowConnectionStateCopyWith<$Res>? get connection;
 }
@@ -159,6 +163,7 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? enableBoxSelection = null,
     Object? canvasWidth = null,
     Object? canvasHeight = null,
+    Object? matrix = freezed,
   }) {
     return _then(_self.copyWith(
       nodes: null == nodes
@@ -225,6 +230,10 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.canvasHeight
           : canvasHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      matrix: freezed == matrix
+          ? _self.matrix
+          : matrix // ignore: cast_nullable_to_non_nullable
+              as Matrix4?,
     ));
   }
 
@@ -352,7 +361,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)?
+            double canvasHeight,
+            Matrix4? matrix)?
         $default, {
     required TResult orElse(),
   }) {
@@ -375,7 +385,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.matrix);
       case _:
         return orElse();
     }
@@ -412,7 +423,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)
+            double canvasHeight,
+            Matrix4? matrix)
         $default,
   ) {
     final _that = this;
@@ -434,7 +446,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.matrix);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -470,7 +483,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)?
+            double canvasHeight,
+            Matrix4? matrix)?
         $default,
   ) {
     final _that = this;
@@ -492,7 +506,8 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.matrix);
       case _:
         return null;
     }
@@ -518,7 +533,8 @@ class _FlowCanvasState implements FlowCanvasState {
       this.enableKeyboardShortcuts = true,
       this.enableBoxSelection = true,
       this.canvasWidth = 50000,
-      this.canvasHeight = 50000})
+      this.canvasHeight = 50000,
+      this.matrix})
       : _nodes = nodes,
         _edges = edges,
         _selectedNodes = selectedNodes,
@@ -597,6 +613,9 @@ class _FlowCanvasState implements FlowCanvasState {
   @override
   @JsonKey()
   final double canvasHeight;
+// Controller
+  @override
+  final Matrix4? matrix;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -640,7 +659,8 @@ class _FlowCanvasState implements FlowCanvasState {
             (identical(other.canvasWidth, canvasWidth) ||
                 other.canvasWidth == canvasWidth) &&
             (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight));
+                other.canvasHeight == canvasHeight) &&
+            const DeepCollectionEquality().equals(other.matrix, matrix));
   }
 
   @override
@@ -661,11 +681,12 @@ class _FlowCanvasState implements FlowCanvasState {
       enableKeyboardShortcuts,
       enableBoxSelection,
       canvasWidth,
-      canvasHeight);
+      canvasHeight,
+      const DeepCollectionEquality().hash(matrix));
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, matrix: $matrix)';
   }
 }
 
@@ -693,7 +714,8 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       bool enableKeyboardShortcuts,
       bool enableBoxSelection,
       double canvasWidth,
-      double canvasHeight});
+      double canvasHeight,
+      Matrix4? matrix});
 
   @override
   $FlowConnectionStateCopyWith<$Res>? get connection;
@@ -728,6 +750,7 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? enableBoxSelection = null,
     Object? canvasWidth = null,
     Object? canvasHeight = null,
+    Object? matrix = freezed,
   }) {
     return _then(_FlowCanvasState(
       nodes: null == nodes
@@ -794,6 +817,10 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.canvasHeight
           : canvasHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      matrix: freezed == matrix
+          ? _self.matrix
+          : matrix // ignore: cast_nullable_to_non_nullable
+              as Matrix4?,
     ));
   }
 

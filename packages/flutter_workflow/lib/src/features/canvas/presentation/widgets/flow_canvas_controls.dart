@@ -117,10 +117,11 @@ class FlowCanvasControls extends StatelessWidget {
           icon: Icons.fit_screen,
           tooltip: 'Fit View',
           onPressed: () {
-            final box = context.findRenderObject() as RenderBox?;
-            if (box != null) {
-              facade.fitView(box.size);
-            }
+            facade.centerView();
+            // final box = context.findRenderObject() as RenderBox?;
+            // if (box != null) {
+            //   facade.fitView(box.size);
+            // }
           },
         ),
       if (showLock)
