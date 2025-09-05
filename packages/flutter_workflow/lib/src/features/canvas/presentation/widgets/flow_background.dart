@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/painters/background_painter.dart';
 import 'package:flutter_workflow/src/theme/components/background_theme.dart';
@@ -23,6 +22,7 @@ class FlowBackground extends StatefulWidget {
 class _FlowBackgroundState extends State<FlowBackground> {
   ui.FragmentProgram? _program;
   bool _isLoadingShader = false;
+  bool _isShaderLoaded = false;
 
   @override
   void initState() {
@@ -57,10 +57,17 @@ class _FlowBackgroundState extends State<FlowBackground> {
       if (mounted) {
         setState(() {
           _program = program;
+          _isShaderLoaded = true;
         });
       }
     } catch (e) {
       debugPrint('Shader loading error: $e');
+      // Even if shader fails to load, mark as "loaded" to show fallback
+      if (mounted) {
+        setState(() {
+          _isShaderLoaded = true;
+        });
+      }
     } finally {
       _isLoadingShader = false;
     }
@@ -70,13 +77,22 @@ class _FlowBackgroundState extends State<FlowBackground> {
   Widget build(BuildContext context) {
     final theme = resolveBackgroundTheme(context, widget.backgroundTheme);
 
-    if (_program == null) {
+    // Get the transformation matrix, with a fallback to identity matrix
+    final matrix = widget.facade.state.matrix ?? Matrix4.identity();
+
+    // Show loading state while shader is loading
+    if (!_isShaderLoaded) {
       return Positioned.fill(
         child: Container(color: theme.backgroundColor),
       );
     }
 
-    final matrix = widget.facade.transformationController.value;
+    // If shader failed to load, show fallback background
+    if (_program == null) {
+      return Positioned.fill(
+        child: Container(color: theme.backgroundColor),
+      );
+    }
 
     return Positioned.fill(
       child: RepaintBoundary(
@@ -86,6 +102,8 @@ class _FlowBackgroundState extends State<FlowBackground> {
             matrix: matrix,
             theme: theme,
           ),
+          // Force the painter to cover the entire area
+          size: Size.infinite,
         ),
       ),
     );

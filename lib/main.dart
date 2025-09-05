@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/flutter_workflow.dart';
@@ -33,9 +32,6 @@ class _CanvasScreenState extends State<CanvasScreen> {
   late final FlowCanvasFacade facade;
   late final NodeRegistry nodeRegistry;
   late final EdgeRegistry edgeRegistry;
-  ui.FragmentProgram? backgroundShader;
-
-  // In lib/main.dart
 
   @override
   void initState() {

@@ -148,6 +148,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       ..translate(-canvasPosition.dx * currentScale + viewportSize.width / 2,
           -canvasPosition.dy * currentScale + viewportSize.height / 2)
       ..scale(currentScale);
+    _onTransformChanged();
   }
 
   void centerView() {

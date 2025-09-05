@@ -9,10 +9,6 @@ import 'package:flutter_workflow/src/theme/theme_export.dart';
 
 import 'painters/flow_painter.dart';
 
-/// The main widget that displays the interactive canvas.
-///
-/// This widget is responsible for creating and managing the `FlowCanvasFacade`
-/// and building the UI based on the state streams from the facade.
 class FlowCanvas extends StatefulWidget {
   final NodeRegistry nodeRegistry;
   final EdgeRegistry edgeRegistry;
@@ -43,7 +39,6 @@ class _FlowCanvasState extends State<FlowCanvas> {
       nodeRegistry: widget.nodeRegistry,
       edgeRegistry: widget.edgeRegistry,
     );
-    facade.centerView();
   }
 
   @override
@@ -92,9 +87,12 @@ class _FlowCanvasState extends State<FlowCanvas> {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        if (widget.overlays.isNotEmpty &&
-                            widget.overlays[0] is FlowBackground)
-                          widget.overlays[0],
+                        ...widget.overlays.map((overlay) {
+                          if (overlay is FlowBackground) {
+                            return overlay;
+                          }
+                          return const SizedBox.shrink();
+                        }),
                         // Background
                         CustomPaint(
                           size: Size.infinite,
@@ -118,10 +116,12 @@ class _FlowCanvasState extends State<FlowCanvas> {
         ),
 
         // Overlay UI (NOT transformed by InteractiveViewer)
-        if (widget.overlays.length > 1 && widget.overlays[0] is FlowBackground)
-          ...widget.overlays.sublist(1)
-        else
-          ...widget.overlays
+        ...widget.overlays.map((overlay) {
+          if (overlay is! FlowBackground) {
+            return overlay;
+          }
+          return const SizedBox.shrink();
+        }),
       ],
     );
   }
