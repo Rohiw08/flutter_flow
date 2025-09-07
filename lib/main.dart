@@ -12,7 +12,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide the theme to the entire widget tree
     return MaterialApp(
       theme: ThemeData.light(),
       home: const CanvasScreen(),
@@ -20,7 +19,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// A stateful widget to manage the lifecycle of the facade and shader
 class CanvasScreen extends StatefulWidget {
   const CanvasScreen({super.key});
 
@@ -32,40 +30,53 @@ class _CanvasScreenState extends State<CanvasScreen> {
   late final FlowCanvasFacade facade;
   late final NodeRegistry nodeRegistry;
   late final EdgeRegistry edgeRegistry;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeCanvas();
+  }
 
+  void _initializeCanvas() {
     // 1. Initialize Registries
     nodeRegistry = NodeRegistry();
     edgeRegistry = EdgeRegistry();
 
-    // 2. Register Custom Node Types
-    nodeRegistry.register('custom_node', (node) {
-      return CustomNodeWidget(node: node, facade: facade);
-    });
-
-    // 3. Initialize the Facade
+    // 2. Initialize the Facade FIRST
     facade = FlowCanvasFacade(
       nodeRegistry: nodeRegistry,
       edgeRegistry: edgeRegistry,
     );
 
-    // 5. Add initial data AFTER the first frame is built
+    // 3. Register Custom Node Types
+    nodeRegistry.register('custom_node', (node) {
+      return CustomNodeWidget(node: node, facade: facade);
+    });
+
+    // 4. Mark as initialized
+    setState(() {
+      _isInitialized = true;
+    });
+
+    // 5. Add initial data after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // This code will run safely after the widget tree is built.
       if (mounted) {
-        // Good practice to check if the widget is still in the tree
         _addInitialNodes();
+      }
+    });
+
+    // 6. Subscribe to viewport changes
+    facade.viewportStream.listen((viewport) {
+      if (mounted) {
+        setState(() {});
       }
     });
   }
 
-  void _addInitialNodes() {
-    // Use the facade to add nodes to the canvas
-    final node1 = FlowNode.create(
-      position: const Offset(100, 200),
+  void addNode() {
+    final node = FlowNode.create(
+      position: const Offset(0, 300), // Left of center
       size: const Size(150, 80),
       type: 'custom_node',
       handles: const [
@@ -74,19 +85,39 @@ class _CanvasScreenState extends State<CanvasScreen> {
       ],
       data: {'label': 'Node A'},
     );
+    facade.addNode(node);
+  }
 
-    final node2 = FlowNode.create(
-      position: const Offset(400, 300),
-      size: const Size(150, 80),
-      type: 'custom_node',
-      handles: const [
-        NodeHandle(id: 'in1', type: HandleType.target, position: Offset(0, 40)),
-      ],
-      data: {'label': 'Node B'},
-    );
+  void _addInitialNodes() {
+    try {
+      final node1 = FlowNode.create(
+        position: const Offset(400, 300), // Left of center
+        size: const Size(150, 80),
+        type: 'custom_node',
+        handles: const [
+          NodeHandle(
+              id: 'out1', type: HandleType.source, position: Offset(150, 40)),
+        ],
+        data: {'label': 'Node A'},
+      );
 
-    facade.addNode(node1);
-    facade.addNode(node2);
+      final node2 = FlowNode.create(
+        position: const Offset(200, 200), // Right of center
+        size: const Size(150, 80),
+        type: 'custom_node',
+        handles: const [
+          NodeHandle(
+              id: 'in1', type: HandleType.target, position: Offset(0, 40)),
+        ],
+        data: {'label': 'Node B'},
+      );
+
+      facade.addNode(node1);
+      facade.addNode(node2);
+    } catch (e) {
+      // Handle or log the error if needed
+      debugPrint('Error adding initial nodes: $e');
+    }
   }
 
   @override
@@ -97,13 +128,36 @@ class _CanvasScreenState extends State<CanvasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Initializing Canvas...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          ElevatedButton(
+            onPressed: () => addNode(),
+            child: const Icon(Icons.add),
+          )
+        ],
+      ),
       body: FlowCanvas(
         nodeRegistry: nodeRegistry,
         edgeRegistry: edgeRegistry,
+        facade: facade,
         overlays: [
           FlowBackground(
-            facade: facade,
             backgroundTheme: FlowCanvasBackgroundTheme.light(),
           ),
           FlowMiniMap(facade: facade),

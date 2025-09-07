@@ -112,18 +112,18 @@ class FlowCanvasControls extends StatelessWidget {
           onPressed: () => facade.zoom(-0.2),
         ),
       ],
-      if (showFitView)
+      if (showFitView) ...[
         ControlButton(
           icon: Icons.fit_screen,
           tooltip: 'Fit View',
-          onPressed: () {
-            facade.centerView();
-            // final box = context.findRenderObject() as RenderBox?;
-            // if (box != null) {
-            //   facade.fitView(box.size);
-            // }
-          },
+          onPressed: () => facade.fitView(),
         ),
+        ControlButton(
+          icon: Icons.center_focus_strong,
+          tooltip: 'Center View',
+          onPressed: () => facade.centerView(),
+        ),
+      ],
       if (showLock)
         StreamBuilder<bool>(
           stream: facade.isPanZoomLockedStream,

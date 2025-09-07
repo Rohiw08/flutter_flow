@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/flow_canvas_controller.dart';
@@ -18,7 +17,8 @@ class FlowCanvasFacade {
   final ({NodeRegistry nodeRegistry, EdgeRegistry edgeRegistry}) _registries;
 
   // StreamControllers for managing combined streams
-  StreamController<List<Object?>>? _nodesAndViewportController;
+  StreamController<({List<FlowNode> nodes, Rect? viewport})>?
+      _nodesAndViewportController;
   StreamSubscription? _nodesSubscription;
   StreamSubscription? _viewportSubscription;
 
@@ -28,8 +28,9 @@ class FlowCanvasFacade {
   FlowCanvasFacade({
     required NodeRegistry nodeRegistry,
     required EdgeRegistry edgeRegistry,
+    ProviderContainer? container, // allow external injection
   })  : _registries = (nodeRegistry: nodeRegistry, edgeRegistry: edgeRegistry),
-        _container = ProviderContainer() {
+        _container = container ?? ProviderContainer() {
     _initializeCombinedStreams();
   }
 
@@ -42,23 +43,23 @@ class FlowCanvasFacade {
       _container.read(_provider(_registries).notifier);
 
   // --- PUBLIC PROPERTIES ---
-  /// The transformation controller for the InteractiveViewer.
   TransformationController get transformationController =>
       _controller.transformationController;
 
-  /// The latest synchronous state. Use with caution, prefer streams for UI.
   FlowCanvasState get state => _container.read(_provider(_registries));
 
   // --- COMMANDS ---
+  void setViewportSize(Size size) => _controller.setViewportSize(size);
   void addNode(FlowNode node) => _controller.addNode(node);
   void removeSelectedNodes() => _controller.removeSelectedNodes();
   void deselectAll() => _controller.deselectAll();
-  void fitView(Size viewportSize) => _controller.fitView();
-  void centerView() => _controller.centerView();
   void pan(Offset delta) => _controller.pan(delta);
   void zoom(double delta) => _controller.zoom(delta);
   void centerOnPosition(Offset canvasPosition) =>
       _controller.centerOnPosition(canvasPosition);
+  void fitView() => _controller.fitView(); // This now works properly
+  void centerView() => _controller.centerView(); // This centers the canvas
+  void resetView() => _controller.resetView(); // This resets to initial view
   void startConnection(String nodeId, String handleId, Offset globalPosition) =>
       _controller.startConnection(nodeId, handleId, globalPosition);
   void updateConnection(Offset globalPosition) =>
@@ -91,19 +92,19 @@ class FlowCanvasFacade {
   Stream<bool> get isPanZoomLockedStream =>
       _controller.stream.map((state) => state.isPanZoomLocked).distinct();
 
-  Stream<Rect?> get viewportStream {
-    return _controller.stream.map((state) => state.viewport).distinct();
-  }
+  /// Stay consistent: viewport is a Rect?
+  Stream<Rect?> get viewportStream =>
+      _controller.stream.map((state) => state.viewport).distinct();
 
-  Stream<List<Object?>> get nodesAndViewportStream {
-    return _nodesAndViewportController!.stream;
-  }
+  Stream<({List<FlowNode> nodes, Rect? viewport})> get nodesAndViewportStream =>
+      _nodesAndViewportController!.stream;
 
   Stream<FlowCanvasState> get fullCanvasStream => _controller.stream.distinct();
 
   // --- PRIVATE METHODS ---
   void _initializeCombinedStreams() {
-    _nodesAndViewportController = StreamController<List<Object?>>.broadcast();
+    _nodesAndViewportController =
+        StreamController<({List<FlowNode> nodes, Rect? viewport})>.broadcast();
 
     _nodesSubscription = nodesStream.listen((nodes) {
       _lastNodes = nodes;
@@ -120,11 +121,12 @@ class FlowCanvasFacade {
     if (_lastNodes != null &&
         _nodesAndViewportController != null &&
         !_nodesAndViewportController!.isClosed) {
-      _nodesAndViewportController!.add([_lastNodes!, _lastViewport]);
+      _nodesAndViewportController!.add(
+        (nodes: _lastNodes!, viewport: _lastViewport),
+      );
     }
   }
 
-  /// Disposes the internal ProviderContainer to prevent memory leaks.
   void dispose() {
     _nodesSubscription?.cancel();
     _viewportSubscription?.cancel();

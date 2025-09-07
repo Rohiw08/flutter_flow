@@ -4,14 +4,11 @@ import 'package:flutter_workflow/src/theme/components/background_theme.dart';
 
 class BackgroundPainter extends CustomPainter {
   final ui.FragmentProgram program;
-  final Matrix4 matrix;
   final FlowCanvasBackgroundTheme theme;
   late final ui.FragmentShader shader;
 
-  // Cache for expensive calculations
   BackgroundPainter({
     required this.program,
-    required this.matrix,
     required this.theme,
   }) {
     shader = program.fragmentShader();
@@ -19,27 +16,19 @@ class BackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..shader = _setupShader(size);
+    if (size.isEmpty || size.width <= 0 || size.height <= 0) return;
 
-    // Direct draw - no unnecessary save/restore/clip
+    final paint = Paint()..shader = _setupShader(size);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
 
   ui.FragmentShader _setupShader(Size size) {
-    // Pack uniforms more efficiently
     int index = 0;
 
     // Resolution
     shader.setFloat(index++, size.width);
     shader.setFloat(index++, size.height);
 
-    // Matrix (unavoidable - Flutter API limitation)
-    final values = matrix.storage;
-    for (int i = 0; i < 16; i++) {
-      shader.setFloat(index++, values[i]);
-    }
-
-    // Pack colors as single operations (if possible with your shader)
     // Background color
     shader.setFloat(index++, theme.backgroundColor.r);
     shader.setFloat(index++, theme.backgroundColor.g);
@@ -52,7 +41,7 @@ class BackgroundPainter extends CustomPainter {
     shader.setFloat(index++, theme.patternColor.b);
     shader.setFloat(index++, theme.patternColor.a);
 
-    // Packed pattern parameters
+    // Pattern parameters
     shader.setFloat(index++, theme.gap);
     shader.setFloat(index++, theme.lineWidth);
     shader.setFloat(index++, theme.dotRadius ?? 2.0);
@@ -64,8 +53,6 @@ class BackgroundPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant BackgroundPainter oldDelegate) {
-    // More efficient comparison
-    return !identical(oldDelegate.theme, theme) ||
-        !identical(oldDelegate.matrix, matrix);
+    return !identical(oldDelegate.theme, theme);
   }
 }

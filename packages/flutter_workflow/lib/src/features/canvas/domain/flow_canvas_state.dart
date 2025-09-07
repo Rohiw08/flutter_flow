@@ -3,7 +3,6 @@ import 'dart:ui' show Rect, Size, Offset;
 import 'package:flutter_workflow/src/features/canvas/application/utils/coordination_helper.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:vector_math/vector_math_64.dart';
 
 import 'models/connection_state.dart';
 import 'models/edge.dart';
@@ -35,15 +34,11 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default(true) bool enableMultiSelection,
     @Default(true) bool enableKeyboardShortcuts,
     @Default(true) bool enableBoxSelection,
-    @Default(50000) double canvasWidth,
-    @Default(50000) double canvasHeight,
-
-    // Controller
-    Matrix4? matrix,
+    @Default(500000) double canvasWidth,
+    @Default(500000) double canvasHeight,
   }) = _FlowCanvasState;
 
-  factory FlowCanvasState.initial() =>
-      FlowCanvasState(matrix: Matrix4.identity());
+  factory FlowCanvasState.initial() => const FlowCanvasState();
 }
 
 // Extension to add coordinate transformation methods

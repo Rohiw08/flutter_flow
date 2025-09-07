@@ -12,16 +12,11 @@ import 'services/handle_service.dart';
 import 'services/node_service.dart';
 import 'services/selection_service.dart';
 
-/// The single brain for the canvas.
-///
-/// This controller is a StateNotifier that manages the immutable FlowCanvasState.
-/// It is the only class that can modify the state. It uses stateless services
-
-/// to compute the next state in response to UI events.
 class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   final Ref _ref;
   final NodeRegistry nodeRegistry;
   final EdgeRegistry edgeRegistry;
+  bool _hasInitialized = false; // Track initialization
 
   final TransformationController transformationController =
       TransformationController();
@@ -36,7 +31,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void _onTransformChanged() {
     state = state.copyWith(
-      matrix: transformationController.value,
       zoom: transformationController.value.getMaxScaleOnAxis(),
       viewport: state.viewportSize != null
           ? _calculateViewport(state.viewportSize!)
@@ -50,24 +44,85 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void setViewportSize(Size size) {
     if (state.viewportSize == size) return;
 
-    if (state.viewportSize == null) {
-      // This is the first time the size is set, so we correctly center the view.
-      final canvasCenter = state.canvasCenter;
-      const initialScale = 1.0;
-
-      // Calculate the translation needed to move the canvas center to the viewport center
-      final translateX = -canvasCenter.dx * initialScale + size.width / 2;
-      final translateY = -canvasCenter.dy * initialScale + size.height / 2;
-
-      transformationController.value = Matrix4.identity()
-        ..translate(translateX, translateY)
-        ..scale(initialScale);
-    }
+    final isFirstTime = state.viewportSize == null;
 
     state = state.copyWith(
       viewportSize: size,
       viewport: _calculateViewport(size),
     );
+
+    // Initialize view on first viewport size setting
+    if (isFirstTime && !_hasInitialized) {
+      _initializeView(size);
+      _hasInitialized = true;
+    }
+  }
+
+  /// Initialize the view with proper centering or fit view
+  void _initializeView(Size viewportSize) {
+    if (state.nodes.isNotEmpty) {
+      // If we have nodes, fit them in view
+      _fitViewInternal(viewportSize);
+    } else {
+      // If no nodes, center the canvas (Cartesian coordinate system)
+      _centerCanvasInViewport(viewportSize);
+    }
+  }
+
+  /// Centers the canvas so that (0,0) in canvas coordinates appears at viewport center
+  void _centerCanvasInViewport(Size viewportSize) {
+    final canvasCenter = state.canvasCenter;
+    const initialScale = 1.0;
+
+    // Calculate translation to move canvas center to viewport center
+    final translateX = -canvasCenter.dx * initialScale + viewportSize.width / 2;
+    final translateY =
+        -canvasCenter.dy * initialScale + viewportSize.height / 2;
+
+    transformationController.value = Matrix4.identity()
+      ..translate(translateX, translateY)
+      ..scale(initialScale);
+  }
+
+  /// Internal fit view that takes viewport size as parameter
+  void _fitViewInternal(Size viewportSize) {
+    if (state.nodes.isEmpty) {
+      _centerCanvasInViewport(viewportSize);
+      return;
+    }
+
+    final bounds = state.nodes
+        .map((n) => n.rect)
+        .reduce((value, element) => value.expandToInclude(element));
+
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      _centerCanvasInViewport(viewportSize);
+      return;
+    }
+
+    const padding = 50.0; // Padding around nodes
+    final paddedWidth = viewportSize.width - (padding * 2);
+    final paddedHeight = viewportSize.height - (padding * 2);
+
+    if (paddedWidth <= 0 || paddedHeight <= 0) {
+      _centerCanvasInViewport(viewportSize);
+      return;
+    }
+
+    final scaleX = paddedWidth / bounds.width;
+    final scaleY = paddedHeight / bounds.height;
+    final scale = min(scaleX, min(scaleY, 2.0)); // Max scale of 2.0
+
+    // Calculate the center of the bounds
+    final boundsCenter = bounds.center;
+
+    // Calculate translation to center the bounds in the viewport
+    final translateX = viewportSize.width / 2 - boundsCenter.dx * scale;
+    final translateY = viewportSize.height / 2 - boundsCenter.dy * scale;
+
+    transformationController.value = Matrix4.identity()
+      ..translate(translateX, translateY)
+      ..scale(scale);
   }
 
   Rect _calculateViewport(Size viewportSize) {
@@ -82,7 +137,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         Offset(bottomRight.x, bottomRight.y),
       );
     } catch (e) {
-      // Matrix might not be invertible during extreme scales
       return Rect.zero;
     }
   }
@@ -93,38 +147,18 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       ..translate(screenDelta.dx, screenDelta.dy);
   }
 
+  /// Public fit view method (re-initializes if viewport exists)
   void fitView() {
-    if (state.isPanZoomLocked ||
-        state.nodes.isEmpty ||
-        state.viewportSize == null) {
+    if (state.isPanZoomLocked || state.viewportSize == null) {
       return;
     }
-    final bounds = state.nodes
-        .map((n) => n.rect)
-        .reduce((value, element) => value.expandToInclude(element));
-    if (bounds.width <= 0 || bounds.height <= 0) return;
-
-    const padding = EdgeInsetsGeometry.all(50);
-    final viewportSize = state.viewportSize!;
-    final scaleX = (viewportSize.width - padding.horizontal) / bounds.width;
-    final scaleY = (viewportSize.height - padding.vertical) / bounds.height;
-    final scale = min(scaleX, min(scaleY, 2.0));
-    final scaledBoundsWidth = bounds.width * scale;
-    final scaledBoundsHeight = bounds.height * scale;
-    final translateX =
-        (viewportSize.width - scaledBoundsWidth) / 2 - (bounds.left * scale);
-    final translateY =
-        (viewportSize.height - scaledBoundsHeight) / 2 - (bounds.top * scale);
-
-    transformationController.value = Matrix4.identity()
-      ..translate(translateX, translateY)
-      ..scale(scale);
+    _fitViewInternal(state.viewportSize!);
   }
 
   void zoom(double delta, [Offset? focalPoint]) {
     if (state.isPanZoomLocked) return;
     final currentScale = state.zoom;
-    final newScale = (currentScale + delta).clamp(0.1, 2.0); // Use constants
+    final newScale = (currentScale + delta).clamp(0.1, 2.0);
     final actualFactor = newScale / currentScale;
 
     if (actualFactor == 1.0) return;
@@ -148,12 +182,17 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       ..translate(-canvasPosition.dx * currentScale + viewportSize.width / 2,
           -canvasPosition.dy * currentScale + viewportSize.height / 2)
       ..scale(currentScale);
-    _onTransformChanged();
   }
 
   void centerView() {
     if (state.isPanZoomLocked || state.viewportSize == null) return;
-    centerOnPosition(state.canvasCenter);
+    _centerCanvasInViewport(state.viewportSize!);
+  }
+
+  /// Reset view to initial state (center or fit depending on nodes)
+  void resetView() {
+    if (state.viewportSize == null) return;
+    _initializeView(state.viewportSize!);
   }
 
   void togglePanZoomLock() {
@@ -163,18 +202,26 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   // --- NODE METHODS ---
   void addNode(FlowNode node) {
     if (!nodeRegistry.isRegistered(node.type)) {
-      debugPrint('Error: Node type "${node.type}" is not registered.');
       return;
     }
-    final newNodePosition =
-        state.coordinateTransform.logicalToCanvas(node.position);
-    node = node.copyWith(position: newNodePosition);
+
+    // Don't transform node position here - let it be placed where requested
     final intermediateState =
         _ref.read(nodeServiceProvider).addNode(state, node);
     final newHash = _ref
         .read(handleServiceProvider)
         .buildSpatialHash(intermediateState.nodes);
+
     state = intermediateState.copyWith(spatialHash: newHash);
+
+    // If this is the first node and we have a viewport, re-initialize view
+    if (state.nodes.length == 1 &&
+        state.viewportSize != null &&
+        _hasInitialized) {
+      // Optional: Auto-fit view when first node is added
+      // Uncomment the next line if you want this behavior:
+      // _fitViewInternal(state.viewportSize!);
+    }
   }
 
   void removeSelectedNodes() {
