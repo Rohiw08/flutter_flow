@@ -14,15 +14,19 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowNode {
+  String get type;
   String get id;
   Offset get position;
   Size get size;
-  String get type;
-  List<NodeHandle> get handles;
-  Map<String, dynamic> get data;
-  bool get isSelected; // Interaction configuration
+  BuiltMap<String, NodeHandle> get internalHandles;
+  BuiltMap<String, dynamic> get internalData;
+  bool get isSelected;
   bool get isDraggable;
   bool get isSelectable;
+  bool get isHidden;
+  bool get isDragging;
+  bool get isResizing;
+  int get zIndex;
 
   /// Create a copy of FlowNode
   /// with the given fields replaced by the non-null parameter values.
@@ -36,37 +40,50 @@ mixin _$FlowNode {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowNode &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
-            (identical(other.type, type) || other.type == type) &&
-            const DeepCollectionEquality().equals(other.handles, handles) &&
-            const DeepCollectionEquality().equals(other.data, data) &&
+            (identical(other.internalHandles, internalHandles) ||
+                other.internalHandles == internalHandles) &&
+            (identical(other.internalData, internalData) ||
+                other.internalData == internalData) &&
             (identical(other.isSelected, isSelected) ||
                 other.isSelected == isSelected) &&
             (identical(other.isDraggable, isDraggable) ||
                 other.isDraggable == isDraggable) &&
             (identical(other.isSelectable, isSelectable) ||
-                other.isSelectable == isSelectable));
+                other.isSelectable == isSelectable) &&
+            (identical(other.isHidden, isHidden) ||
+                other.isHidden == isHidden) &&
+            (identical(other.isDragging, isDragging) ||
+                other.isDragging == isDragging) &&
+            (identical(other.isResizing, isResizing) ||
+                other.isResizing == isResizing) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      type,
       id,
       position,
       size,
-      type,
-      const DeepCollectionEquality().hash(handles),
-      const DeepCollectionEquality().hash(data),
+      internalHandles,
+      internalData,
       isSelected,
       isDraggable,
-      isSelectable);
+      isSelectable,
+      isHidden,
+      isDragging,
+      isResizing,
+      zIndex);
 
   @override
   String toString() {
-    return 'FlowNode(id: $id, position: $position, size: $size, type: $type, handles: $handles, data: $data, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
   }
 }
 
@@ -76,15 +93,19 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       _$FlowNodeCopyWithImpl;
   @useResult
   $Res call(
-      {String id,
+      {String type,
+      String id,
       Offset position,
       Size size,
-      String type,
-      List<NodeHandle> handles,
-      Map<String, dynamic> data,
+      BuiltMap<String, NodeHandle> internalHandles,
+      BuiltMap<String, dynamic> internalData,
       bool isSelected,
       bool isDraggable,
-      bool isSelectable});
+      bool isSelectable,
+      bool isHidden,
+      bool isDragging,
+      bool isResizing,
+      int zIndex});
 }
 
 /// @nodoc
@@ -99,17 +120,25 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? type = null,
     Object? id = null,
     Object? position = null,
     Object? size = null,
-    Object? type = null,
-    Object? handles = null,
-    Object? data = null,
+    Object? internalHandles = null,
+    Object? internalData = null,
     Object? isSelected = null,
     Object? isDraggable = null,
     Object? isSelectable = null,
+    Object? isHidden = null,
+    Object? isDragging = null,
+    Object? isResizing = null,
+    Object? zIndex = null,
   }) {
     return _then(_self.copyWith(
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -122,18 +151,14 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      handles: null == handles
-          ? _self.handles
-          : handles // ignore: cast_nullable_to_non_nullable
-              as List<NodeHandle>,
-      data: null == data
-          ? _self.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+      internalHandles: null == internalHandles
+          ? _self.internalHandles
+          : internalHandles // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, NodeHandle>,
+      internalData: null == internalData
+          ? _self.internalData
+          : internalData // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, dynamic>,
       isSelected: null == isSelected
           ? _self.isSelected
           : isSelected // ignore: cast_nullable_to_non_nullable
@@ -146,6 +171,22 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.isSelectable
           : isSelectable // ignore: cast_nullable_to_non_nullable
               as bool,
+      isHidden: null == isHidden
+          ? _self.isHidden
+          : isHidden // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDragging: null == isDragging
+          ? _self.isDragging
+          : isDragging // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isResizing: null == isResizing
+          ? _self.isResizing
+          : isResizing // ignore: cast_nullable_to_non_nullable
+              as bool,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -244,15 +285,19 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
+            String type,
             String id,
             Offset position,
             Size size,
-            String type,
-            List<NodeHandle> handles,
-            Map<String, dynamic> data,
+            BuiltMap<String, NodeHandle> internalHandles,
+            BuiltMap<String, dynamic> internalData,
             bool isSelected,
             bool isDraggable,
-            bool isSelectable)?
+            bool isSelectable,
+            bool isHidden,
+            bool isDragging,
+            bool isResizing,
+            int zIndex)?
         $default, {
     required TResult orElse(),
   }) {
@@ -260,15 +305,19 @@ extension FlowNodePatterns on FlowNode {
     switch (_that) {
       case _FlowNode() when $default != null:
         return $default(
+            _that.type,
             _that.id,
             _that.position,
             _that.size,
-            _that.type,
-            _that.handles,
-            _that.data,
+            _that.internalHandles,
+            _that.internalData,
             _that.isSelected,
             _that.isDraggable,
-            _that.isSelectable);
+            _that.isSelectable,
+            _that.isHidden,
+            _that.isDragging,
+            _that.isResizing,
+            _that.zIndex);
       case _:
         return orElse();
     }
@@ -290,30 +339,38 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
+            String type,
             String id,
             Offset position,
             Size size,
-            String type,
-            List<NodeHandle> handles,
-            Map<String, dynamic> data,
+            BuiltMap<String, NodeHandle> internalHandles,
+            BuiltMap<String, dynamic> internalData,
             bool isSelected,
             bool isDraggable,
-            bool isSelectable)
+            bool isSelectable,
+            bool isHidden,
+            bool isDragging,
+            bool isResizing,
+            int zIndex)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowNode():
         return $default(
+            _that.type,
             _that.id,
             _that.position,
             _that.size,
-            _that.type,
-            _that.handles,
-            _that.data,
+            _that.internalHandles,
+            _that.internalData,
             _that.isSelected,
             _that.isDraggable,
-            _that.isSelectable);
+            _that.isSelectable,
+            _that.isHidden,
+            _that.isDragging,
+            _that.isResizing,
+            _that.zIndex);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -334,30 +391,38 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
+            String type,
             String id,
             Offset position,
             Size size,
-            String type,
-            List<NodeHandle> handles,
-            Map<String, dynamic> data,
+            BuiltMap<String, NodeHandle> internalHandles,
+            BuiltMap<String, dynamic> internalData,
             bool isSelected,
             bool isDraggable,
-            bool isSelectable)?
+            bool isSelectable,
+            bool isHidden,
+            bool isDragging,
+            bool isResizing,
+            int zIndex)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowNode() when $default != null:
         return $default(
+            _that.type,
             _that.id,
             _that.position,
             _that.size,
-            _that.type,
-            _that.handles,
-            _that.data,
+            _that.internalHandles,
+            _that.internalData,
             _that.isSelected,
             _that.isDraggable,
-            _that.isSelectable);
+            _that.isSelectable,
+            _that.isHidden,
+            _that.isDragging,
+            _that.isResizing,
+            _that.zIndex);
       case _:
         return null;
     }
@@ -367,20 +432,24 @@ extension FlowNodePatterns on FlowNode {
 /// @nodoc
 
 class _FlowNode extends FlowNode {
-  const _FlowNode(
-      {required this.id,
+  _FlowNode(
+      {required this.type,
+      required this.id,
       required this.position,
       required this.size,
-      required this.type,
-      final List<NodeHandle> handles = const [],
-      final Map<String, dynamic> data = const {},
+      required this.internalHandles,
+      required this.internalData,
       this.isSelected = false,
       this.isDraggable = true,
-      this.isSelectable = true})
-      : _handles = handles,
-        _data = data,
-        super._();
+      this.isSelectable = true,
+      this.isHidden = false,
+      this.isDragging = false,
+      this.isResizing = false,
+      this.zIndex = 0})
+      : super._();
 
+  @override
+  final String type;
   @override
   final String id;
   @override
@@ -388,35 +457,30 @@ class _FlowNode extends FlowNode {
   @override
   final Size size;
   @override
-  final String type;
-  final List<NodeHandle> _handles;
+  final BuiltMap<String, NodeHandle> internalHandles;
   @override
-  @JsonKey()
-  List<NodeHandle> get handles {
-    if (_handles is EqualUnmodifiableListView) return _handles;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_handles);
-  }
-
-  final Map<String, dynamic> _data;
-  @override
-  @JsonKey()
-  Map<String, dynamic> get data {
-    if (_data is EqualUnmodifiableMapView) return _data;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_data);
-  }
-
+  final BuiltMap<String, dynamic> internalData;
   @override
   @JsonKey()
   final bool isSelected;
-// Interaction configuration
   @override
   @JsonKey()
   final bool isDraggable;
   @override
   @JsonKey()
   final bool isSelectable;
+  @override
+  @JsonKey()
+  final bool isHidden;
+  @override
+  @JsonKey()
+  final bool isDragging;
+  @override
+  @JsonKey()
+  final bool isResizing;
+  @override
+  @JsonKey()
+  final int zIndex;
 
   /// Create a copy of FlowNode
   /// with the given fields replaced by the non-null parameter values.
@@ -431,37 +495,50 @@ class _FlowNode extends FlowNode {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowNode &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
-            (identical(other.type, type) || other.type == type) &&
-            const DeepCollectionEquality().equals(other._handles, _handles) &&
-            const DeepCollectionEquality().equals(other._data, _data) &&
+            (identical(other.internalHandles, internalHandles) ||
+                other.internalHandles == internalHandles) &&
+            (identical(other.internalData, internalData) ||
+                other.internalData == internalData) &&
             (identical(other.isSelected, isSelected) ||
                 other.isSelected == isSelected) &&
             (identical(other.isDraggable, isDraggable) ||
                 other.isDraggable == isDraggable) &&
             (identical(other.isSelectable, isSelectable) ||
-                other.isSelectable == isSelectable));
+                other.isSelectable == isSelectable) &&
+            (identical(other.isHidden, isHidden) ||
+                other.isHidden == isHidden) &&
+            (identical(other.isDragging, isDragging) ||
+                other.isDragging == isDragging) &&
+            (identical(other.isResizing, isResizing) ||
+                other.isResizing == isResizing) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      type,
       id,
       position,
       size,
-      type,
-      const DeepCollectionEquality().hash(_handles),
-      const DeepCollectionEquality().hash(_data),
+      internalHandles,
+      internalData,
       isSelected,
       isDraggable,
-      isSelectable);
+      isSelectable,
+      isHidden,
+      isDragging,
+      isResizing,
+      zIndex);
 
   @override
   String toString() {
-    return 'FlowNode(id: $id, position: $position, size: $size, type: $type, handles: $handles, data: $data, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
   }
 }
 
@@ -473,15 +550,19 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
+      {String type,
+      String id,
       Offset position,
       Size size,
-      String type,
-      List<NodeHandle> handles,
-      Map<String, dynamic> data,
+      BuiltMap<String, NodeHandle> internalHandles,
+      BuiltMap<String, dynamic> internalData,
       bool isSelected,
       bool isDraggable,
-      bool isSelectable});
+      bool isSelectable,
+      bool isHidden,
+      bool isDragging,
+      bool isResizing,
+      int zIndex});
 }
 
 /// @nodoc
@@ -496,17 +577,25 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? type = null,
     Object? id = null,
     Object? position = null,
     Object? size = null,
-    Object? type = null,
-    Object? handles = null,
-    Object? data = null,
+    Object? internalHandles = null,
+    Object? internalData = null,
     Object? isSelected = null,
     Object? isDraggable = null,
     Object? isSelectable = null,
+    Object? isHidden = null,
+    Object? isDragging = null,
+    Object? isResizing = null,
+    Object? zIndex = null,
   }) {
     return _then(_FlowNode(
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -519,18 +608,14 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      handles: null == handles
-          ? _self._handles
-          : handles // ignore: cast_nullable_to_non_nullable
-              as List<NodeHandle>,
-      data: null == data
-          ? _self._data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+      internalHandles: null == internalHandles
+          ? _self.internalHandles
+          : internalHandles // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, NodeHandle>,
+      internalData: null == internalData
+          ? _self.internalData
+          : internalData // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, dynamic>,
       isSelected: null == isSelected
           ? _self.isSelected
           : isSelected // ignore: cast_nullable_to_non_nullable
@@ -543,6 +628,22 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.isSelectable
           : isSelectable // ignore: cast_nullable_to_non_nullable
               as bool,
+      isHidden: null == isHidden
+          ? _self.isHidden
+          : isHidden // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDragging: null == isDragging
+          ? _self.isDragging
+          : isDragging // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isResizing: null == isResizing
+          ? _self.isResizing
+          : isResizing // ignore: cast_nullable_to_non_nullable
+              as bool,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }

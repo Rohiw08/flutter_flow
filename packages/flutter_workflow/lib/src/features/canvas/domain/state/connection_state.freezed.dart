@@ -18,7 +18,8 @@ mixin _$FlowConnectionState {
   String get fromHandleId;
   Offset get startPosition;
   Offset get endPosition;
-  String? get hoveredTargetKey;
+  String? get targetNodeId;
+  String? get targetHandleId;
   bool get isValid;
 
   /// Create a copy of FlowConnectionState
@@ -42,18 +43,20 @@ mixin _$FlowConnectionState {
                 other.startPosition == startPosition) &&
             (identical(other.endPosition, endPosition) ||
                 other.endPosition == endPosition) &&
-            (identical(other.hoveredTargetKey, hoveredTargetKey) ||
-                other.hoveredTargetKey == hoveredTargetKey) &&
+            (identical(other.targetNodeId, targetNodeId) ||
+                other.targetNodeId == targetNodeId) &&
+            (identical(other.targetHandleId, targetHandleId) ||
+                other.targetHandleId == targetHandleId) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, fromNodeId, fromHandleId,
-      startPosition, endPosition, hoveredTargetKey, isValid);
+      startPosition, endPosition, targetNodeId, targetHandleId, isValid);
 
   @override
   String toString() {
-    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, hoveredTargetKey: $hoveredTargetKey, isValid: $isValid)';
+    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, isValid: $isValid)';
   }
 }
 
@@ -68,7 +71,8 @@ abstract mixin class $FlowConnectionStateCopyWith<$Res> {
       String fromHandleId,
       Offset startPosition,
       Offset endPosition,
-      String? hoveredTargetKey,
+      String? targetNodeId,
+      String? targetHandleId,
       bool isValid});
 }
 
@@ -89,7 +93,8 @@ class _$FlowConnectionStateCopyWithImpl<$Res>
     Object? fromHandleId = null,
     Object? startPosition = null,
     Object? endPosition = null,
-    Object? hoveredTargetKey = freezed,
+    Object? targetNodeId = freezed,
+    Object? targetHandleId = freezed,
     Object? isValid = null,
   }) {
     return _then(_self.copyWith(
@@ -109,9 +114,13 @@ class _$FlowConnectionStateCopyWithImpl<$Res>
           ? _self.endPosition
           : endPosition // ignore: cast_nullable_to_non_nullable
               as Offset,
-      hoveredTargetKey: freezed == hoveredTargetKey
-          ? _self.hoveredTargetKey
-          : hoveredTargetKey // ignore: cast_nullable_to_non_nullable
+      targetNodeId: freezed == targetNodeId
+          ? _self.targetNodeId
+          : targetNodeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetHandleId: freezed == targetHandleId
+          ? _self.targetHandleId
+          : targetHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
       isValid: null == isValid
           ? _self.isValid
@@ -219,7 +228,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             String fromHandleId,
             Offset startPosition,
             Offset endPosition,
-            String? hoveredTargetKey,
+            String? targetNodeId,
+            String? targetHandleId,
             bool isValid)?
         $default, {
     required TResult orElse(),
@@ -232,7 +242,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             _that.fromHandleId,
             _that.startPosition,
             _that.endPosition,
-            _that.hoveredTargetKey,
+            _that.targetNodeId,
+            _that.targetHandleId,
             _that.isValid);
       case _:
         return orElse();
@@ -259,7 +270,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             String fromHandleId,
             Offset startPosition,
             Offset endPosition,
-            String? hoveredTargetKey,
+            String? targetNodeId,
+            String? targetHandleId,
             bool isValid)
         $default,
   ) {
@@ -271,7 +283,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             _that.fromHandleId,
             _that.startPosition,
             _that.endPosition,
-            _that.hoveredTargetKey,
+            _that.targetNodeId,
+            _that.targetHandleId,
             _that.isValid);
       case _:
         throw StateError('Unexpected subclass');
@@ -297,7 +310,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             String fromHandleId,
             Offset startPosition,
             Offset endPosition,
-            String? hoveredTargetKey,
+            String? targetNodeId,
+            String? targetHandleId,
             bool isValid)?
         $default,
   ) {
@@ -309,7 +323,8 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
             _that.fromHandleId,
             _that.startPosition,
             _that.endPosition,
-            _that.hoveredTargetKey,
+            _that.targetNodeId,
+            _that.targetHandleId,
             _that.isValid);
       case _:
         return null;
@@ -325,7 +340,8 @@ class _FlowConnectionState implements FlowConnectionState {
       required this.fromHandleId,
       required this.startPosition,
       required this.endPosition,
-      this.hoveredTargetKey,
+      this.targetNodeId,
+      this.targetHandleId,
       this.isValid = false});
 
   @override
@@ -337,7 +353,9 @@ class _FlowConnectionState implements FlowConnectionState {
   @override
   final Offset endPosition;
   @override
-  final String? hoveredTargetKey;
+  final String? targetNodeId;
+  @override
+  final String? targetHandleId;
   @override
   @JsonKey()
   final bool isValid;
@@ -364,18 +382,20 @@ class _FlowConnectionState implements FlowConnectionState {
                 other.startPosition == startPosition) &&
             (identical(other.endPosition, endPosition) ||
                 other.endPosition == endPosition) &&
-            (identical(other.hoveredTargetKey, hoveredTargetKey) ||
-                other.hoveredTargetKey == hoveredTargetKey) &&
+            (identical(other.targetNodeId, targetNodeId) ||
+                other.targetNodeId == targetNodeId) &&
+            (identical(other.targetHandleId, targetHandleId) ||
+                other.targetHandleId == targetHandleId) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, fromNodeId, fromHandleId,
-      startPosition, endPosition, hoveredTargetKey, isValid);
+      startPosition, endPosition, targetNodeId, targetHandleId, isValid);
 
   @override
   String toString() {
-    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, hoveredTargetKey: $hoveredTargetKey, isValid: $isValid)';
+    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, isValid: $isValid)';
   }
 }
 
@@ -392,7 +412,8 @@ abstract mixin class _$FlowConnectionStateCopyWith<$Res>
       String fromHandleId,
       Offset startPosition,
       Offset endPosition,
-      String? hoveredTargetKey,
+      String? targetNodeId,
+      String? targetHandleId,
       bool isValid});
 }
 
@@ -413,7 +434,8 @@ class __$FlowConnectionStateCopyWithImpl<$Res>
     Object? fromHandleId = null,
     Object? startPosition = null,
     Object? endPosition = null,
-    Object? hoveredTargetKey = freezed,
+    Object? targetNodeId = freezed,
+    Object? targetHandleId = freezed,
     Object? isValid = null,
   }) {
     return _then(_FlowConnectionState(
@@ -433,9 +455,13 @@ class __$FlowConnectionStateCopyWithImpl<$Res>
           ? _self.endPosition
           : endPosition // ignore: cast_nullable_to_non_nullable
               as Offset,
-      hoveredTargetKey: freezed == hoveredTargetKey
-          ? _self.hoveredTargetKey
-          : hoveredTargetKey // ignore: cast_nullable_to_non_nullable
+      targetNodeId: freezed == targetNodeId
+          ? _self.targetNodeId
+          : targetNodeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetHandleId: freezed == targetHandleId
+          ? _self.targetHandleId
+          : targetHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
       isValid: null == isValid
           ? _self.isValid

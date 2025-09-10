@@ -10,7 +10,6 @@ typedef NodeWidgetBuilder = Widget Function(FlowNode node);
 class NodeRegistry {
   final Map<String, NodeWidgetBuilder> _builders = {};
 
-  /// Register a node type with its widget builder.
   void register(String type, NodeWidgetBuilder builder) {
     if (type.trim().isEmpty) {
       throw ArgumentError('Node type cannot be empty or whitespace');
@@ -18,8 +17,6 @@ class NodeRegistry {
     _builders[type] = builder;
   }
 
-  /// Build a widget for a given node based on its type.
-  /// If the type is not registered, it returns a visible error widget.
   Widget buildWidget(FlowNode node) {
     final builder = _builders[node.type];
     if (builder == null) {
@@ -30,23 +27,19 @@ class NodeRegistry {
     return builder.call(node);
   }
 
-  /// Unregister a node type.
   bool unregister(String type) {
     if (type.isEmpty) return false;
     return _builders.remove(type) != null;
   }
 
-  /// Check if a node type is registered.
   bool isRegistered(String type) {
     return _builders.containsKey(type);
   }
 
-  /// Clear all registered types.
   void clear() {
     _builders.clear();
   }
 
-  /// Returns a default error widget to display when a node type is not found.
   Widget _buildErrorWidget(Size size, String type) {
     return Container(
       width: size.width,

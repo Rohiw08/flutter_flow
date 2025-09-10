@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../models/edge_painter.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/painters/flow_painter.dart'
+    show EdgePainter;
 
 /// A registry for managing custom edge painters provided by the user.
 ///
@@ -8,7 +9,6 @@ import '../models/edge_painter.dart';
 class EdgeRegistry {
   final Map<String, EdgePainter> _painters = {};
 
-  /// Registers a custom edge type with its painter.
   void register(String type, EdgePainter painter) {
     if (type.trim().isEmpty) {
       throw ArgumentError('Edge type cannot be empty or whitespace');
@@ -16,8 +16,6 @@ class EdgeRegistry {
     _painters[type] = painter;
   }
 
-  /// Retrieves the painter for a given edge type.
-  /// Returns null if the type is not registered, allowing for a default fallback.
   EdgePainter? getPainter(String? type) {
     if (type == null || type.isEmpty) {
       return null;
@@ -29,18 +27,15 @@ class EdgeRegistry {
     return painter;
   }
 
-  /// Unregisters a custom edge type.
   bool unregister(String type) {
     if (type.isEmpty) return false;
     return _painters.remove(type) != null;
   }
 
-  /// Checks if an edge type is registered.
   bool isRegistered(String type) {
     return type.isNotEmpty && _painters.containsKey(type);
   }
 
-  /// Clears all registered edge types.
   void clear() {
     _painters.clear();
   }

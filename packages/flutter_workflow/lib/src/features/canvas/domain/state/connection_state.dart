@@ -11,7 +11,8 @@ abstract class FlowConnectionState with _$FlowConnectionState {
     required String fromHandleId,
     required Offset startPosition,
     required Offset endPosition,
-    String? hoveredTargetKey,
+    String? targetNodeId,
+    String? targetHandleId,
     @Default(false) bool isValid,
   }) = _FlowConnectionState;
 }

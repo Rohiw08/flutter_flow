@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'node_handle.dart';
+part of 'handle.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -16,8 +16,9 @@ T _$identity<T>(T value) => value;
 mixin _$NodeHandle {
   String get id;
   HandleType get type;
-  Offset get position; // Position relative to the node's origin (top-left)
+  Offset get position;
   bool get isConnectable;
+  Size get size;
 
   /// Create a copy of NodeHandle
   /// with the given fields replaced by the non-null parameter values.
@@ -36,16 +37,17 @@ mixin _$NodeHandle {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.isConnectable, isConnectable) ||
-                other.isConnectable == isConnectable));
+                other.isConnectable == isConnectable) &&
+            (identical(other.size, size) || other.size == size));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, type, position, isConnectable);
+      Object.hash(runtimeType, id, type, position, isConnectable, size);
 
   @override
   String toString() {
-    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable)';
+    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size)';
   }
 }
 
@@ -55,7 +57,12 @@ abstract mixin class $NodeHandleCopyWith<$Res> {
           NodeHandle value, $Res Function(NodeHandle) _then) =
       _$NodeHandleCopyWithImpl;
   @useResult
-  $Res call({String id, HandleType type, Offset position, bool isConnectable});
+  $Res call(
+      {String id,
+      HandleType type,
+      Offset position,
+      bool isConnectable,
+      Size size});
 }
 
 /// @nodoc
@@ -74,6 +81,7 @@ class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
     Object? type = null,
     Object? position = null,
     Object? isConnectable = null,
+    Object? size = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -92,6 +100,10 @@ class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
           ? _self.isConnectable
           : isConnectable // ignore: cast_nullable_to_non_nullable
               as bool,
+      size: null == size
+          ? _self.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as Size,
     ));
   }
 }
@@ -189,16 +201,16 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String id, HandleType type, Offset position, bool isConnectable)?
+    TResult Function(String id, HandleType type, Offset position,
+            bool isConnectable, Size size)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _NodeHandle() when $default != null:
-        return $default(
-            _that.id, _that.type, _that.position, _that.isConnectable);
+        return $default(_that.id, _that.type, _that.position,
+            _that.isConnectable, _that.size);
       case _:
         return orElse();
     }
@@ -219,15 +231,15 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(
-            String id, HandleType type, Offset position, bool isConnectable)
+    TResult Function(String id, HandleType type, Offset position,
+            bool isConnectable, Size size)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _NodeHandle():
-        return $default(
-            _that.id, _that.type, _that.position, _that.isConnectable);
+        return $default(_that.id, _that.type, _that.position,
+            _that.isConnectable, _that.size);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -247,15 +259,15 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String id, HandleType type, Offset position, bool isConnectable)?
+    TResult? Function(String id, HandleType type, Offset position,
+            bool isConnectable, Size size)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _NodeHandle() when $default != null:
-        return $default(
-            _that.id, _that.type, _that.position, _that.isConnectable);
+        return $default(_that.id, _that.type, _that.position,
+            _that.isConnectable, _that.size);
       case _:
         return null;
     }
@@ -269,7 +281,8 @@ class _NodeHandle implements NodeHandle {
       {required this.id,
       required this.type,
       required this.position,
-      this.isConnectable = true});
+      this.isConnectable = true,
+      this.size = const Size(10, 10)});
 
   @override
   final String id;
@@ -277,10 +290,12 @@ class _NodeHandle implements NodeHandle {
   final HandleType type;
   @override
   final Offset position;
-// Position relative to the node's origin (top-left)
   @override
   @JsonKey()
   final bool isConnectable;
+  @override
+  @JsonKey()
+  final Size size;
 
   /// Create a copy of NodeHandle
   /// with the given fields replaced by the non-null parameter values.
@@ -300,16 +315,17 @@ class _NodeHandle implements NodeHandle {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.isConnectable, isConnectable) ||
-                other.isConnectable == isConnectable));
+                other.isConnectable == isConnectable) &&
+            (identical(other.size, size) || other.size == size));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, type, position, isConnectable);
+      Object.hash(runtimeType, id, type, position, isConnectable, size);
 
   @override
   String toString() {
-    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable)';
+    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size)';
   }
 }
 
@@ -321,7 +337,12 @@ abstract mixin class _$NodeHandleCopyWith<$Res>
       __$NodeHandleCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, HandleType type, Offset position, bool isConnectable});
+  $Res call(
+      {String id,
+      HandleType type,
+      Offset position,
+      bool isConnectable,
+      Size size});
 }
 
 /// @nodoc
@@ -340,6 +361,7 @@ class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
     Object? type = null,
     Object? position = null,
     Object? isConnectable = null,
+    Object? size = null,
   }) {
     return _then(_NodeHandle(
       id: null == id
@@ -358,6 +380,10 @@ class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
           ? _self.isConnectable
           : isConnectable // ignore: cast_nullable_to_non_nullable
               as bool,
+      size: null == size
+          ? _self.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as Size,
     ));
   }
 }

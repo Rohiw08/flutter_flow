@@ -15,22 +15,25 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FlowCanvasState {
 // Core data
-  List<FlowNode> get nodes;
-  List<FlowEdge> get edges;
-  Set<String> get selectedNodes;
-  Map<String, Set<String>> get spatialHash; // Interaction state
+  BuiltMap<String, FlowNode> get internalNodes;
+  BuiltMap<String, FlowEdge> get internalEdges;
+  BuiltSet<String> get internalSelectedNodes;
+  BuiltMap<String, BuiltSet<String>> get internalSpatialHash; // Edge indexing
+  EdgeIndex get edgeIndex; // Interaction state
   FlowConnectionState? get connection;
   Rect? get selectionRect;
   DragMode get dragMode; // Viewport State
   double get zoom;
+  Offset get viewportOffset;
   bool get isPanZoomLocked;
-  Size? get viewportSize;
-  Rect? get viewport; // Configuration
+  Size? get viewportSize; // Configuration
   bool get enableMultiSelection;
   bool get enableKeyboardShortcuts;
   bool get enableBoxSelection;
   double get canvasWidth;
-  double get canvasHeight;
+  double get canvasHeight; // Z-index management
+  int get minZIndex;
+  int get maxZIndex;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -45,12 +48,16 @@ mixin _$FlowCanvasState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowCanvasState &&
-            const DeepCollectionEquality().equals(other.nodes, nodes) &&
-            const DeepCollectionEquality().equals(other.edges, edges) &&
+            (identical(other.internalNodes, internalNodes) ||
+                other.internalNodes == internalNodes) &&
+            (identical(other.internalEdges, internalEdges) ||
+                other.internalEdges == internalEdges) &&
             const DeepCollectionEquality()
-                .equals(other.selectedNodes, selectedNodes) &&
-            const DeepCollectionEquality()
-                .equals(other.spatialHash, spatialHash) &&
+                .equals(other.internalSelectedNodes, internalSelectedNodes) &&
+            (identical(other.internalSpatialHash, internalSpatialHash) ||
+                other.internalSpatialHash == internalSpatialHash) &&
+            (identical(other.edgeIndex, edgeIndex) ||
+                other.edgeIndex == edgeIndex) &&
             (identical(other.connection, connection) ||
                 other.connection == connection) &&
             (identical(other.selectionRect, selectionRect) ||
@@ -58,12 +65,12 @@ mixin _$FlowCanvasState {
             (identical(other.dragMode, dragMode) ||
                 other.dragMode == dragMode) &&
             (identical(other.zoom, zoom) || other.zoom == zoom) &&
+            (identical(other.viewportOffset, viewportOffset) ||
+                other.viewportOffset == viewportOffset) &&
             (identical(other.isPanZoomLocked, isPanZoomLocked) ||
                 other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
-            (identical(other.viewport, viewport) ||
-                other.viewport == viewport) &&
             (identical(other.enableMultiSelection, enableMultiSelection) ||
                 other.enableMultiSelection == enableMultiSelection) &&
             (identical(
@@ -74,32 +81,40 @@ mixin _$FlowCanvasState {
             (identical(other.canvasWidth, canvasWidth) ||
                 other.canvasWidth == canvasWidth) &&
             (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight));
+                other.canvasHeight == canvasHeight) &&
+            (identical(other.minZIndex, minZIndex) ||
+                other.minZIndex == minZIndex) &&
+            (identical(other.maxZIndex, maxZIndex) ||
+                other.maxZIndex == maxZIndex));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(nodes),
-      const DeepCollectionEquality().hash(edges),
-      const DeepCollectionEquality().hash(selectedNodes),
-      const DeepCollectionEquality().hash(spatialHash),
-      connection,
-      selectionRect,
-      dragMode,
-      zoom,
-      isPanZoomLocked,
-      viewportSize,
-      viewport,
-      enableMultiSelection,
-      enableKeyboardShortcuts,
-      enableBoxSelection,
-      canvasWidth,
-      canvasHeight);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        internalNodes,
+        internalEdges,
+        const DeepCollectionEquality().hash(internalSelectedNodes),
+        internalSpatialHash,
+        edgeIndex,
+        connection,
+        selectionRect,
+        dragMode,
+        zoom,
+        viewportOffset,
+        isPanZoomLocked,
+        viewportSize,
+        enableMultiSelection,
+        enableKeyboardShortcuts,
+        enableBoxSelection,
+        canvasWidth,
+        canvasHeight,
+        minZIndex,
+        maxZIndex
+      ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight)';
+    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, minZIndex: $minZIndex, maxZIndex: $maxZIndex)';
   }
 }
 
@@ -110,22 +125,25 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       _$FlowCanvasStateCopyWithImpl;
   @useResult
   $Res call(
-      {List<FlowNode> nodes,
-      List<FlowEdge> edges,
-      Set<String> selectedNodes,
-      Map<String, Set<String>> spatialHash,
+      {BuiltMap<String, FlowNode> internalNodes,
+      BuiltMap<String, FlowEdge> internalEdges,
+      BuiltSet<String> internalSelectedNodes,
+      BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+      EdgeIndex edgeIndex,
       FlowConnectionState? connection,
       Rect? selectionRect,
       DragMode dragMode,
       double zoom,
+      Offset viewportOffset,
       bool isPanZoomLocked,
       Size? viewportSize,
-      Rect? viewport,
       bool enableMultiSelection,
       bool enableKeyboardShortcuts,
       bool enableBoxSelection,
       double canvasWidth,
-      double canvasHeight});
+      double canvasHeight,
+      int minZIndex,
+      int maxZIndex});
 
   $FlowConnectionStateCopyWith<$Res>? get connection;
 }
@@ -143,40 +161,47 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? nodes = null,
-    Object? edges = null,
-    Object? selectedNodes = null,
-    Object? spatialHash = null,
+    Object? internalNodes = null,
+    Object? internalEdges = null,
+    Object? internalSelectedNodes = null,
+    Object? internalSpatialHash = null,
+    Object? edgeIndex = null,
     Object? connection = freezed,
     Object? selectionRect = freezed,
     Object? dragMode = null,
     Object? zoom = null,
+    Object? viewportOffset = null,
     Object? isPanZoomLocked = null,
     Object? viewportSize = freezed,
-    Object? viewport = freezed,
     Object? enableMultiSelection = null,
     Object? enableKeyboardShortcuts = null,
     Object? enableBoxSelection = null,
     Object? canvasWidth = null,
     Object? canvasHeight = null,
+    Object? minZIndex = null,
+    Object? maxZIndex = null,
   }) {
     return _then(_self.copyWith(
-      nodes: null == nodes
-          ? _self.nodes
-          : nodes // ignore: cast_nullable_to_non_nullable
-              as List<FlowNode>,
-      edges: null == edges
-          ? _self.edges
-          : edges // ignore: cast_nullable_to_non_nullable
-              as List<FlowEdge>,
-      selectedNodes: null == selectedNodes
-          ? _self.selectedNodes
-          : selectedNodes // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-      spatialHash: null == spatialHash
-          ? _self.spatialHash
-          : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, Set<String>>,
+      internalNodes: null == internalNodes
+          ? _self.internalNodes
+          : internalNodes // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, FlowNode>,
+      internalEdges: null == internalEdges
+          ? _self.internalEdges
+          : internalEdges // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, FlowEdge>,
+      internalSelectedNodes: null == internalSelectedNodes
+          ? _self.internalSelectedNodes
+          : internalSelectedNodes // ignore: cast_nullable_to_non_nullable
+              as BuiltSet<String>,
+      internalSpatialHash: null == internalSpatialHash
+          ? _self.internalSpatialHash
+          : internalSpatialHash // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, BuiltSet<String>>,
+      edgeIndex: null == edgeIndex
+          ? _self.edgeIndex
+          : edgeIndex // ignore: cast_nullable_to_non_nullable
+              as EdgeIndex,
       connection: freezed == connection
           ? _self.connection
           : connection // ignore: cast_nullable_to_non_nullable
@@ -193,6 +218,10 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.zoom
           : zoom // ignore: cast_nullable_to_non_nullable
               as double,
+      viewportOffset: null == viewportOffset
+          ? _self.viewportOffset
+          : viewportOffset // ignore: cast_nullable_to_non_nullable
+              as Offset,
       isPanZoomLocked: null == isPanZoomLocked
           ? _self.isPanZoomLocked
           : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
@@ -201,10 +230,6 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
-      viewport: freezed == viewport
-          ? _self.viewport
-          : viewport // ignore: cast_nullable_to_non_nullable
-              as Rect?,
       enableMultiSelection: null == enableMultiSelection
           ? _self.enableMultiSelection
           : enableMultiSelection // ignore: cast_nullable_to_non_nullable
@@ -225,6 +250,14 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.canvasHeight
           : canvasHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      minZIndex: null == minZIndex
+          ? _self.minZIndex
+          : minZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxZIndex: null == maxZIndex
+          ? _self.maxZIndex
+          : maxZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 
@@ -337,22 +370,25 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
-            List<FlowNode> nodes,
-            List<FlowEdge> edges,
-            Set<String> selectedNodes,
-            Map<String, Set<String>> spatialHash,
+            BuiltMap<String, FlowNode> internalNodes,
+            BuiltMap<String, FlowEdge> internalEdges,
+            BuiltSet<String> internalSelectedNodes,
+            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            EdgeIndex edgeIndex,
             FlowConnectionState? connection,
             Rect? selectionRect,
             DragMode dragMode,
             double zoom,
+            Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            Rect? viewport,
             bool enableMultiSelection,
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)?
+            double canvasHeight,
+            int minZIndex,
+            int maxZIndex)?
         $default, {
     required TResult orElse(),
   }) {
@@ -360,22 +396,25 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
     switch (_that) {
       case _FlowCanvasState() when $default != null:
         return $default(
-            _that.nodes,
-            _that.edges,
-            _that.selectedNodes,
-            _that.spatialHash,
+            _that.internalNodes,
+            _that.internalEdges,
+            _that.internalSelectedNodes,
+            _that.internalSpatialHash,
+            _that.edgeIndex,
             _that.connection,
             _that.selectionRect,
             _that.dragMode,
             _that.zoom,
+            _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.viewport,
             _that.enableMultiSelection,
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.minZIndex,
+            _that.maxZIndex);
       case _:
         return orElse();
     }
@@ -397,44 +436,50 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            List<FlowNode> nodes,
-            List<FlowEdge> edges,
-            Set<String> selectedNodes,
-            Map<String, Set<String>> spatialHash,
+            BuiltMap<String, FlowNode> internalNodes,
+            BuiltMap<String, FlowEdge> internalEdges,
+            BuiltSet<String> internalSelectedNodes,
+            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            EdgeIndex edgeIndex,
             FlowConnectionState? connection,
             Rect? selectionRect,
             DragMode dragMode,
             double zoom,
+            Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            Rect? viewport,
             bool enableMultiSelection,
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)
+            double canvasHeight,
+            int minZIndex,
+            int maxZIndex)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowCanvasState():
         return $default(
-            _that.nodes,
-            _that.edges,
-            _that.selectedNodes,
-            _that.spatialHash,
+            _that.internalNodes,
+            _that.internalEdges,
+            _that.internalSelectedNodes,
+            _that.internalSpatialHash,
+            _that.edgeIndex,
             _that.connection,
             _that.selectionRect,
             _that.dragMode,
             _that.zoom,
+            _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.viewport,
             _that.enableMultiSelection,
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.minZIndex,
+            _that.maxZIndex);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -455,44 +500,50 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
-            List<FlowNode> nodes,
-            List<FlowEdge> edges,
-            Set<String> selectedNodes,
-            Map<String, Set<String>> spatialHash,
+            BuiltMap<String, FlowNode> internalNodes,
+            BuiltMap<String, FlowEdge> internalEdges,
+            BuiltSet<String> internalSelectedNodes,
+            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            EdgeIndex edgeIndex,
             FlowConnectionState? connection,
             Rect? selectionRect,
             DragMode dragMode,
             double zoom,
+            Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            Rect? viewport,
             bool enableMultiSelection,
             bool enableKeyboardShortcuts,
             bool enableBoxSelection,
             double canvasWidth,
-            double canvasHeight)?
+            double canvasHeight,
+            int minZIndex,
+            int maxZIndex)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowCanvasState() when $default != null:
         return $default(
-            _that.nodes,
-            _that.edges,
-            _that.selectedNodes,
-            _that.spatialHash,
+            _that.internalNodes,
+            _that.internalEdges,
+            _that.internalSelectedNodes,
+            _that.internalSpatialHash,
+            _that.edgeIndex,
             _that.connection,
             _that.selectionRect,
             _that.dragMode,
             _that.zoom,
+            _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.viewport,
             _that.enableMultiSelection,
             _that.enableKeyboardShortcuts,
             _that.enableBoxSelection,
             _that.canvasWidth,
-            _that.canvasHeight);
+            _that.canvasHeight,
+            _that.minZIndex,
+            _that.maxZIndex);
       case _:
         return null;
     }
@@ -501,67 +552,41 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
 
 /// @nodoc
 
-class _FlowCanvasState implements FlowCanvasState {
+class _FlowCanvasState extends FlowCanvasState {
   const _FlowCanvasState(
-      {final List<FlowNode> nodes = const [],
-      final List<FlowEdge> edges = const [],
-      final Set<String> selectedNodes = const {},
-      final Map<String, Set<String>> spatialHash = const {},
+      {required this.internalNodes,
+      required this.internalEdges,
+      required this.internalSelectedNodes,
+      required this.internalSpatialHash,
+      required this.edgeIndex,
       this.connection,
       this.selectionRect,
       this.dragMode = DragMode.none,
       this.zoom = 1.0,
+      this.viewportOffset = Offset.zero,
       this.isPanZoomLocked = false,
       this.viewportSize,
-      this.viewport,
       this.enableMultiSelection = true,
       this.enableKeyboardShortcuts = true,
       this.enableBoxSelection = true,
       this.canvasWidth = 500000,
-      this.canvasHeight = 500000})
-      : _nodes = nodes,
-        _edges = edges,
-        _selectedNodes = selectedNodes,
-        _spatialHash = spatialHash;
+      this.canvasHeight = 500000,
+      this.minZIndex = 0,
+      this.maxZIndex = 0})
+      : super._();
 
 // Core data
-  final List<FlowNode> _nodes;
-// Core data
   @override
-  @JsonKey()
-  List<FlowNode> get nodes {
-    if (_nodes is EqualUnmodifiableListView) return _nodes;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_nodes);
-  }
-
-  final List<FlowEdge> _edges;
+  final BuiltMap<String, FlowNode> internalNodes;
   @override
-  @JsonKey()
-  List<FlowEdge> get edges {
-    if (_edges is EqualUnmodifiableListView) return _edges;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_edges);
-  }
-
-  final Set<String> _selectedNodes;
+  final BuiltMap<String, FlowEdge> internalEdges;
   @override
-  @JsonKey()
-  Set<String> get selectedNodes {
-    if (_selectedNodes is EqualUnmodifiableSetView) return _selectedNodes;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableSetView(_selectedNodes);
-  }
-
-  final Map<String, Set<String>> _spatialHash;
+  final BuiltSet<String> internalSelectedNodes;
   @override
-  @JsonKey()
-  Map<String, Set<String>> get spatialHash {
-    if (_spatialHash is EqualUnmodifiableMapView) return _spatialHash;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_spatialHash);
-  }
-
+  final BuiltMap<String, BuiltSet<String>> internalSpatialHash;
+// Edge indexing
+  @override
+  final EdgeIndex edgeIndex;
 // Interaction state
   @override
   final FlowConnectionState? connection;
@@ -576,11 +601,12 @@ class _FlowCanvasState implements FlowCanvasState {
   final double zoom;
   @override
   @JsonKey()
+  final Offset viewportOffset;
+  @override
+  @JsonKey()
   final bool isPanZoomLocked;
   @override
   final Size? viewportSize;
-  @override
-  final Rect? viewport;
 // Configuration
   @override
   @JsonKey()
@@ -597,6 +623,13 @@ class _FlowCanvasState implements FlowCanvasState {
   @override
   @JsonKey()
   final double canvasHeight;
+// Z-index management
+  @override
+  @JsonKey()
+  final int minZIndex;
+  @override
+  @JsonKey()
+  final int maxZIndex;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -611,12 +644,16 @@ class _FlowCanvasState implements FlowCanvasState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowCanvasState &&
-            const DeepCollectionEquality().equals(other._nodes, _nodes) &&
-            const DeepCollectionEquality().equals(other._edges, _edges) &&
+            (identical(other.internalNodes, internalNodes) ||
+                other.internalNodes == internalNodes) &&
+            (identical(other.internalEdges, internalEdges) ||
+                other.internalEdges == internalEdges) &&
             const DeepCollectionEquality()
-                .equals(other._selectedNodes, _selectedNodes) &&
-            const DeepCollectionEquality()
-                .equals(other._spatialHash, _spatialHash) &&
+                .equals(other.internalSelectedNodes, internalSelectedNodes) &&
+            (identical(other.internalSpatialHash, internalSpatialHash) ||
+                other.internalSpatialHash == internalSpatialHash) &&
+            (identical(other.edgeIndex, edgeIndex) ||
+                other.edgeIndex == edgeIndex) &&
             (identical(other.connection, connection) ||
                 other.connection == connection) &&
             (identical(other.selectionRect, selectionRect) ||
@@ -624,12 +661,12 @@ class _FlowCanvasState implements FlowCanvasState {
             (identical(other.dragMode, dragMode) ||
                 other.dragMode == dragMode) &&
             (identical(other.zoom, zoom) || other.zoom == zoom) &&
+            (identical(other.viewportOffset, viewportOffset) ||
+                other.viewportOffset == viewportOffset) &&
             (identical(other.isPanZoomLocked, isPanZoomLocked) ||
                 other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
-            (identical(other.viewport, viewport) ||
-                other.viewport == viewport) &&
             (identical(other.enableMultiSelection, enableMultiSelection) ||
                 other.enableMultiSelection == enableMultiSelection) &&
             (identical(
@@ -640,32 +677,40 @@ class _FlowCanvasState implements FlowCanvasState {
             (identical(other.canvasWidth, canvasWidth) ||
                 other.canvasWidth == canvasWidth) &&
             (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight));
+                other.canvasHeight == canvasHeight) &&
+            (identical(other.minZIndex, minZIndex) ||
+                other.minZIndex == minZIndex) &&
+            (identical(other.maxZIndex, maxZIndex) ||
+                other.maxZIndex == maxZIndex));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_nodes),
-      const DeepCollectionEquality().hash(_edges),
-      const DeepCollectionEquality().hash(_selectedNodes),
-      const DeepCollectionEquality().hash(_spatialHash),
-      connection,
-      selectionRect,
-      dragMode,
-      zoom,
-      isPanZoomLocked,
-      viewportSize,
-      viewport,
-      enableMultiSelection,
-      enableKeyboardShortcuts,
-      enableBoxSelection,
-      canvasWidth,
-      canvasHeight);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        internalNodes,
+        internalEdges,
+        const DeepCollectionEquality().hash(internalSelectedNodes),
+        internalSpatialHash,
+        edgeIndex,
+        connection,
+        selectionRect,
+        dragMode,
+        zoom,
+        viewportOffset,
+        isPanZoomLocked,
+        viewportSize,
+        enableMultiSelection,
+        enableKeyboardShortcuts,
+        enableBoxSelection,
+        canvasWidth,
+        canvasHeight,
+        minZIndex,
+        maxZIndex
+      ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, spatialHash: $spatialHash, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, viewport: $viewport, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight)';
+    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, minZIndex: $minZIndex, maxZIndex: $maxZIndex)';
   }
 }
 
@@ -678,22 +723,25 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {List<FlowNode> nodes,
-      List<FlowEdge> edges,
-      Set<String> selectedNodes,
-      Map<String, Set<String>> spatialHash,
+      {BuiltMap<String, FlowNode> internalNodes,
+      BuiltMap<String, FlowEdge> internalEdges,
+      BuiltSet<String> internalSelectedNodes,
+      BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+      EdgeIndex edgeIndex,
       FlowConnectionState? connection,
       Rect? selectionRect,
       DragMode dragMode,
       double zoom,
+      Offset viewportOffset,
       bool isPanZoomLocked,
       Size? viewportSize,
-      Rect? viewport,
       bool enableMultiSelection,
       bool enableKeyboardShortcuts,
       bool enableBoxSelection,
       double canvasWidth,
-      double canvasHeight});
+      double canvasHeight,
+      int minZIndex,
+      int maxZIndex});
 
   @override
   $FlowConnectionStateCopyWith<$Res>? get connection;
@@ -712,40 +760,47 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? nodes = null,
-    Object? edges = null,
-    Object? selectedNodes = null,
-    Object? spatialHash = null,
+    Object? internalNodes = null,
+    Object? internalEdges = null,
+    Object? internalSelectedNodes = null,
+    Object? internalSpatialHash = null,
+    Object? edgeIndex = null,
     Object? connection = freezed,
     Object? selectionRect = freezed,
     Object? dragMode = null,
     Object? zoom = null,
+    Object? viewportOffset = null,
     Object? isPanZoomLocked = null,
     Object? viewportSize = freezed,
-    Object? viewport = freezed,
     Object? enableMultiSelection = null,
     Object? enableKeyboardShortcuts = null,
     Object? enableBoxSelection = null,
     Object? canvasWidth = null,
     Object? canvasHeight = null,
+    Object? minZIndex = null,
+    Object? maxZIndex = null,
   }) {
     return _then(_FlowCanvasState(
-      nodes: null == nodes
-          ? _self._nodes
-          : nodes // ignore: cast_nullable_to_non_nullable
-              as List<FlowNode>,
-      edges: null == edges
-          ? _self._edges
-          : edges // ignore: cast_nullable_to_non_nullable
-              as List<FlowEdge>,
-      selectedNodes: null == selectedNodes
-          ? _self._selectedNodes
-          : selectedNodes // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-      spatialHash: null == spatialHash
-          ? _self._spatialHash
-          : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, Set<String>>,
+      internalNodes: null == internalNodes
+          ? _self.internalNodes
+          : internalNodes // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, FlowNode>,
+      internalEdges: null == internalEdges
+          ? _self.internalEdges
+          : internalEdges // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, FlowEdge>,
+      internalSelectedNodes: null == internalSelectedNodes
+          ? _self.internalSelectedNodes
+          : internalSelectedNodes // ignore: cast_nullable_to_non_nullable
+              as BuiltSet<String>,
+      internalSpatialHash: null == internalSpatialHash
+          ? _self.internalSpatialHash
+          : internalSpatialHash // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, BuiltSet<String>>,
+      edgeIndex: null == edgeIndex
+          ? _self.edgeIndex
+          : edgeIndex // ignore: cast_nullable_to_non_nullable
+              as EdgeIndex,
       connection: freezed == connection
           ? _self.connection
           : connection // ignore: cast_nullable_to_non_nullable
@@ -762,6 +817,10 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.zoom
           : zoom // ignore: cast_nullable_to_non_nullable
               as double,
+      viewportOffset: null == viewportOffset
+          ? _self.viewportOffset
+          : viewportOffset // ignore: cast_nullable_to_non_nullable
+              as Offset,
       isPanZoomLocked: null == isPanZoomLocked
           ? _self.isPanZoomLocked
           : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
@@ -770,10 +829,6 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
-      viewport: freezed == viewport
-          ? _self.viewport
-          : viewport // ignore: cast_nullable_to_non_nullable
-              as Rect?,
       enableMultiSelection: null == enableMultiSelection
           ? _self.enableMultiSelection
           : enableMultiSelection // ignore: cast_nullable_to_non_nullable
@@ -794,6 +849,14 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.canvasHeight
           : canvasHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      minZIndex: null == minZIndex
+          ? _self.minZIndex
+          : minZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxZIndex: null == maxZIndex
+          ? _self.maxZIndex
+          : maxZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 

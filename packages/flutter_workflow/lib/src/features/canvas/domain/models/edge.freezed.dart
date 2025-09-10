@@ -14,24 +14,27 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowEdge {
+// Core identifiers
   String get id;
   String get sourceNodeId;
-  String get sourceHandleId;
   String get targetNodeId;
-  String get targetHandleId;
-
-  /// The type of the edge, used to look up a custom painter in the EdgeRegistry.
-  String? get type;
-
-  /// The shape of the edge's path.
+  String? get sourceHandleId;
+  String? get targetHandleId;
+  BuiltMap<String, dynamic> get internalData; // Rendering
   EdgePathType get pathType;
-
-  /// A generic data map for any other custom properties.
-  Map<String, dynamic>
-      get data; // Note: Visual properties like Paint, label styles etc.,
-// are best handled in the presentation layer (the painter)
-// based on the theme, rather than storing them in the data model.
-  String? get label;
+  bool get animated;
+  bool get hidden;
+  bool get deletable;
+  bool get selectable;
+  bool get selected;
+  int get zIndex; // Interaction
+  bool get reconnectable;
+  double get interactionWidth; // Label
+  Widget? get label;
+  BoxDecoration? get labelDecoration; // Markers
+  EdgeMarkerStyle? get startMarkerStyle;
+  EdgeMarkerStyle? get endMarkerStyle; // Style
+  EdgeStyle? get style;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -48,35 +51,68 @@ mixin _$FlowEdge {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.sourceNodeId, sourceNodeId) ||
                 other.sourceNodeId == sourceNodeId) &&
-            (identical(other.sourceHandleId, sourceHandleId) ||
-                other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetNodeId, targetNodeId) ||
                 other.targetNodeId == targetNodeId) &&
+            (identical(other.sourceHandleId, sourceHandleId) ||
+                other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetHandleId, targetHandleId) ||
                 other.targetHandleId == targetHandleId) &&
-            (identical(other.type, type) || other.type == type) &&
+            (identical(other.internalData, internalData) ||
+                other.internalData == internalData) &&
             (identical(other.pathType, pathType) ||
                 other.pathType == pathType) &&
-            const DeepCollectionEquality().equals(other.data, data) &&
-            (identical(other.label, label) || other.label == label));
+            (identical(other.animated, animated) ||
+                other.animated == animated) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.selected, selected) ||
+                other.selected == selected) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.reconnectable, reconnectable) ||
+                other.reconnectable == reconnectable) &&
+            (identical(other.interactionWidth, interactionWidth) ||
+                other.interactionWidth == interactionWidth) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.labelDecoration, labelDecoration) ||
+                other.labelDecoration == labelDecoration) &&
+            (identical(other.startMarkerStyle, startMarkerStyle) ||
+                other.startMarkerStyle == startMarkerStyle) &&
+            (identical(other.endMarkerStyle, endMarkerStyle) ||
+                other.endMarkerStyle == endMarkerStyle) &&
+            (identical(other.style, style) || other.style == style));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      sourceNodeId,
-      sourceHandleId,
-      targetNodeId,
-      targetHandleId,
-      type,
-      pathType,
-      const DeepCollectionEquality().hash(data),
-      label);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        sourceNodeId,
+        targetNodeId,
+        sourceHandleId,
+        targetHandleId,
+        internalData,
+        pathType,
+        animated,
+        hidden,
+        deletable,
+        selectable,
+        selected,
+        zIndex,
+        reconnectable,
+        interactionWidth,
+        label,
+        labelDecoration,
+        startMarkerStyle,
+        endMarkerStyle,
+        style
+      ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, sourceHandleId: $sourceHandleId, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, type: $type, pathType: $pathType, data: $data, label: $label)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
   }
 }
 
@@ -88,13 +124,24 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
   $Res call(
       {String id,
       String sourceNodeId,
-      String sourceHandleId,
       String targetNodeId,
-      String targetHandleId,
-      String? type,
+      String? sourceHandleId,
+      String? targetHandleId,
+      BuiltMap<String, dynamic> internalData,
       EdgePathType pathType,
-      Map<String, dynamic> data,
-      String? label});
+      bool animated,
+      bool hidden,
+      bool deletable,
+      bool selectable,
+      bool selected,
+      int zIndex,
+      bool reconnectable,
+      double interactionWidth,
+      Widget? label,
+      BoxDecoration? labelDecoration,
+      EdgeMarkerStyle? startMarkerStyle,
+      EdgeMarkerStyle? endMarkerStyle,
+      EdgeStyle? style});
 }
 
 /// @nodoc
@@ -111,13 +158,24 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? sourceNodeId = null,
-    Object? sourceHandleId = null,
     Object? targetNodeId = null,
-    Object? targetHandleId = null,
-    Object? type = freezed,
+    Object? sourceHandleId = freezed,
+    Object? targetHandleId = freezed,
+    Object? internalData = null,
     Object? pathType = null,
-    Object? data = null,
+    Object? animated = null,
+    Object? hidden = null,
+    Object? deletable = null,
+    Object? selectable = null,
+    Object? selected = null,
+    Object? zIndex = null,
+    Object? reconnectable = null,
+    Object? interactionWidth = null,
     Object? label = freezed,
+    Object? labelDecoration = freezed,
+    Object? startMarkerStyle = freezed,
+    Object? endMarkerStyle = freezed,
+    Object? style = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -128,34 +186,78 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
           ? _self.sourceNodeId
           : sourceNodeId // ignore: cast_nullable_to_non_nullable
               as String,
-      sourceHandleId: null == sourceHandleId
-          ? _self.sourceHandleId
-          : sourceHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
       targetNodeId: null == targetNodeId
           ? _self.targetNodeId
           : targetNodeId // ignore: cast_nullable_to_non_nullable
               as String,
-      targetHandleId: null == targetHandleId
+      sourceHandleId: freezed == sourceHandleId
+          ? _self.sourceHandleId
+          : sourceHandleId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetHandleId: freezed == targetHandleId
           ? _self.targetHandleId
           : targetHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: freezed == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
               as String?,
+      internalData: null == internalData
+          ? _self.internalData
+          : internalData // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, dynamic>,
       pathType: null == pathType
           ? _self.pathType
           : pathType // ignore: cast_nullable_to_non_nullable
               as EdgePathType,
-      data: null == data
-          ? _self.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+      animated: null == animated
+          ? _self.animated
+          : animated // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hidden: null == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool,
+      deletable: null == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selectable: null == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selected: null == selected
+          ? _self.selected
+          : selected // ignore: cast_nullable_to_non_nullable
+              as bool,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      reconnectable: null == reconnectable
+          ? _self.reconnectable
+          : reconnectable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      interactionWidth: null == interactionWidth
+          ? _self.interactionWidth
+          : interactionWidth // ignore: cast_nullable_to_non_nullable
+              as double,
       label: freezed == label
           ? _self.label
           : label // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as Widget?,
+      labelDecoration: freezed == labelDecoration
+          ? _self.labelDecoration
+          : labelDecoration // ignore: cast_nullable_to_non_nullable
+              as BoxDecoration?,
+      startMarkerStyle: freezed == startMarkerStyle
+          ? _self.startMarkerStyle
+          : startMarkerStyle // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      endMarkerStyle: freezed == endMarkerStyle
+          ? _self.endMarkerStyle
+          : endMarkerStyle // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      style: freezed == style
+          ? _self.style
+          : style // ignore: cast_nullable_to_non_nullable
+              as EdgeStyle?,
     ));
   }
 }
@@ -256,13 +358,24 @@ extension FlowEdgePatterns on FlowEdge {
     TResult Function(
             String id,
             String sourceNodeId,
-            String sourceHandleId,
             String targetNodeId,
-            String targetHandleId,
-            String? type,
+            String? sourceHandleId,
+            String? targetHandleId,
+            BuiltMap<String, dynamic> internalData,
             EdgePathType pathType,
-            Map<String, dynamic> data,
-            String? label)?
+            bool animated,
+            bool hidden,
+            bool deletable,
+            bool selectable,
+            bool selected,
+            int zIndex,
+            bool reconnectable,
+            double interactionWidth,
+            Widget? label,
+            BoxDecoration? labelDecoration,
+            EdgeMarkerStyle? startMarkerStyle,
+            EdgeMarkerStyle? endMarkerStyle,
+            EdgeStyle? style)?
         $default, {
     required TResult orElse(),
   }) {
@@ -272,13 +385,24 @@ extension FlowEdgePatterns on FlowEdge {
         return $default(
             _that.id,
             _that.sourceNodeId,
-            _that.sourceHandleId,
             _that.targetNodeId,
+            _that.sourceHandleId,
             _that.targetHandleId,
-            _that.type,
+            _that.internalData,
             _that.pathType,
-            _that.data,
-            _that.label);
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.selected,
+            _that.zIndex,
+            _that.reconnectable,
+            _that.interactionWidth,
+            _that.label,
+            _that.labelDecoration,
+            _that.startMarkerStyle,
+            _that.endMarkerStyle,
+            _that.style);
       case _:
         return orElse();
     }
@@ -302,13 +426,24 @@ extension FlowEdgePatterns on FlowEdge {
     TResult Function(
             String id,
             String sourceNodeId,
-            String sourceHandleId,
             String targetNodeId,
-            String targetHandleId,
-            String? type,
+            String? sourceHandleId,
+            String? targetHandleId,
+            BuiltMap<String, dynamic> internalData,
             EdgePathType pathType,
-            Map<String, dynamic> data,
-            String? label)
+            bool animated,
+            bool hidden,
+            bool deletable,
+            bool selectable,
+            bool selected,
+            int zIndex,
+            bool reconnectable,
+            double interactionWidth,
+            Widget? label,
+            BoxDecoration? labelDecoration,
+            EdgeMarkerStyle? startMarkerStyle,
+            EdgeMarkerStyle? endMarkerStyle,
+            EdgeStyle? style)
         $default,
   ) {
     final _that = this;
@@ -317,13 +452,24 @@ extension FlowEdgePatterns on FlowEdge {
         return $default(
             _that.id,
             _that.sourceNodeId,
-            _that.sourceHandleId,
             _that.targetNodeId,
+            _that.sourceHandleId,
             _that.targetHandleId,
-            _that.type,
+            _that.internalData,
             _that.pathType,
-            _that.data,
-            _that.label);
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.selected,
+            _that.zIndex,
+            _that.reconnectable,
+            _that.interactionWidth,
+            _that.label,
+            _that.labelDecoration,
+            _that.startMarkerStyle,
+            _that.endMarkerStyle,
+            _that.style);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -346,13 +492,24 @@ extension FlowEdgePatterns on FlowEdge {
     TResult? Function(
             String id,
             String sourceNodeId,
-            String sourceHandleId,
             String targetNodeId,
-            String targetHandleId,
-            String? type,
+            String? sourceHandleId,
+            String? targetHandleId,
+            BuiltMap<String, dynamic> internalData,
             EdgePathType pathType,
-            Map<String, dynamic> data,
-            String? label)?
+            bool animated,
+            bool hidden,
+            bool deletable,
+            bool selectable,
+            bool selected,
+            int zIndex,
+            bool reconnectable,
+            double interactionWidth,
+            Widget? label,
+            BoxDecoration? labelDecoration,
+            EdgeMarkerStyle? startMarkerStyle,
+            EdgeMarkerStyle? endMarkerStyle,
+            EdgeStyle? style)?
         $default,
   ) {
     final _that = this;
@@ -361,13 +518,24 @@ extension FlowEdgePatterns on FlowEdge {
         return $default(
             _that.id,
             _that.sourceNodeId,
-            _that.sourceHandleId,
             _that.targetNodeId,
+            _that.sourceHandleId,
             _that.targetHandleId,
-            _that.type,
+            _that.internalData,
             _that.pathType,
-            _that.data,
-            _that.label);
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.selected,
+            _that.zIndex,
+            _that.reconnectable,
+            _that.interactionWidth,
+            _that.label,
+            _that.labelDecoration,
+            _that.startMarkerStyle,
+            _that.endMarkerStyle,
+            _that.style);
       case _:
         return null;
     }
@@ -376,56 +544,87 @@ extension FlowEdgePatterns on FlowEdge {
 
 /// @nodoc
 
-class _FlowEdge implements FlowEdge {
+class _FlowEdge extends FlowEdge {
   const _FlowEdge(
       {required this.id,
       required this.sourceNodeId,
-      required this.sourceHandleId,
       required this.targetNodeId,
+      required this.sourceHandleId,
       required this.targetHandleId,
-      this.type,
+      required this.internalData,
       this.pathType = EdgePathType.bezier,
-      final Map<String, dynamic> data = const {},
-      this.label})
-      : _data = data;
+      this.animated = false,
+      this.hidden = false,
+      this.deletable = true,
+      this.selectable = true,
+      this.selected = false,
+      this.zIndex = 0,
+      this.reconnectable = true,
+      this.interactionWidth = 10.0,
+      this.label,
+      this.labelDecoration,
+      this.startMarkerStyle,
+      this.endMarkerStyle,
+      this.style})
+      : assert(sourceNodeId != targetNodeId,
+            'Source and target cannot be the same node'),
+        super._();
 
+// Core identifiers
   @override
   final String id;
   @override
   final String sourceNodeId;
   @override
-  final String sourceHandleId;
-  @override
   final String targetNodeId;
   @override
-  final String targetHandleId;
-
-  /// The type of the edge, used to look up a custom painter in the EdgeRegistry.
+  final String? sourceHandleId;
   @override
-  final String? type;
-
-  /// The shape of the edge's path.
+  final String? targetHandleId;
+  @override
+  final BuiltMap<String, dynamic> internalData;
+// Rendering
   @override
   @JsonKey()
   final EdgePathType pathType;
-
-  /// A generic data map for any other custom properties.
-  final Map<String, dynamic> _data;
-
-  /// A generic data map for any other custom properties.
   @override
   @JsonKey()
-  Map<String, dynamic> get data {
-    if (_data is EqualUnmodifiableMapView) return _data;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_data);
-  }
-
-// Note: Visual properties like Paint, label styles etc.,
-// are best handled in the presentation layer (the painter)
-// based on the theme, rather than storing them in the data model.
+  final bool animated;
   @override
-  final String? label;
+  @JsonKey()
+  final bool hidden;
+  @override
+  @JsonKey()
+  final bool deletable;
+  @override
+  @JsonKey()
+  final bool selectable;
+  @override
+  @JsonKey()
+  final bool selected;
+  @override
+  @JsonKey()
+  final int zIndex;
+// Interaction
+  @override
+  @JsonKey()
+  final bool reconnectable;
+  @override
+  @JsonKey()
+  final double interactionWidth;
+// Label
+  @override
+  final Widget? label;
+  @override
+  final BoxDecoration? labelDecoration;
+// Markers
+  @override
+  final EdgeMarkerStyle? startMarkerStyle;
+  @override
+  final EdgeMarkerStyle? endMarkerStyle;
+// Style
+  @override
+  final EdgeStyle? style;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -443,35 +642,68 @@ class _FlowEdge implements FlowEdge {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.sourceNodeId, sourceNodeId) ||
                 other.sourceNodeId == sourceNodeId) &&
-            (identical(other.sourceHandleId, sourceHandleId) ||
-                other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetNodeId, targetNodeId) ||
                 other.targetNodeId == targetNodeId) &&
+            (identical(other.sourceHandleId, sourceHandleId) ||
+                other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetHandleId, targetHandleId) ||
                 other.targetHandleId == targetHandleId) &&
-            (identical(other.type, type) || other.type == type) &&
+            (identical(other.internalData, internalData) ||
+                other.internalData == internalData) &&
             (identical(other.pathType, pathType) ||
                 other.pathType == pathType) &&
-            const DeepCollectionEquality().equals(other._data, _data) &&
-            (identical(other.label, label) || other.label == label));
+            (identical(other.animated, animated) ||
+                other.animated == animated) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.selected, selected) ||
+                other.selected == selected) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.reconnectable, reconnectable) ||
+                other.reconnectable == reconnectable) &&
+            (identical(other.interactionWidth, interactionWidth) ||
+                other.interactionWidth == interactionWidth) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.labelDecoration, labelDecoration) ||
+                other.labelDecoration == labelDecoration) &&
+            (identical(other.startMarkerStyle, startMarkerStyle) ||
+                other.startMarkerStyle == startMarkerStyle) &&
+            (identical(other.endMarkerStyle, endMarkerStyle) ||
+                other.endMarkerStyle == endMarkerStyle) &&
+            (identical(other.style, style) || other.style == style));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      sourceNodeId,
-      sourceHandleId,
-      targetNodeId,
-      targetHandleId,
-      type,
-      pathType,
-      const DeepCollectionEquality().hash(_data),
-      label);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        sourceNodeId,
+        targetNodeId,
+        sourceHandleId,
+        targetHandleId,
+        internalData,
+        pathType,
+        animated,
+        hidden,
+        deletable,
+        selectable,
+        selected,
+        zIndex,
+        reconnectable,
+        interactionWidth,
+        label,
+        labelDecoration,
+        startMarkerStyle,
+        endMarkerStyle,
+        style
+      ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, sourceHandleId: $sourceHandleId, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, type: $type, pathType: $pathType, data: $data, label: $label)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
   }
 }
 
@@ -485,13 +717,24 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
   $Res call(
       {String id,
       String sourceNodeId,
-      String sourceHandleId,
       String targetNodeId,
-      String targetHandleId,
-      String? type,
+      String? sourceHandleId,
+      String? targetHandleId,
+      BuiltMap<String, dynamic> internalData,
       EdgePathType pathType,
-      Map<String, dynamic> data,
-      String? label});
+      bool animated,
+      bool hidden,
+      bool deletable,
+      bool selectable,
+      bool selected,
+      int zIndex,
+      bool reconnectable,
+      double interactionWidth,
+      Widget? label,
+      BoxDecoration? labelDecoration,
+      EdgeMarkerStyle? startMarkerStyle,
+      EdgeMarkerStyle? endMarkerStyle,
+      EdgeStyle? style});
 }
 
 /// @nodoc
@@ -508,13 +751,24 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? sourceNodeId = null,
-    Object? sourceHandleId = null,
     Object? targetNodeId = null,
-    Object? targetHandleId = null,
-    Object? type = freezed,
+    Object? sourceHandleId = freezed,
+    Object? targetHandleId = freezed,
+    Object? internalData = null,
     Object? pathType = null,
-    Object? data = null,
+    Object? animated = null,
+    Object? hidden = null,
+    Object? deletable = null,
+    Object? selectable = null,
+    Object? selected = null,
+    Object? zIndex = null,
+    Object? reconnectable = null,
+    Object? interactionWidth = null,
     Object? label = freezed,
+    Object? labelDecoration = freezed,
+    Object? startMarkerStyle = freezed,
+    Object? endMarkerStyle = freezed,
+    Object? style = freezed,
   }) {
     return _then(_FlowEdge(
       id: null == id
@@ -525,34 +779,78 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
           ? _self.sourceNodeId
           : sourceNodeId // ignore: cast_nullable_to_non_nullable
               as String,
-      sourceHandleId: null == sourceHandleId
-          ? _self.sourceHandleId
-          : sourceHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
       targetNodeId: null == targetNodeId
           ? _self.targetNodeId
           : targetNodeId // ignore: cast_nullable_to_non_nullable
               as String,
-      targetHandleId: null == targetHandleId
+      sourceHandleId: freezed == sourceHandleId
+          ? _self.sourceHandleId
+          : sourceHandleId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetHandleId: freezed == targetHandleId
           ? _self.targetHandleId
           : targetHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: freezed == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
               as String?,
+      internalData: null == internalData
+          ? _self.internalData
+          : internalData // ignore: cast_nullable_to_non_nullable
+              as BuiltMap<String, dynamic>,
       pathType: null == pathType
           ? _self.pathType
           : pathType // ignore: cast_nullable_to_non_nullable
               as EdgePathType,
-      data: null == data
-          ? _self._data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
+      animated: null == animated
+          ? _self.animated
+          : animated // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hidden: null == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool,
+      deletable: null == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selectable: null == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selected: null == selected
+          ? _self.selected
+          : selected // ignore: cast_nullable_to_non_nullable
+              as bool,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      reconnectable: null == reconnectable
+          ? _self.reconnectable
+          : reconnectable // ignore: cast_nullable_to_non_nullable
+              as bool,
+      interactionWidth: null == interactionWidth
+          ? _self.interactionWidth
+          : interactionWidth // ignore: cast_nullable_to_non_nullable
+              as double,
       label: freezed == label
           ? _self.label
           : label // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as Widget?,
+      labelDecoration: freezed == labelDecoration
+          ? _self.labelDecoration
+          : labelDecoration // ignore: cast_nullable_to_non_nullable
+              as BoxDecoration?,
+      startMarkerStyle: freezed == startMarkerStyle
+          ? _self.startMarkerStyle
+          : startMarkerStyle // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      endMarkerStyle: freezed == endMarkerStyle
+          ? _self.endMarkerStyle
+          : endMarkerStyle // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      style: freezed == style
+          ? _self.style
+          : style // ignore: cast_nullable_to_non_nullable
+              as EdgeStyle?,
     ));
   }
 }
