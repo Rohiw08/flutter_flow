@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/theme/components/edge_label_theme.dart';
 
-class FlowCanvasEdgeTheme {
+class EdgeStyle {
   final Color defaultColor;
   final Color selectedColor;
   final Color animatedColor;
@@ -11,7 +11,7 @@ class FlowCanvasEdgeTheme {
   final EdgeLabelTheme? label;
   final Color? hoverColor;
 
-  const FlowCanvasEdgeTheme({
+  const EdgeStyle({
     required this.defaultColor,
     required this.selectedColor,
     required this.animatedColor,
@@ -22,8 +22,8 @@ class FlowCanvasEdgeTheme {
     this.label,
   });
 
-  factory FlowCanvasEdgeTheme.light() {
-    return FlowCanvasEdgeTheme(
+  factory EdgeStyle.light() {
+    return EdgeStyle(
       defaultColor: const Color(0xFF9E9E9E),
       selectedColor: const Color(0xFF2196F3),
       hoverColor: const Color(0xFF757575), // Added hover color for light theme
@@ -35,8 +35,8 @@ class FlowCanvasEdgeTheme {
     );
   }
 
-  factory FlowCanvasEdgeTheme.dark() {
-    return FlowCanvasEdgeTheme(
+  factory EdgeStyle.dark() {
+    return EdgeStyle(
       defaultColor: const Color(0xFF616161),
       selectedColor: const Color(0xFF64B5F6),
       hoverColor: const Color(0xFF9E9E9E), // Added hover color for dark theme
@@ -48,7 +48,7 @@ class FlowCanvasEdgeTheme {
     );
   }
 
-  FlowCanvasEdgeTheme copyWith({
+  EdgeStyle copyWith({
     Color? defaultColor,
     Color? selectedColor,
     Color? hoverColor, // Added to copyWith
@@ -58,7 +58,7 @@ class FlowCanvasEdgeTheme {
     double? arrowHeadSize,
     EdgeLabelTheme? label,
   }) {
-    return FlowCanvasEdgeTheme(
+    return EdgeStyle(
       defaultColor: defaultColor ?? this.defaultColor,
       selectedColor: selectedColor ?? this.selectedColor,
       hoverColor: hoverColor ?? this.hoverColor, // Added to copyWith

@@ -21,8 +21,9 @@ mixin _$FlowNode {
   BuiltMap<String, NodeHandle> get internalHandles;
   BuiltMap<String, dynamic> get internalData;
   bool get isSelected;
-  bool get isDraggable;
-  bool get isSelectable;
+  bool? get isDraggable;
+  bool? get isSelectable;
+  bool? get isFocusable; // optional
   bool get isHidden;
   bool get isDragging;
   bool get isResizing;
@@ -55,6 +56,8 @@ mixin _$FlowNode {
                 other.isDraggable == isDraggable) &&
             (identical(other.isSelectable, isSelectable) ||
                 other.isSelectable == isSelectable) &&
+            (identical(other.isFocusable, isFocusable) ||
+                other.isFocusable == isFocusable) &&
             (identical(other.isHidden, isHidden) ||
                 other.isHidden == isHidden) &&
             (identical(other.isDragging, isDragging) ||
@@ -76,6 +79,7 @@ mixin _$FlowNode {
       isSelected,
       isDraggable,
       isSelectable,
+      isFocusable,
       isHidden,
       isDragging,
       isResizing,
@@ -83,7 +87,7 @@ mixin _$FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isFocusable: $isFocusable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
   }
 }
 
@@ -100,8 +104,9 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       BuiltMap<String, NodeHandle> internalHandles,
       BuiltMap<String, dynamic> internalData,
       bool isSelected,
-      bool isDraggable,
-      bool isSelectable,
+      bool? isDraggable,
+      bool? isSelectable,
+      bool? isFocusable,
       bool isHidden,
       bool isDragging,
       bool isResizing,
@@ -127,8 +132,9 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? internalHandles = null,
     Object? internalData = null,
     Object? isSelected = null,
-    Object? isDraggable = null,
-    Object? isSelectable = null,
+    Object? isDraggable = freezed,
+    Object? isSelectable = freezed,
+    Object? isFocusable = freezed,
     Object? isHidden = null,
     Object? isDragging = null,
     Object? isResizing = null,
@@ -163,14 +169,18 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.isSelected
           : isSelected // ignore: cast_nullable_to_non_nullable
               as bool,
-      isDraggable: null == isDraggable
+      isDraggable: freezed == isDraggable
           ? _self.isDraggable
           : isDraggable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isSelectable: null == isSelectable
+              as bool?,
+      isSelectable: freezed == isSelectable
           ? _self.isSelectable
           : isSelectable // ignore: cast_nullable_to_non_nullable
-              as bool,
+              as bool?,
+      isFocusable: freezed == isFocusable
+          ? _self.isFocusable
+          : isFocusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
       isHidden: null == isHidden
           ? _self.isHidden
           : isHidden // ignore: cast_nullable_to_non_nullable
@@ -292,8 +302,9 @@ extension FlowNodePatterns on FlowNode {
             BuiltMap<String, NodeHandle> internalHandles,
             BuiltMap<String, dynamic> internalData,
             bool isSelected,
-            bool isDraggable,
-            bool isSelectable,
+            bool? isDraggable,
+            bool? isSelectable,
+            bool? isFocusable,
             bool isHidden,
             bool isDragging,
             bool isResizing,
@@ -314,6 +325,7 @@ extension FlowNodePatterns on FlowNode {
             _that.isSelected,
             _that.isDraggable,
             _that.isSelectable,
+            _that.isFocusable,
             _that.isHidden,
             _that.isDragging,
             _that.isResizing,
@@ -346,8 +358,9 @@ extension FlowNodePatterns on FlowNode {
             BuiltMap<String, NodeHandle> internalHandles,
             BuiltMap<String, dynamic> internalData,
             bool isSelected,
-            bool isDraggable,
-            bool isSelectable,
+            bool? isDraggable,
+            bool? isSelectable,
+            bool? isFocusable,
             bool isHidden,
             bool isDragging,
             bool isResizing,
@@ -367,6 +380,7 @@ extension FlowNodePatterns on FlowNode {
             _that.isSelected,
             _that.isDraggable,
             _that.isSelectable,
+            _that.isFocusable,
             _that.isHidden,
             _that.isDragging,
             _that.isResizing,
@@ -398,8 +412,9 @@ extension FlowNodePatterns on FlowNode {
             BuiltMap<String, NodeHandle> internalHandles,
             BuiltMap<String, dynamic> internalData,
             bool isSelected,
-            bool isDraggable,
-            bool isSelectable,
+            bool? isDraggable,
+            bool? isSelectable,
+            bool? isFocusable,
             bool isHidden,
             bool isDragging,
             bool isResizing,
@@ -419,6 +434,7 @@ extension FlowNodePatterns on FlowNode {
             _that.isSelected,
             _that.isDraggable,
             _that.isSelectable,
+            _that.isFocusable,
             _that.isHidden,
             _that.isDragging,
             _that.isResizing,
@@ -440,8 +456,9 @@ class _FlowNode extends FlowNode {
       required this.internalHandles,
       required this.internalData,
       this.isSelected = false,
-      this.isDraggable = true,
-      this.isSelectable = true,
+      this.isDraggable,
+      this.isSelectable,
+      this.isFocusable,
       this.isHidden = false,
       this.isDragging = false,
       this.isResizing = false,
@@ -464,11 +481,12 @@ class _FlowNode extends FlowNode {
   @JsonKey()
   final bool isSelected;
   @override
-  @JsonKey()
-  final bool isDraggable;
+  final bool? isDraggable;
   @override
-  @JsonKey()
-  final bool isSelectable;
+  final bool? isSelectable;
+  @override
+  final bool? isFocusable;
+// optional
   @override
   @JsonKey()
   final bool isHidden;
@@ -510,6 +528,8 @@ class _FlowNode extends FlowNode {
                 other.isDraggable == isDraggable) &&
             (identical(other.isSelectable, isSelectable) ||
                 other.isSelectable == isSelectable) &&
+            (identical(other.isFocusable, isFocusable) ||
+                other.isFocusable == isFocusable) &&
             (identical(other.isHidden, isHidden) ||
                 other.isHidden == isHidden) &&
             (identical(other.isDragging, isDragging) ||
@@ -531,6 +551,7 @@ class _FlowNode extends FlowNode {
       isSelected,
       isDraggable,
       isSelectable,
+      isFocusable,
       isHidden,
       isDragging,
       isResizing,
@@ -538,7 +559,7 @@ class _FlowNode extends FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isFocusable: $isFocusable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
   }
 }
 
@@ -557,8 +578,9 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
       BuiltMap<String, NodeHandle> internalHandles,
       BuiltMap<String, dynamic> internalData,
       bool isSelected,
-      bool isDraggable,
-      bool isSelectable,
+      bool? isDraggable,
+      bool? isSelectable,
+      bool? isFocusable,
       bool isHidden,
       bool isDragging,
       bool isResizing,
@@ -584,8 +606,9 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? internalHandles = null,
     Object? internalData = null,
     Object? isSelected = null,
-    Object? isDraggable = null,
-    Object? isSelectable = null,
+    Object? isDraggable = freezed,
+    Object? isSelectable = freezed,
+    Object? isFocusable = freezed,
     Object? isHidden = null,
     Object? isDragging = null,
     Object? isResizing = null,
@@ -620,14 +643,18 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.isSelected
           : isSelected // ignore: cast_nullable_to_non_nullable
               as bool,
-      isDraggable: null == isDraggable
+      isDraggable: freezed == isDraggable
           ? _self.isDraggable
           : isDraggable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isSelectable: null == isSelectable
+              as bool?,
+      isSelectable: freezed == isSelectable
           ? _self.isSelectable
           : isSelectable // ignore: cast_nullable_to_non_nullable
-              as bool,
+              as bool?,
+      isFocusable: freezed == isFocusable
+          ? _self.isFocusable
+          : isFocusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
       isHidden: null == isHidden
           ? _self.isHidden
           : isHidden // ignore: cast_nullable_to_non_nullable

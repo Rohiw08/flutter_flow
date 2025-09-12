@@ -5,7 +5,7 @@ import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_fa
 import 'package:flutter_workflow/src/features/canvas/presentation/painters/minimap_painter.dart';
 import 'package:flutter_workflow/src/theme/components/minimap_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/theme/theme_extensions.dart';
+import 'package:flutter_workflow/src/theme/theme_resolver/minimap_theme_resolver.dart';
 
 /// A function that returns a color for a given node in the minimap.
 typedef MiniMapNodeColorFunc = Color? Function(FlowNode node);
@@ -21,10 +21,7 @@ class FlowMiniMap extends ConsumerWidget {
   final EdgeInsetsGeometry margin;
 
   // --- Theming & Overrides ---
-  final FlowCanvasMiniMapTheme? theme;
-  final Color? backgroundColor;
-  final Color? nodeColor;
-  final Color? selectedNodeColor;
+  final FlowCanvasMiniMapTheme? miniMapTheme;
 
   // --- Interactivity ---
   final bool pannable;
@@ -37,23 +34,14 @@ class FlowMiniMap extends ConsumerWidget {
     this.height = 150,
     this.position = Alignment.bottomRight,
     this.margin = const EdgeInsetsGeometry.all(20),
-    this.theme,
-    this.backgroundColor,
-    this.nodeColor,
-    this.selectedNodeColor,
+    this.miniMapTheme,
     this.pannable = true,
     this.zoomable = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Resolve the final theme using the three-tier system.
-    final globalTheme = context.flowCanvasTheme.miniMap;
-    final finalTheme = globalTheme.copyWith(
-      backgroundColor: backgroundColor ?? globalTheme.backgroundColor,
-      nodeColor: nodeColor ?? globalTheme.nodeColor,
-      selectedNodeColor: selectedNodeColor ?? globalTheme.selectedNodeColor,
-    );
+    final theme = resolveMiniMapTheme(context, miniMapTheme);
 
     return Align(
       alignment: position,
@@ -63,23 +51,23 @@ class FlowMiniMap extends ConsumerWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: finalTheme.backgroundColor,
-            borderRadius: BorderRadius.circular(finalTheme.borderRadius),
+            color: theme.backgroundColor,
+            borderRadius: BorderRadius.circular(theme.borderRadius!),
             border: Border.all(
-              color: finalTheme.maskStrokeColor.withAlpha(125),
+              color: theme.maskStrokeColor!.withAlpha(125),
               width: 1,
             ),
-            boxShadow: finalTheme.shadows,
+            boxShadow: theme.shadows,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(finalTheme.borderRadius),
+            borderRadius: BorderRadius.circular(theme.borderRadius!),
             child: StreamBuilder<List<Object>>(
               stream: facade.nodesAndViewportStream.cast<List<Object>>(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const SizedBox.shrink();
                 }
-                final nodes = snapshot.data![0] as List<FlowNode>;
+                final nodes = snapshot.data![0] as Map<String, FlowNode>;
                 final viewport = snapshot.data![1] as Rect;
 
                 return Listener(
@@ -87,16 +75,16 @@ class FlowMiniMap extends ConsumerWidget {
                       zoomable ? (event) => _onPointerSignal(event) : null,
                   child: GestureDetector(
                     onTapUp: pannable
-                        ? (details) => _onTapUp(details, nodes, finalTheme)
+                        ? (details) => _onTapUp(details, nodes, theme)
                         : null,
                     onPanUpdate: pannable
-                        ? (details) => _onPanUpdate(details, nodes, finalTheme)
+                        ? (details) => _onPanUpdate(details, nodes, theme)
                         : null,
                     child: CustomPaint(
                       painter: MiniMapPainter(
                         nodes: nodes,
                         viewport: viewport,
-                        theme: finalTheme,
+                        theme: theme,
                       ),
                       size: Size(width, height),
                     ),

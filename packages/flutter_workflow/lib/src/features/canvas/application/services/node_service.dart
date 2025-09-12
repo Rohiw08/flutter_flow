@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/application/services/node_indexing_service.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 
 /// Provider for the stateless NodeService.
@@ -13,42 +14,80 @@ final nodeServiceProvider = Provider<NodeService>((ref) => NodeService());
 class NodeService {
   /// Adds a single node to the canvas state.
   FlowCanvasState addNode(FlowCanvasState currentState, FlowNode node) {
-    if (currentState.nodes.any((n) => n.id == node.id)) {
+    if (currentState.internalNodes.containsKey(node.id)) {
       return currentState;
     }
-    final newNodes = [...currentState.nodes, node];
-    return currentState.copyWith(nodes: newNodes);
+
+    // Assign a z-index that's one higher than the current max
+    final newNode = node.copyWith(zIndex: currentState.maxZIndex + 1);
+
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    nodesBuilder[newNode.id] = newNode;
+
+    // Update the node index
+    final newNodeIndex = currentState.nodeIndex.addNode(newNode);
+
+    return currentState.copyWith(
+      internalNodes: nodesBuilder.build(),
+      maxZIndex: currentState.maxZIndex + 1,
+      nodeIndex: newNodeIndex,
+    );
   }
 
-  /// Adds multiple nodes to the canvas state.
+  /// Adds multiple nodes to the canvas state with proper z-index handling.
   FlowCanvasState addNodes(
       FlowCanvasState currentState, List<FlowNode> nodesToAdd) {
-    final existingIds = currentState.nodes.map((n) => n.id).toSet();
-    final uniqueNewNodes = nodesToAdd.where((n) => !existingIds.contains(n.id));
+    if (nodesToAdd.isEmpty) return currentState;
 
-    if (uniqueNewNodes.isEmpty) {
-      return currentState;
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    int newMaxZIndex = currentState.maxZIndex;
+    NodeIndex newIndex = currentState.nodeIndex;
+
+    for (final node in nodesToAdd) {
+      if (nodesBuilder[node.id] == null) {
+        final newNode = node.copyWith(zIndex: newMaxZIndex + 1);
+        nodesBuilder[newNode.id] = newNode;
+        newMaxZIndex++;
+
+        // Update the node index
+        newIndex = newIndex.addNode(newNode);
+      }
     }
 
-    final newNodes = [...currentState.nodes, ...uniqueNewNodes];
-    return currentState.copyWith(nodes: newNodes);
+    return currentState.copyWith(
+      internalNodes: nodesBuilder.build(),
+      maxZIndex: newMaxZIndex,
+      nodeIndex: newIndex,
+    );
   }
 
   /// Drags all selected nodes by a given delta.
   FlowCanvasState dragSelectedNodes(
       FlowCanvasState currentState, Offset delta) {
-    if (delta == Offset.zero || currentState.selectedNodes.isEmpty) {
+    if (delta == Offset.zero || currentState.internalSelectedNodes.isEmpty) {
       return currentState;
     }
 
-    final updatedNodes = currentState.nodes.map((node) {
-      if (currentState.selectedNodes.contains(node.id)) {
-        return node.copyWith(position: node.position + delta);
-      }
-      return node;
-    }).toList();
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    NodeIndex newIndex = currentState.nodeIndex;
 
-    return currentState.copyWith(nodes: updatedNodes);
+    for (final id in currentState.internalSelectedNodes) {
+      final node = nodesBuilder[id];
+      if (node != null &&
+          node.isDraggable != null &&
+          node.isDraggable == true) {
+        final newPosition = node.position + delta;
+        nodesBuilder[id] = node.copyWith(position: newPosition);
+
+        // Update the node index with new position
+        newIndex = newIndex.updateNodePosition(id, newPosition);
+      }
+    }
+
+    return currentState.copyWith(
+      internalNodes: nodesBuilder.build(),
+      nodeIndex: newIndex,
+    );
   }
 
   /// Drags a single node by a given delta, typically for unselected nodes.
@@ -58,31 +97,77 @@ class NodeService {
       return currentState;
     }
 
-    final updatedNodes = currentState.nodes.map((node) {
-      if (node.id == nodeId) {
-        return node.copyWith(position: node.position + delta);
-      }
-      return node;
-    }).toList();
+    final node = currentState.internalNodes[nodeId];
+    if (node == null || node.isDraggable == null || node.isDraggable == false) {
+      return currentState;
+    }
 
-    return currentState.copyWith(nodes: updatedNodes);
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    final newPosition = node.position + delta;
+    nodesBuilder[nodeId] = node.copyWith(position: newPosition);
+
+    // Update the node index with new position
+    final newIndex =
+        currentState.nodeIndex.updateNodePosition(nodeId, newPosition);
+
+    return currentState.copyWith(
+      internalNodes: nodesBuilder.build(),
+      nodeIndex: newIndex,
+    );
   }
 
   /// Removes a single node and any connected edges from the state.
   FlowCanvasState removeNode(FlowCanvasState currentState, String nodeId) {
-    final newNodes =
-        currentState.nodes.where((node) => node.id != nodeId).toList();
-    final newEdges = currentState.edges
-        .where((edge) =>
-            edge.sourceNodeId != nodeId && edge.targetNodeId != nodeId)
-        .toList();
-    final newSelectedNodes = Set<String>.from(currentState.selectedNodes)
-      ..remove(nodeId);
+    final node = currentState.internalNodes[nodeId];
+    if (node == null) {
+      return currentState;
+    }
+
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    final edgesBuilder = currentState.internalEdges.toBuilder();
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+
+    // Remove node
+    nodesBuilder.remove(nodeId);
+
+    // Remove edges connected to that node
+    edgesBuilder.removeWhere((_, edge) =>
+        edge.sourceNodeId == nodeId || edge.targetNodeId == nodeId);
+
+    // Remove node from selection
+    selectedNodesBuilder.remove(nodeId);
+
+    // Update the node index
+    final newIndex = currentState.nodeIndex.removeNode(nodeId);
+
+    // Check if we need to update min/max z-index
+    int newMinZIndex = currentState.minZIndex;
+    int newMaxZIndex = currentState.maxZIndex;
+
+    if (node.zIndex == currentState.minZIndex ||
+        node.zIndex == currentState.maxZIndex) {
+      // Recalculate min/max if the removed node had an extreme z-index
+      final builtNodes = nodesBuilder.build();
+      if (builtNodes.isEmpty) {
+        newMinZIndex = 0;
+        newMaxZIndex = 0;
+      } else {
+        // Convert to list to get values
+        final nodeList = builtNodes.values.toList();
+        newMinZIndex =
+            nodeList.map((n) => n.zIndex).reduce((a, b) => a < b ? a : b);
+        newMaxZIndex =
+            nodeList.map((n) => n.zIndex).reduce((a, b) => a > b ? a : b);
+      }
+    }
 
     return currentState.copyWith(
-      nodes: newNodes,
-      edges: newEdges,
-      selectedNodes: newSelectedNodes,
+      internalNodes: nodesBuilder.build(),
+      internalEdges: edgesBuilder.build(),
+      internalSelectedNodes: selectedNodesBuilder.build(),
+      minZIndex: newMinZIndex,
+      maxZIndex: newMaxZIndex,
+      nodeIndex: newIndex,
     );
   }
 
@@ -92,48 +177,149 @@ class NodeService {
     if (nodeIds.isEmpty) {
       return currentState;
     }
-    final idsToRemove = nodeIds.toSet();
-    final newNodes = currentState.nodes
-        .where((node) => !idsToRemove.contains(node.id))
-        .toList();
-    final newEdges = currentState.edges
-        .where((edge) =>
-            !idsToRemove.contains(edge.sourceNodeId) &&
-            !idsToRemove.contains(edge.targetNodeId))
-        .toList();
-    final newSelectedNodes = Set<String>.from(currentState.selectedNodes)
-      ..removeAll(idsToRemove);
+
+    // Create builders once for all operations
+    final nodesBuilder = currentState.internalNodes.toBuilder();
+    final edgesBuilder = currentState.internalEdges.toBuilder();
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    NodeIndex newIndex = currentState.nodeIndex;
+
+    // Track if we need to recalc min/max z-index
+    bool needsRecalc = false;
+
+    for (final nodeId in nodeIds) {
+      final node = nodesBuilder[nodeId];
+      if (node == null) continue;
+
+      if (node.zIndex == currentState.minZIndex ||
+          node.zIndex == currentState.maxZIndex) {
+        needsRecalc = true;
+      }
+
+      // Remove node
+      nodesBuilder.remove(nodeId);
+
+      // Remove edges connected to this node
+      edgesBuilder.removeWhere((_, edge) =>
+          edge.sourceNodeId == nodeId || edge.targetNodeId == nodeId);
+
+      // Remove node from selection
+      selectedNodesBuilder.remove(nodeId);
+
+      // Update the node index
+      newIndex = newIndex.removeNode(nodeId);
+    }
+
+    // Recalculate min/max z-index if needed
+    int newMinZIndex = currentState.minZIndex;
+    int newMaxZIndex = currentState.maxZIndex;
+
+    if (needsRecalc) {
+      final builtNodes = nodesBuilder.build();
+      if (builtNodes.isEmpty) {
+        newMinZIndex = 0;
+        newMaxZIndex = 0;
+      } else {
+        // Convert to list to get values
+        final nodeList = builtNodes.values.toList();
+        newMinZIndex =
+            nodeList.map((n) => n.zIndex).reduce((a, b) => a < b ? a : b);
+        newMaxZIndex =
+            nodeList.map((n) => n.zIndex).reduce((a, b) => a > b ? a : b);
+      }
+    }
 
     return currentState.copyWith(
-      nodes: newNodes,
-      edges: newEdges,
-      selectedNodes: newSelectedNodes,
+      internalNodes: nodesBuilder.build(),
+      internalEdges: edgesBuilder.build(),
+      internalSelectedNodes: selectedNodesBuilder.build(),
+      minZIndex: newMinZIndex,
+      maxZIndex: newMaxZIndex,
+      nodeIndex: newIndex,
     );
   }
 
-  /// Removes all currently selected nodes.
-  FlowCanvasState removeSelectedNodes(FlowCanvasState currentState) {
-    return removeNodes(currentState, currentState.selectedNodes.toList());
+  FlowCanvasState selectNode(FlowCanvasState currentState, String nodeId) {
+    if (!currentState.internalNodes.containsKey(nodeId)) {
+      return currentState;
+    }
+
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    selectedNodesBuilder
+      ..clear()
+      ..add(nodeId);
+
+    return currentState.copyWith(
+        internalSelectedNodes: selectedNodesBuilder.build());
   }
 
-  /// Updates a single node with new properties.
-  FlowCanvasState updateNode(
-    FlowCanvasState currentState,
-    String nodeId, {
-    Offset? position,
-    Size? size,
-    Map<String, dynamic>? data,
-  }) {
-    final newNodes = currentState.nodes.map((node) {
-      if (node.id == nodeId) {
-        return node.copyWith(
-          position: position ?? node.position,
-          size: size ?? node.size,
-          data: data != null ? {...node.data, ...data} : node.data,
-        );
-      }
-      return node;
-    }).toList();
-    return currentState.copyWith(nodes: newNodes);
+  /// Adds a node to the current selection
+  FlowCanvasState addToSelection(FlowCanvasState currentState, String nodeId) {
+    if (!currentState.internalNodes.containsKey(nodeId) ||
+        currentState.internalSelectedNodes.contains(nodeId)) {
+      return currentState;
+    }
+
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    selectedNodesBuilder.add(nodeId);
+
+    return currentState.copyWith(
+        internalSelectedNodes: selectedNodesBuilder.build());
+  }
+
+  /// Removes a node from the current selection
+  FlowCanvasState removeFromSelection(
+      FlowCanvasState currentState, String nodeId) {
+    if (!currentState.internalSelectedNodes.contains(nodeId)) {
+      return currentState;
+    }
+
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    selectedNodesBuilder.remove(nodeId);
+
+    return currentState.copyWith(
+        internalSelectedNodes: selectedNodesBuilder.build());
+  }
+
+  /// Clears the current selection
+  FlowCanvasState clearSelection(FlowCanvasState currentState) {
+    if (currentState.internalSelectedNodes.isEmpty) {
+      return currentState;
+    }
+
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    selectedNodesBuilder.clear();
+
+    return currentState.copyWith(
+        internalSelectedNodes: selectedNodesBuilder.build());
+  }
+
+  /// Toggles a node's selection state
+  FlowCanvasState toggleNodeSelection(
+      FlowCanvasState currentState, String nodeId) {
+    if (!currentState.internalNodes.containsKey(nodeId)) {
+      return currentState;
+    }
+
+    if (currentState.internalSelectedNodes.contains(nodeId)) {
+      return removeFromSelection(currentState, nodeId);
+    } else {
+      return addToSelection(currentState, nodeId);
+    }
+  }
+
+  /// Selects all nodes in the canvas
+  FlowCanvasState selectAllNodes(FlowCanvasState currentState) {
+    if (currentState.internalNodes.isEmpty) {
+      return currentState;
+    }
+
+    final selectedNodesBuilder = currentState.internalSelectedNodes.toBuilder();
+    selectedNodesBuilder
+      ..clear()
+      ..addAll(currentState.internalNodes.keys);
+
+    return currentState.copyWith(
+        internalSelectedNodes: selectedNodesBuilder.build());
   }
 }

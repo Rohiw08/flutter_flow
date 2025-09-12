@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
@@ -140,7 +140,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
                               // Render nodes\
 
                               ...facade.state.nodes.map((node) =>
-                                  _buildNode(node, facade.state.canvasCenter)),
+                                  _buildNode(node, facade.canvasCentre)),
                             ],
                           ));
                     },

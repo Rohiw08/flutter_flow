@@ -19,21 +19,17 @@ mixin _$FlowCanvasState {
   BuiltMap<String, FlowEdge> get internalEdges;
   BuiltSet<String> get internalSelectedNodes;
   BuiltMap<String, BuiltSet<String>> get internalSpatialHash; // Edge indexing
-  EdgeIndex get edgeIndex; // Interaction state
-  FlowConnectionState? get connection;
-  Rect? get selectionRect;
-  DragMode get dragMode; // Viewport State
+  EdgeIndex get edgeIndex;
+  NodeIndex get nodeIndex; // Z-index management
+  int get minZIndex;
+  int get maxZIndex; // Viewport state
   double get zoom;
   Offset get viewportOffset;
   bool get isPanZoomLocked;
-  Size? get viewportSize; // Configuration
-  bool get enableMultiSelection;
-  bool get enableKeyboardShortcuts;
-  bool get enableBoxSelection;
-  double get canvasWidth;
-  double get canvasHeight; // Z-index management
-  int get minZIndex;
-  int get maxZIndex;
+  Size? get viewportSize; // Interaction state
+  FlowConnectionState? get connection;
+  Rect? get selectionRect;
+  DragMode get dragMode;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -58,12 +54,12 @@ mixin _$FlowCanvasState {
                 other.internalSpatialHash == internalSpatialHash) &&
             (identical(other.edgeIndex, edgeIndex) ||
                 other.edgeIndex == edgeIndex) &&
-            (identical(other.connection, connection) ||
-                other.connection == connection) &&
-            (identical(other.selectionRect, selectionRect) ||
-                other.selectionRect == selectionRect) &&
-            (identical(other.dragMode, dragMode) ||
-                other.dragMode == dragMode) &&
+            (identical(other.nodeIndex, nodeIndex) ||
+                other.nodeIndex == nodeIndex) &&
+            (identical(other.minZIndex, minZIndex) ||
+                other.minZIndex == minZIndex) &&
+            (identical(other.maxZIndex, maxZIndex) ||
+                other.maxZIndex == maxZIndex) &&
             (identical(other.zoom, zoom) || other.zoom == zoom) &&
             (identical(other.viewportOffset, viewportOffset) ||
                 other.viewportOffset == viewportOffset) &&
@@ -71,50 +67,36 @@ mixin _$FlowCanvasState {
                 other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
-            (identical(other.enableMultiSelection, enableMultiSelection) ||
-                other.enableMultiSelection == enableMultiSelection) &&
-            (identical(
-                    other.enableKeyboardShortcuts, enableKeyboardShortcuts) ||
-                other.enableKeyboardShortcuts == enableKeyboardShortcuts) &&
-            (identical(other.enableBoxSelection, enableBoxSelection) ||
-                other.enableBoxSelection == enableBoxSelection) &&
-            (identical(other.canvasWidth, canvasWidth) ||
-                other.canvasWidth == canvasWidth) &&
-            (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight) &&
-            (identical(other.minZIndex, minZIndex) ||
-                other.minZIndex == minZIndex) &&
-            (identical(other.maxZIndex, maxZIndex) ||
-                other.maxZIndex == maxZIndex));
+            (identical(other.connection, connection) ||
+                other.connection == connection) &&
+            (identical(other.selectionRect, selectionRect) ||
+                other.selectionRect == selectionRect) &&
+            (identical(other.dragMode, dragMode) ||
+                other.dragMode == dragMode));
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        internalNodes,
-        internalEdges,
-        const DeepCollectionEquality().hash(internalSelectedNodes),
-        internalSpatialHash,
-        edgeIndex,
-        connection,
-        selectionRect,
-        dragMode,
-        zoom,
-        viewportOffset,
-        isPanZoomLocked,
-        viewportSize,
-        enableMultiSelection,
-        enableKeyboardShortcuts,
-        enableBoxSelection,
-        canvasWidth,
-        canvasHeight,
-        minZIndex,
-        maxZIndex
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      internalNodes,
+      internalEdges,
+      const DeepCollectionEquality().hash(internalSelectedNodes),
+      internalSpatialHash,
+      edgeIndex,
+      nodeIndex,
+      minZIndex,
+      maxZIndex,
+      zoom,
+      viewportOffset,
+      isPanZoomLocked,
+      viewportSize,
+      connection,
+      selectionRect,
+      dragMode);
 
   @override
   String toString() {
-    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, minZIndex: $minZIndex, maxZIndex: $maxZIndex)';
+    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -130,20 +112,16 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       BuiltSet<String> internalSelectedNodes,
       BuiltMap<String, BuiltSet<String>> internalSpatialHash,
       EdgeIndex edgeIndex,
-      FlowConnectionState? connection,
-      Rect? selectionRect,
-      DragMode dragMode,
+      NodeIndex nodeIndex,
+      int minZIndex,
+      int maxZIndex,
       double zoom,
       Offset viewportOffset,
       bool isPanZoomLocked,
       Size? viewportSize,
-      bool enableMultiSelection,
-      bool enableKeyboardShortcuts,
-      bool enableBoxSelection,
-      double canvasWidth,
-      double canvasHeight,
-      int minZIndex,
-      int maxZIndex});
+      FlowConnectionState? connection,
+      Rect? selectionRect,
+      DragMode dragMode});
 
   $FlowConnectionStateCopyWith<$Res>? get connection;
 }
@@ -166,20 +144,16 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? internalSelectedNodes = null,
     Object? internalSpatialHash = null,
     Object? edgeIndex = null,
-    Object? connection = freezed,
-    Object? selectionRect = freezed,
-    Object? dragMode = null,
+    Object? nodeIndex = null,
+    Object? minZIndex = null,
+    Object? maxZIndex = null,
     Object? zoom = null,
     Object? viewportOffset = null,
     Object? isPanZoomLocked = null,
     Object? viewportSize = freezed,
-    Object? enableMultiSelection = null,
-    Object? enableKeyboardShortcuts = null,
-    Object? enableBoxSelection = null,
-    Object? canvasWidth = null,
-    Object? canvasHeight = null,
-    Object? minZIndex = null,
-    Object? maxZIndex = null,
+    Object? connection = freezed,
+    Object? selectionRect = freezed,
+    Object? dragMode = null,
   }) {
     return _then(_self.copyWith(
       internalNodes: null == internalNodes
@@ -202,18 +176,18 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable
               as EdgeIndex,
-      connection: freezed == connection
-          ? _self.connection
-          : connection // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionState?,
-      selectionRect: freezed == selectionRect
-          ? _self.selectionRect
-          : selectionRect // ignore: cast_nullable_to_non_nullable
-              as Rect?,
-      dragMode: null == dragMode
-          ? _self.dragMode
-          : dragMode // ignore: cast_nullable_to_non_nullable
-              as DragMode,
+      nodeIndex: null == nodeIndex
+          ? _self.nodeIndex
+          : nodeIndex // ignore: cast_nullable_to_non_nullable
+              as NodeIndex,
+      minZIndex: null == minZIndex
+          ? _self.minZIndex
+          : minZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxZIndex: null == maxZIndex
+          ? _self.maxZIndex
+          : maxZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
       zoom: null == zoom
           ? _self.zoom
           : zoom // ignore: cast_nullable_to_non_nullable
@@ -230,34 +204,18 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
-      enableMultiSelection: null == enableMultiSelection
-          ? _self.enableMultiSelection
-          : enableMultiSelection // ignore: cast_nullable_to_non_nullable
-              as bool,
-      enableKeyboardShortcuts: null == enableKeyboardShortcuts
-          ? _self.enableKeyboardShortcuts
-          : enableKeyboardShortcuts // ignore: cast_nullable_to_non_nullable
-              as bool,
-      enableBoxSelection: null == enableBoxSelection
-          ? _self.enableBoxSelection
-          : enableBoxSelection // ignore: cast_nullable_to_non_nullable
-              as bool,
-      canvasWidth: null == canvasWidth
-          ? _self.canvasWidth
-          : canvasWidth // ignore: cast_nullable_to_non_nullable
-              as double,
-      canvasHeight: null == canvasHeight
-          ? _self.canvasHeight
-          : canvasHeight // ignore: cast_nullable_to_non_nullable
-              as double,
-      minZIndex: null == minZIndex
-          ? _self.minZIndex
-          : minZIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxZIndex: null == maxZIndex
-          ? _self.maxZIndex
-          : maxZIndex // ignore: cast_nullable_to_non_nullable
-              as int,
+      connection: freezed == connection
+          ? _self.connection
+          : connection // ignore: cast_nullable_to_non_nullable
+              as FlowConnectionState?,
+      selectionRect: freezed == selectionRect
+          ? _self.selectionRect
+          : selectionRect // ignore: cast_nullable_to_non_nullable
+              as Rect?,
+      dragMode: null == dragMode
+          ? _self.dragMode
+          : dragMode // ignore: cast_nullable_to_non_nullable
+              as DragMode,
     ));
   }
 
@@ -375,20 +333,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             BuiltSet<String> internalSelectedNodes,
             BuiltMap<String, BuiltSet<String>> internalSpatialHash,
             EdgeIndex edgeIndex,
-            FlowConnectionState? connection,
-            Rect? selectionRect,
-            DragMode dragMode,
+            NodeIndex nodeIndex,
+            int minZIndex,
+            int maxZIndex,
             double zoom,
             Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            bool enableMultiSelection,
-            bool enableKeyboardShortcuts,
-            bool enableBoxSelection,
-            double canvasWidth,
-            double canvasHeight,
-            int minZIndex,
-            int maxZIndex)?
+            FlowConnectionState? connection,
+            Rect? selectionRect,
+            DragMode dragMode)?
         $default, {
     required TResult orElse(),
   }) {
@@ -401,20 +355,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.internalSelectedNodes,
             _that.internalSpatialHash,
             _that.edgeIndex,
-            _that.connection,
-            _that.selectionRect,
-            _that.dragMode,
+            _that.nodeIndex,
+            _that.minZIndex,
+            _that.maxZIndex,
             _that.zoom,
             _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.enableMultiSelection,
-            _that.enableKeyboardShortcuts,
-            _that.enableBoxSelection,
-            _that.canvasWidth,
-            _that.canvasHeight,
-            _that.minZIndex,
-            _that.maxZIndex);
+            _that.connection,
+            _that.selectionRect,
+            _that.dragMode);
       case _:
         return orElse();
     }
@@ -441,20 +391,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             BuiltSet<String> internalSelectedNodes,
             BuiltMap<String, BuiltSet<String>> internalSpatialHash,
             EdgeIndex edgeIndex,
-            FlowConnectionState? connection,
-            Rect? selectionRect,
-            DragMode dragMode,
+            NodeIndex nodeIndex,
+            int minZIndex,
+            int maxZIndex,
             double zoom,
             Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            bool enableMultiSelection,
-            bool enableKeyboardShortcuts,
-            bool enableBoxSelection,
-            double canvasWidth,
-            double canvasHeight,
-            int minZIndex,
-            int maxZIndex)
+            FlowConnectionState? connection,
+            Rect? selectionRect,
+            DragMode dragMode)
         $default,
   ) {
     final _that = this;
@@ -466,20 +412,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.internalSelectedNodes,
             _that.internalSpatialHash,
             _that.edgeIndex,
-            _that.connection,
-            _that.selectionRect,
-            _that.dragMode,
+            _that.nodeIndex,
+            _that.minZIndex,
+            _that.maxZIndex,
             _that.zoom,
             _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.enableMultiSelection,
-            _that.enableKeyboardShortcuts,
-            _that.enableBoxSelection,
-            _that.canvasWidth,
-            _that.canvasHeight,
-            _that.minZIndex,
-            _that.maxZIndex);
+            _that.connection,
+            _that.selectionRect,
+            _that.dragMode);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -505,20 +447,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             BuiltSet<String> internalSelectedNodes,
             BuiltMap<String, BuiltSet<String>> internalSpatialHash,
             EdgeIndex edgeIndex,
-            FlowConnectionState? connection,
-            Rect? selectionRect,
-            DragMode dragMode,
+            NodeIndex nodeIndex,
+            int minZIndex,
+            int maxZIndex,
             double zoom,
             Offset viewportOffset,
             bool isPanZoomLocked,
             Size? viewportSize,
-            bool enableMultiSelection,
-            bool enableKeyboardShortcuts,
-            bool enableBoxSelection,
-            double canvasWidth,
-            double canvasHeight,
-            int minZIndex,
-            int maxZIndex)?
+            FlowConnectionState? connection,
+            Rect? selectionRect,
+            DragMode dragMode)?
         $default,
   ) {
     final _that = this;
@@ -530,20 +468,16 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.internalSelectedNodes,
             _that.internalSpatialHash,
             _that.edgeIndex,
-            _that.connection,
-            _that.selectionRect,
-            _that.dragMode,
+            _that.nodeIndex,
+            _that.minZIndex,
+            _that.maxZIndex,
             _that.zoom,
             _that.viewportOffset,
             _that.isPanZoomLocked,
             _that.viewportSize,
-            _that.enableMultiSelection,
-            _that.enableKeyboardShortcuts,
-            _that.enableBoxSelection,
-            _that.canvasWidth,
-            _that.canvasHeight,
-            _that.minZIndex,
-            _that.maxZIndex);
+            _that.connection,
+            _that.selectionRect,
+            _that.dragMode);
       case _:
         return null;
     }
@@ -559,20 +493,16 @@ class _FlowCanvasState extends FlowCanvasState {
       required this.internalSelectedNodes,
       required this.internalSpatialHash,
       required this.edgeIndex,
-      this.connection,
-      this.selectionRect,
-      this.dragMode = DragMode.none,
+      required this.nodeIndex,
+      this.minZIndex = 0,
+      this.maxZIndex = 0,
       this.zoom = 1.0,
       this.viewportOffset = Offset.zero,
       this.isPanZoomLocked = false,
       this.viewportSize,
-      this.enableMultiSelection = true,
-      this.enableKeyboardShortcuts = true,
-      this.enableBoxSelection = true,
-      this.canvasWidth = 500000,
-      this.canvasHeight = 500000,
-      this.minZIndex = 0,
-      this.maxZIndex = 0})
+      this.connection,
+      this.selectionRect,
+      this.dragMode = DragMode.none})
       : super._();
 
 // Core data
@@ -587,15 +517,16 @@ class _FlowCanvasState extends FlowCanvasState {
 // Edge indexing
   @override
   final EdgeIndex edgeIndex;
-// Interaction state
   @override
-  final FlowConnectionState? connection;
-  @override
-  final Rect? selectionRect;
+  final NodeIndex nodeIndex;
+// Z-index management
   @override
   @JsonKey()
-  final DragMode dragMode;
-// Viewport State
+  final int minZIndex;
+  @override
+  @JsonKey()
+  final int maxZIndex;
+// Viewport state
   @override
   @JsonKey()
   final double zoom;
@@ -607,29 +538,14 @@ class _FlowCanvasState extends FlowCanvasState {
   final bool isPanZoomLocked;
   @override
   final Size? viewportSize;
-// Configuration
+// Interaction state
+  @override
+  final FlowConnectionState? connection;
+  @override
+  final Rect? selectionRect;
   @override
   @JsonKey()
-  final bool enableMultiSelection;
-  @override
-  @JsonKey()
-  final bool enableKeyboardShortcuts;
-  @override
-  @JsonKey()
-  final bool enableBoxSelection;
-  @override
-  @JsonKey()
-  final double canvasWidth;
-  @override
-  @JsonKey()
-  final double canvasHeight;
-// Z-index management
-  @override
-  @JsonKey()
-  final int minZIndex;
-  @override
-  @JsonKey()
-  final int maxZIndex;
+  final DragMode dragMode;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -654,12 +570,12 @@ class _FlowCanvasState extends FlowCanvasState {
                 other.internalSpatialHash == internalSpatialHash) &&
             (identical(other.edgeIndex, edgeIndex) ||
                 other.edgeIndex == edgeIndex) &&
-            (identical(other.connection, connection) ||
-                other.connection == connection) &&
-            (identical(other.selectionRect, selectionRect) ||
-                other.selectionRect == selectionRect) &&
-            (identical(other.dragMode, dragMode) ||
-                other.dragMode == dragMode) &&
+            (identical(other.nodeIndex, nodeIndex) ||
+                other.nodeIndex == nodeIndex) &&
+            (identical(other.minZIndex, minZIndex) ||
+                other.minZIndex == minZIndex) &&
+            (identical(other.maxZIndex, maxZIndex) ||
+                other.maxZIndex == maxZIndex) &&
             (identical(other.zoom, zoom) || other.zoom == zoom) &&
             (identical(other.viewportOffset, viewportOffset) ||
                 other.viewportOffset == viewportOffset) &&
@@ -667,50 +583,36 @@ class _FlowCanvasState extends FlowCanvasState {
                 other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
-            (identical(other.enableMultiSelection, enableMultiSelection) ||
-                other.enableMultiSelection == enableMultiSelection) &&
-            (identical(
-                    other.enableKeyboardShortcuts, enableKeyboardShortcuts) ||
-                other.enableKeyboardShortcuts == enableKeyboardShortcuts) &&
-            (identical(other.enableBoxSelection, enableBoxSelection) ||
-                other.enableBoxSelection == enableBoxSelection) &&
-            (identical(other.canvasWidth, canvasWidth) ||
-                other.canvasWidth == canvasWidth) &&
-            (identical(other.canvasHeight, canvasHeight) ||
-                other.canvasHeight == canvasHeight) &&
-            (identical(other.minZIndex, minZIndex) ||
-                other.minZIndex == minZIndex) &&
-            (identical(other.maxZIndex, maxZIndex) ||
-                other.maxZIndex == maxZIndex));
+            (identical(other.connection, connection) ||
+                other.connection == connection) &&
+            (identical(other.selectionRect, selectionRect) ||
+                other.selectionRect == selectionRect) &&
+            (identical(other.dragMode, dragMode) ||
+                other.dragMode == dragMode));
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        internalNodes,
-        internalEdges,
-        const DeepCollectionEquality().hash(internalSelectedNodes),
-        internalSpatialHash,
-        edgeIndex,
-        connection,
-        selectionRect,
-        dragMode,
-        zoom,
-        viewportOffset,
-        isPanZoomLocked,
-        viewportSize,
-        enableMultiSelection,
-        enableKeyboardShortcuts,
-        enableBoxSelection,
-        canvasWidth,
-        canvasHeight,
-        minZIndex,
-        maxZIndex
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      internalNodes,
+      internalEdges,
+      const DeepCollectionEquality().hash(internalSelectedNodes),
+      internalSpatialHash,
+      edgeIndex,
+      nodeIndex,
+      minZIndex,
+      maxZIndex,
+      zoom,
+      viewportOffset,
+      isPanZoomLocked,
+      viewportSize,
+      connection,
+      selectionRect,
+      dragMode);
 
   @override
   String toString() {
-    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, enableMultiSelection: $enableMultiSelection, enableKeyboardShortcuts: $enableKeyboardShortcuts, enableBoxSelection: $enableBoxSelection, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, minZIndex: $minZIndex, maxZIndex: $maxZIndex)';
+    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -728,20 +630,16 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       BuiltSet<String> internalSelectedNodes,
       BuiltMap<String, BuiltSet<String>> internalSpatialHash,
       EdgeIndex edgeIndex,
-      FlowConnectionState? connection,
-      Rect? selectionRect,
-      DragMode dragMode,
+      NodeIndex nodeIndex,
+      int minZIndex,
+      int maxZIndex,
       double zoom,
       Offset viewportOffset,
       bool isPanZoomLocked,
       Size? viewportSize,
-      bool enableMultiSelection,
-      bool enableKeyboardShortcuts,
-      bool enableBoxSelection,
-      double canvasWidth,
-      double canvasHeight,
-      int minZIndex,
-      int maxZIndex});
+      FlowConnectionState? connection,
+      Rect? selectionRect,
+      DragMode dragMode});
 
   @override
   $FlowConnectionStateCopyWith<$Res>? get connection;
@@ -765,20 +663,16 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? internalSelectedNodes = null,
     Object? internalSpatialHash = null,
     Object? edgeIndex = null,
-    Object? connection = freezed,
-    Object? selectionRect = freezed,
-    Object? dragMode = null,
+    Object? nodeIndex = null,
+    Object? minZIndex = null,
+    Object? maxZIndex = null,
     Object? zoom = null,
     Object? viewportOffset = null,
     Object? isPanZoomLocked = null,
     Object? viewportSize = freezed,
-    Object? enableMultiSelection = null,
-    Object? enableKeyboardShortcuts = null,
-    Object? enableBoxSelection = null,
-    Object? canvasWidth = null,
-    Object? canvasHeight = null,
-    Object? minZIndex = null,
-    Object? maxZIndex = null,
+    Object? connection = freezed,
+    Object? selectionRect = freezed,
+    Object? dragMode = null,
   }) {
     return _then(_FlowCanvasState(
       internalNodes: null == internalNodes
@@ -801,18 +695,18 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable
               as EdgeIndex,
-      connection: freezed == connection
-          ? _self.connection
-          : connection // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionState?,
-      selectionRect: freezed == selectionRect
-          ? _self.selectionRect
-          : selectionRect // ignore: cast_nullable_to_non_nullable
-              as Rect?,
-      dragMode: null == dragMode
-          ? _self.dragMode
-          : dragMode // ignore: cast_nullable_to_non_nullable
-              as DragMode,
+      nodeIndex: null == nodeIndex
+          ? _self.nodeIndex
+          : nodeIndex // ignore: cast_nullable_to_non_nullable
+              as NodeIndex,
+      minZIndex: null == minZIndex
+          ? _self.minZIndex
+          : minZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      maxZIndex: null == maxZIndex
+          ? _self.maxZIndex
+          : maxZIndex // ignore: cast_nullable_to_non_nullable
+              as int,
       zoom: null == zoom
           ? _self.zoom
           : zoom // ignore: cast_nullable_to_non_nullable
@@ -829,34 +723,18 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
-      enableMultiSelection: null == enableMultiSelection
-          ? _self.enableMultiSelection
-          : enableMultiSelection // ignore: cast_nullable_to_non_nullable
-              as bool,
-      enableKeyboardShortcuts: null == enableKeyboardShortcuts
-          ? _self.enableKeyboardShortcuts
-          : enableKeyboardShortcuts // ignore: cast_nullable_to_non_nullable
-              as bool,
-      enableBoxSelection: null == enableBoxSelection
-          ? _self.enableBoxSelection
-          : enableBoxSelection // ignore: cast_nullable_to_non_nullable
-              as bool,
-      canvasWidth: null == canvasWidth
-          ? _self.canvasWidth
-          : canvasWidth // ignore: cast_nullable_to_non_nullable
-              as double,
-      canvasHeight: null == canvasHeight
-          ? _self.canvasHeight
-          : canvasHeight // ignore: cast_nullable_to_non_nullable
-              as double,
-      minZIndex: null == minZIndex
-          ? _self.minZIndex
-          : minZIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxZIndex: null == maxZIndex
-          ? _self.maxZIndex
-          : maxZIndex // ignore: cast_nullable_to_non_nullable
-              as int,
+      connection: freezed == connection
+          ? _self.connection
+          : connection // ignore: cast_nullable_to_non_nullable
+              as FlowConnectionState?,
+      selectionRect: freezed == selectionRect
+          ? _self.selectionRect
+          : selectionRect // ignore: cast_nullable_to_non_nullable
+              as Rect?,
+      dragMode: null == dragMode
+          ? _self.dragMode
+          : dragMode // ignore: cast_nullable_to_non_nullable
+              as DragMode,
     ));
   }
 

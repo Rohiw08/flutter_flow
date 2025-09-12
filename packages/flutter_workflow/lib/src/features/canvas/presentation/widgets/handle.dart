@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/models/connection_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:flutter_workflow/src/theme/components/handle_theme.dart';

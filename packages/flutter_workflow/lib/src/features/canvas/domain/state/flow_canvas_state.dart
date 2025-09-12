@@ -1,5 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/edge_indexing_service.dart';
+import 'package:flutter_workflow/src/features/canvas/application/services/node_indexing_service.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
@@ -22,6 +23,17 @@ abstract class FlowCanvasState with _$FlowCanvasState {
 
     // Edge indexing
     required EdgeIndex edgeIndex,
+    required NodeIndex nodeIndex,
+
+    // Z-index management
+    @Default(0) int minZIndex,
+    @Default(0) int maxZIndex,
+
+    // Viewport state
+    @Default(1.0) double zoom,
+    @Default(Offset.zero) Offset viewportOffset,
+    @Default(false) bool isPanZoomLocked,
+    Size? viewportSize,
 
     // Interaction state
     FlowConnectionState? connection,
@@ -39,29 +51,10 @@ abstract class FlowCanvasState with _$FlowCanvasState {
       );
 
   factory FlowCanvasState.initial() => FlowCanvasState(
-        internalNodes: BuiltMap<String, FlowNode>(),
-        internalEdges: BuiltMap<String, FlowEdge>(),
-        internalSelectedNodes: BuiltSet<String>(),
-        internalSpatialHash: BuiltMap<String, BuiltSet<String>>(),
-        edgeIndex: EdgeIndex.empty(),
-      );
+      internalNodes: BuiltMap<String, FlowNode>(),
+      internalEdges: BuiltMap<String, FlowEdge>(),
+      internalSelectedNodes: BuiltSet<String>(),
+      internalSpatialHash: BuiltMap<String, BuiltSet<String>>(),
+      edgeIndex: EdgeIndex.empty(),
+      nodeIndex: NodeIndex.empty());
 }
-
-/*
-// Viewport State
-    @Default(1.0) double zoom,
-    @Default(Offset.zero) Offset viewportOffset,
-    @Default(false) bool isPanZoomLocked,
-    Size? viewportSize,
-
-    // Configuration
-    @Default(true) bool enableMultiSelection,
-    @Default(true) bool enableKeyboardShortcuts,
-    @Default(true) bool enableBoxSelection,
-    @Default(500000) double canvasWidth,
-    @Default(500000) double canvasHeight,
-
-    // Z-index management
-    @Default(0) int minZIndex,
-    @Default(0) int maxZIndex,
-*/

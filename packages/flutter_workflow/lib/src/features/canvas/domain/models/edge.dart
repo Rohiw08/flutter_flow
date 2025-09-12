@@ -33,6 +33,7 @@ abstract class FlowEdge with _$FlowEdge {
     @Default(0) int zIndex,
 
     // Interaction
+    bool? focusable,
     @Default(true) bool reconnectable,
     @Default(10.0) double interactionWidth,
 
@@ -50,6 +51,10 @@ abstract class FlowEdge with _$FlowEdge {
 
   /// Public getter (read-only plain Map view of data)
   Map<String, dynamic> get data => Map.unmodifiable(internalData.asMap());
+
+  /// convenience method
+  bool isEdgeConnectedTo(String nodeId) =>
+      sourceNodeId == nodeId || targetNodeId == nodeId;
 
   factory FlowEdge.withData({
     required String id,

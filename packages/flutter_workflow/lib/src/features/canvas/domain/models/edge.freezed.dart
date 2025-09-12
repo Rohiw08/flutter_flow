@@ -28,6 +28,7 @@ mixin _$FlowEdge {
   bool get selectable;
   bool get selected;
   int get zIndex; // Interaction
+  bool? get focusable;
   bool get reconnectable;
   double get interactionWidth; // Label
   Widget? get label;
@@ -71,6 +72,8 @@ mixin _$FlowEdge {
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
             (identical(other.reconnectable, reconnectable) ||
                 other.reconnectable == reconnectable) &&
             (identical(other.interactionWidth, interactionWidth) ||
@@ -101,6 +104,7 @@ mixin _$FlowEdge {
         selectable,
         selected,
         zIndex,
+        focusable,
         reconnectable,
         interactionWidth,
         label,
@@ -112,7 +116,7 @@ mixin _$FlowEdge {
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, focusable: $focusable, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
   }
 }
 
@@ -135,6 +139,7 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       bool selectable,
       bool selected,
       int zIndex,
+      bool? focusable,
       bool reconnectable,
       double interactionWidth,
       Widget? label,
@@ -169,6 +174,7 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
     Object? selectable = null,
     Object? selected = null,
     Object? zIndex = null,
+    Object? focusable = freezed,
     Object? reconnectable = null,
     Object? interactionWidth = null,
     Object? label = freezed,
@@ -230,6 +236,10 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
       reconnectable: null == reconnectable
           ? _self.reconnectable
           : reconnectable // ignore: cast_nullable_to_non_nullable
@@ -369,6 +379,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool selectable,
             bool selected,
             int zIndex,
+            bool? focusable,
             bool reconnectable,
             double interactionWidth,
             Widget? label,
@@ -396,6 +407,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.selected,
             _that.zIndex,
+            _that.focusable,
             _that.reconnectable,
             _that.interactionWidth,
             _that.label,
@@ -437,6 +449,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool selectable,
             bool selected,
             int zIndex,
+            bool? focusable,
             bool reconnectable,
             double interactionWidth,
             Widget? label,
@@ -463,6 +476,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.selected,
             _that.zIndex,
+            _that.focusable,
             _that.reconnectable,
             _that.interactionWidth,
             _that.label,
@@ -503,6 +517,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool selectable,
             bool selected,
             int zIndex,
+            bool? focusable,
             bool reconnectable,
             double interactionWidth,
             Widget? label,
@@ -529,6 +544,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.selected,
             _that.zIndex,
+            _that.focusable,
             _that.reconnectable,
             _that.interactionWidth,
             _that.label,
@@ -559,6 +575,7 @@ class _FlowEdge extends FlowEdge {
       this.selectable = true,
       this.selected = false,
       this.zIndex = 0,
+      this.focusable,
       this.reconnectable = true,
       this.interactionWidth = 10.0,
       this.label,
@@ -606,6 +623,8 @@ class _FlowEdge extends FlowEdge {
   @JsonKey()
   final int zIndex;
 // Interaction
+  @override
+  final bool? focusable;
   @override
   @JsonKey()
   final bool reconnectable;
@@ -662,6 +681,8 @@ class _FlowEdge extends FlowEdge {
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
             (identical(other.reconnectable, reconnectable) ||
                 other.reconnectable == reconnectable) &&
             (identical(other.interactionWidth, interactionWidth) ||
@@ -692,6 +713,7 @@ class _FlowEdge extends FlowEdge {
         selectable,
         selected,
         zIndex,
+        focusable,
         reconnectable,
         interactionWidth,
         label,
@@ -703,7 +725,7 @@ class _FlowEdge extends FlowEdge {
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, focusable: $focusable, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
   }
 }
 
@@ -728,6 +750,7 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       bool selectable,
       bool selected,
       int zIndex,
+      bool? focusable,
       bool reconnectable,
       double interactionWidth,
       Widget? label,
@@ -762,6 +785,7 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
     Object? selectable = null,
     Object? selected = null,
     Object? zIndex = null,
+    Object? focusable = freezed,
     Object? reconnectable = null,
     Object? interactionWidth = null,
     Object? label = freezed,
@@ -823,6 +847,10 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
       reconnectable: null == reconnectable
           ? _self.reconnectable
           : reconnectable // ignore: cast_nullable_to_non_nullable

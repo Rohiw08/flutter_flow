@@ -15,7 +15,7 @@ import 'package:flutter_workflow/src/theme/components/selection_theme.dart';
 class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   final FlowCanvasBackgroundTheme background;
   final FlowCanvasNodeTheme node;
-  final FlowCanvasEdgeTheme edge;
+  final EdgeStyle edge;
   final FlowCanvasHandleTheme handle;
   final FlowCanvasSelectionTheme selection;
   final FlowCanvasControlTheme controls;
@@ -38,7 +38,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     return FlowCanvasTheme(
       background: FlowCanvasBackgroundTheme.light(),
       node: FlowCanvasNodeTheme.light(),
-      edge: FlowCanvasEdgeTheme.light(),
+      edge: EdgeStyle.light(),
       handle: FlowCanvasHandleTheme.light(),
       selection: FlowCanvasSelectionTheme.light(),
       controls: FlowCanvasControlTheme.light(),
@@ -52,7 +52,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     return FlowCanvasTheme(
       background: FlowCanvasBackgroundTheme.dark(),
       node: FlowCanvasNodeTheme.dark(),
-      edge: FlowCanvasEdgeTheme.dark(),
+      edge: EdgeStyle.dark(),
       handle: FlowCanvasHandleTheme.dark(),
       selection: FlowCanvasSelectionTheme.dark(),
       controls: FlowCanvasControlTheme.dark(),
@@ -66,7 +66,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   FlowCanvasTheme copyWith({
     FlowCanvasBackgroundTheme? background,
     FlowCanvasNodeTheme? node,
-    FlowCanvasEdgeTheme? edge,
+    EdgeStyle? edge,
     FlowCanvasHandleTheme? handle,
     FlowCanvasSelectionTheme? selection,
     FlowCanvasControlTheme? controls,
@@ -112,7 +112,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
           ),
         ],
       ),
-      edge: FlowCanvasEdgeTheme(
+      edge: EdgeStyle(
         defaultColor: colorScheme.outline,
         selectedColor: colorScheme.primary,
         animatedColor: colorScheme.tertiary,

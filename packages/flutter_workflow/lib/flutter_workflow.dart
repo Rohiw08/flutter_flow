@@ -14,7 +14,7 @@ export 'src/features/canvas/presentation/widgets/handle.dart';
 // The data models the user will need to create nodes and edges.
 export 'src/features/canvas/domain/models/node.dart';
 export 'src/features/canvas/domain/models/edge.dart';
-export 'src/features/canvas/domain/models/node_handle.dart';
+export 'src/features/canvas/domain/models/handle.dart';
 export 'src/features/canvas/domain/registries/node_registry.dart';
 export 'src/features/canvas/domain/registries/edge_registry.dart';
 

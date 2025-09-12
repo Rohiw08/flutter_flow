@@ -16,21 +16,6 @@ class FlowCanvasControls extends StatelessWidget {
 
   // THEME OVERRIDES
   final FlowCanvasControlTheme? controlsTheme;
-  final Color? containerColor;
-  final Color? buttonColor;
-  final Color? buttonHoverColor;
-  final Color? iconColor;
-  final Color? iconHoverColor;
-  final double? buttonSize;
-  final double? buttonCornerRadius;
-  final double? containerCornerRadius;
-  final EdgeInsetsGeometry? padding;
-  final List<BoxShadow>? shadows;
-  final BoxDecoration? containerDecoration;
-  final BoxDecoration? buttonDecoration;
-  final BoxDecoration? buttonHoverDecoration;
-  final TextStyle? iconStyle;
-  final TextStyle? iconHoverStyle;
 
   const FlowCanvasControls({
     super.key,
@@ -41,22 +26,7 @@ class FlowCanvasControls extends StatelessWidget {
     this.orientation = Axis.vertical,
     this.children = const [],
     this.spacing = 6.0,
-    this.padding = const EdgeInsets.all(5.0),
     this.controlsTheme,
-    this.containerColor,
-    this.buttonColor,
-    this.buttonHoverColor,
-    this.iconColor,
-    this.iconHoverColor,
-    this.buttonSize,
-    this.buttonCornerRadius,
-    this.containerCornerRadius,
-    this.shadows,
-    this.containerDecoration,
-    this.buttonDecoration,
-    this.buttonHoverDecoration,
-    this.iconStyle,
-    this.iconHoverStyle,
   });
 
   @override
@@ -65,21 +35,6 @@ class FlowCanvasControls extends StatelessWidget {
     final FlowCanvasControlTheme theme = resolveControlTheme(
       context,
       controlsTheme,
-      containerColor: containerColor,
-      buttonColor: buttonColor,
-      buttonHoverColor: buttonHoverColor,
-      iconColor: iconColor,
-      iconHoverColor: iconHoverColor,
-      buttonSize: buttonSize,
-      buttonCornerRadius: buttonCornerRadius,
-      containerCornerRadius: containerCornerRadius,
-      padding: padding,
-      shadows: shadows,
-      containerDecoration: containerDecoration,
-      buttonDecoration: buttonDecoration,
-      buttonHoverDecoration: buttonHoverDecoration,
-      iconStyle: iconStyle,
-      iconHoverStyle: iconHoverStyle,
     );
 
     return ControlThemeProvider(

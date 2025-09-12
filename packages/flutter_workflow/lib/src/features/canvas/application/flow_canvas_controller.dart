@@ -3,7 +3,7 @@ import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/enums.dart';
-import '../domain/flow_canvas_state.dart';
+import '../domain/state/flow_canvas_state.dart';
 import '../domain/models/node.dart';
 import '../domain/registries/edge_registry.dart';
 import '../domain/registries/node_registry.dart';
@@ -71,7 +71,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   /// Centers the canvas so that (0,0) in canvas coordinates appears at viewport center
   void _centerCanvasInViewport(Size viewportSize) {
-    final canvasCenter = state.canvasCenter;
+    final canvasCenter = Offset(state.canvasWidth / 2, state.canvasHeight / 2);
     const initialScale = 1.0;
 
     // Calculate translation to move canvas center to viewport center
@@ -231,15 +231,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         .read(handleServiceProvider)
         .buildSpatialHash(intermediateState.nodes);
     state = intermediateState.copyWith(spatialHash: newHash);
-  }
-
-  Offset? getNodeLogicalPosition(String nodeId) {
-    final node = state.nodes.cast<FlowNode?>().firstWhere(
-          (n) => n?.id == nodeId,
-          orElse: () => null,
-        );
-    if (node == null) return null;
-    return state.coordinateTransform.canvasToLogical(node.position);
   }
 
   void dragSelectedNodes(Offset delta) {

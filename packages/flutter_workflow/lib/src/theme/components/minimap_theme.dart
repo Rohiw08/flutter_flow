@@ -3,36 +3,36 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
-  final Color backgroundColor;
-  final Color nodeColor;
-  final Color nodeStrokeColor;
-  final double nodeBorderRadius;
-  final Color selectedNodeColor;
-  final Color maskColor;
-  final Color maskStrokeColor;
-  final double nodeStrokeWidth;
-  final double maskStrokeWidth;
-  final double borderRadius;
-  final List<BoxShadow> shadows;
+  final Color? backgroundColor;
+  final Color? nodeColor;
+  final Color? nodeStrokeColor;
+  final double? nodeBorderRadius;
+  final Color? selectedNodeColor;
+  final Color? maskColor;
+  final Color? maskStrokeColor;
+  final double? nodeStrokeWidth;
+  final double? maskStrokeWidth;
+  final double? borderRadius;
+  final List<BoxShadow>? shadows;
 
   // Extra properties
-  final double padding;
-  final double viewportInnerGlowBlur;
-  final double viewportBorderRadius;
-  final Color selectedGlowColor;
-  final double selectedGlowBlur;
-  final double selectedGlowWidthMultiplier;
-  final Color viewportInnerGlowColor;
-  final double viewportInnerGlowWidthMultiplier;
-  final Color viewportInnerColor; // NEW: Inner viewport fill color
+  final double? padding;
+  final double? viewportInnerGlowBlur;
+  final double? viewportBorderRadius;
+  final Color? selectedGlowColor;
+  final double? selectedGlowBlur;
+  final double? selectedGlowWidthMultiplier;
+  final Color? viewportInnerGlowColor;
+  final double? viewportInnerGlowWidthMultiplier;
+  final Color? viewportInnerColor; // NEW: Inner viewport fill color
 
   const FlowCanvasMiniMapTheme({
-    required this.backgroundColor,
-    required this.nodeColor,
-    required this.nodeStrokeColor,
-    required this.selectedNodeColor,
-    required this.maskColor,
-    required this.maskStrokeColor,
+    this.backgroundColor,
+    this.nodeColor,
+    this.nodeStrokeColor,
+    this.selectedNodeColor,
+    this.maskColor,
+    this.maskStrokeColor,
     this.nodeStrokeWidth = 1.5,
     this.maskStrokeWidth = 1.0,
     this.borderRadius = 8.0,
@@ -162,7 +162,7 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
       nodeStrokeWidth: lerpDouble(nodeStrokeWidth, other.nodeStrokeWidth, t)!,
       maskStrokeWidth: lerpDouble(maskStrokeWidth, other.maskStrokeWidth, t)!,
       borderRadius: lerpDouble(borderRadius, other.borderRadius, t)!,
-      shadows: _lerpShadows(shadows, other.shadows, t),
+      shadows: _lerpShadows(shadows!, other.shadows!, t),
       padding: lerpDouble(padding, other.padding, t)!,
       viewportBorderRadius:
           lerpDouble(viewportBorderRadius, other.viewportBorderRadius, t)!,
@@ -231,7 +231,7 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
         nodeStrokeWidth,
         maskStrokeWidth,
         borderRadius,
-        Object.hashAll(shadows),
+        Object.hashAll(shadows!),
         padding,
         viewportBorderRadius,
         selectedGlowColor,

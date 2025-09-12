@@ -50,7 +50,6 @@ class _FlowBackgroundState extends State<FlowBackground> {
 
   @override
   Widget build(BuildContext context) {
-    print("build");
     final theme = resolveBackgroundTheme(context, widget.backgroundTheme);
 
     // Show fallback during shader loading

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/options/fitview_options.dart';
+import 'package:flutter_workflow/src/shared/enums.dart';
 
 /// Configuration options for the viewport behavior
 class ViewportOptions {
@@ -16,6 +17,18 @@ class ViewportOptions {
   final CoordinateExtent translateExtent;
   final CoordinateExtent nodeExtent;
   final bool preventScrolling;
+  final bool autoPanOnConnect;
+  final bool autoPanOnNodeDrag;
+  final double autoPanSpeed;
+  final bool panOnDrag;
+  final bool selectionOnDrag;
+  final SelectionMode selectionMode;
+  final bool panOnScroll;
+  final double panOnScrollSpeed;
+  final PanOnScrollMode panOnScrollMode;
+  final bool zoomOnScroll;
+  final bool zoomOnPinch;
+  final bool zoomOnDoubleClick;
 
   const ViewportOptions({
     this.defaultViewport,
@@ -31,6 +44,18 @@ class ViewportOptions {
     this.translateExtent = const CoordinateExtent(),
     this.nodeExtent = const CoordinateExtent(),
     this.preventScrolling = true,
+    this.autoPanOnConnect = true,
+    this.autoPanOnNodeDrag = true,
+    this.autoPanSpeed = 15.0,
+    this.panOnDrag = true,
+    this.selectionOnDrag = false,
+    this.selectionMode = SelectionMode.full,
+    this.panOnScroll = false,
+    this.panOnScrollSpeed = 0.5,
+    this.panOnScrollMode = PanOnScrollMode.free,
+    this.zoomOnScroll = true,
+    this.zoomOnPinch = true,
+    this.zoomOnDoubleClick = true,
   });
 
   ViewportOptions copyWith({
@@ -47,6 +72,18 @@ class ViewportOptions {
     CoordinateExtent? translateExtent,
     CoordinateExtent? nodeExtent,
     bool? preventScrolling,
+    bool? autoPanOnConnect,
+    bool? autoPanOnNodeDrag,
+    double? autoPanSpeed,
+    bool? panOnDrag,
+    bool? selectionOnDrag,
+    SelectionMode? selectionMode,
+    bool? panOnScroll,
+    double? panOnScrollSpeed,
+    PanOnScrollMode? panOnScrollMode,
+    bool? zoomOnScroll,
+    bool? zoomOnPinch,
+    bool? zoomOnDoubleClick,
   }) {
     return ViewportOptions(
       defaultViewport: defaultViewport ?? this.defaultViewport,
@@ -63,46 +100,79 @@ class ViewportOptions {
       translateExtent: translateExtent ?? this.translateExtent,
       nodeExtent: nodeExtent ?? this.nodeExtent,
       preventScrolling: preventScrolling ?? this.preventScrolling,
+      autoPanOnConnect: autoPanOnConnect ?? this.autoPanOnConnect,
+      autoPanOnNodeDrag: autoPanOnNodeDrag ?? this.autoPanOnNodeDrag,
+      autoPanSpeed: autoPanSpeed ?? this.autoPanSpeed,
+      panOnDrag: panOnDrag ?? this.panOnDrag,
+      selectionOnDrag: selectionOnDrag ?? this.selectionOnDrag,
+      selectionMode: selectionMode ?? this.selectionMode,
+      panOnScroll: panOnScroll ?? this.panOnScroll,
+      panOnScrollSpeed: panOnScrollSpeed ?? this.panOnScrollSpeed,
+      panOnScrollMode: panOnScrollMode ?? this.panOnScrollMode,
+      zoomOnScroll: zoomOnScroll ?? this.zoomOnScroll,
+      zoomOnPinch: zoomOnPinch ?? this.zoomOnPinch,
+      zoomOnDoubleClick: zoomOnDoubleClick ?? this.zoomOnDoubleClick,
     );
   }
 
   @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is ViewportOptions &&
-            runtimeType == other.runtimeType &&
-            defaultViewport == other.defaultViewport &&
-            viewport == other.viewport &&
-            onViewportChange == other.onViewportChange &&
-            fitView == other.fitView &&
-            fitViewOptions == other.fitViewOptions &&
-            minZoom == other.minZoom &&
-            maxZoom == other.maxZoom &&
-            snapToGrid == other.snapToGrid &&
-            snapGrid == other.snapGrid &&
-            onlyRenderVisibleElements == other.onlyRenderVisibleElements &&
-            translateExtent == other.translateExtent &&
-            nodeExtent == other.nodeExtent &&
-            preventScrolling == other.preventScrolling;
+  bool operator ==(covariant ViewportOptions other) {
+    if (identical(this, other)) return true;
+
+    return other.defaultViewport == defaultViewport &&
+        other.viewport == viewport &&
+        other.onViewportChange == onViewportChange &&
+        other.fitView == fitView &&
+        other.fitViewOptions == fitViewOptions &&
+        other.minZoom == minZoom &&
+        other.maxZoom == maxZoom &&
+        other.snapToGrid == snapToGrid &&
+        other.snapGrid == snapGrid &&
+        other.onlyRenderVisibleElements == onlyRenderVisibleElements &&
+        other.translateExtent == translateExtent &&
+        other.nodeExtent == nodeExtent &&
+        other.preventScrolling == preventScrolling &&
+        other.autoPanOnConnect == autoPanOnConnect &&
+        other.autoPanOnNodeDrag == autoPanOnNodeDrag &&
+        other.autoPanSpeed == autoPanSpeed &&
+        other.panOnDrag == panOnDrag &&
+        other.selectionOnDrag == selectionOnDrag &&
+        other.selectionMode == selectionMode &&
+        other.panOnScroll == panOnScroll &&
+        other.panOnScrollSpeed == panOnScrollSpeed &&
+        other.panOnScrollMode == panOnScrollMode &&
+        other.zoomOnScroll == zoomOnScroll &&
+        other.zoomOnPinch == zoomOnPinch &&
+        other.zoomOnDoubleClick == zoomOnDoubleClick;
   }
 
   @override
   int get hashCode {
-    return Object.hash(
-      defaultViewport,
-      viewport,
-      onViewportChange,
-      fitView,
-      fitViewOptions,
-      minZoom,
-      maxZoom,
-      snapToGrid,
-      snapGrid,
-      onlyRenderVisibleElements,
-      translateExtent,
-      nodeExtent,
-      preventScrolling,
-    );
+    return defaultViewport.hashCode ^
+        viewport.hashCode ^
+        onViewportChange.hashCode ^
+        fitView.hashCode ^
+        fitViewOptions.hashCode ^
+        minZoom.hashCode ^
+        maxZoom.hashCode ^
+        snapToGrid.hashCode ^
+        snapGrid.hashCode ^
+        onlyRenderVisibleElements.hashCode ^
+        translateExtent.hashCode ^
+        nodeExtent.hashCode ^
+        preventScrolling.hashCode ^
+        autoPanOnConnect.hashCode ^
+        autoPanOnNodeDrag.hashCode ^
+        autoPanSpeed.hashCode ^
+        panOnDrag.hashCode ^
+        selectionOnDrag.hashCode ^
+        selectionMode.hashCode ^
+        panOnScroll.hashCode ^
+        panOnScrollSpeed.hashCode ^
+        panOnScrollMode.hashCode ^
+        zoomOnScroll.hashCode ^
+        zoomOnPinch.hashCode ^
+        zoomOnDoubleClick.hashCode;
   }
 }
 

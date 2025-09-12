@@ -1,21 +1,29 @@
-import 'dart:math';
-
-// ignore: depend_on_referenced_packages
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/models/connection_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/edge_path_creator.dart';
 import 'package:flutter_workflow/src/theme/theme.dart';
+
+/// Abstract base class for all custom edge painters.
+/// Extend this class to create your own custom edge rendering logic.
+/// This remains an abstract class and does not need to be immutable.
+abstract class EdgePainter {
+  void paint(
+    Canvas canvas,
+    Path path,
+    FlowEdge edge,
+    Paint paint,
+  );
+}
 
 /// A highly optimized painter for drawing edges, connections, and selection rectangles.
 ///
 /// This painter is stateless and decoupled from the controller. It receives all
 /// necessary data to draw and uses pre-built Paint objects for maximum performance.
 class FlowPainter extends CustomPainter {
-  final List<FlowNode> nodes;
-  final List<FlowEdge> edges;
+  final Map<String, FlowNode> nodes;
+  final Map<String, FlowEdge> edges;
   final FlowConnectionState? connection;
   final Rect? selectionRect;
   final FlowCanvasTheme theme;
@@ -28,7 +36,6 @@ class FlowPainter extends CustomPainter {
   final Paint _connectionEndpointPaint;
   final Paint _selectionFillPaint;
   final Paint _selectionStrokePaint;
-  final Paint _arrowPaint;
 
   FlowPainter({
     required this.nodes,
@@ -55,8 +62,7 @@ class FlowPainter extends CustomPainter {
         _selectionFillPaint = Paint()..color = theme.selection.fillColor,
         _selectionStrokePaint = Paint()
           ..color = theme.selection.borderColor
-          ..style = PaintingStyle.stroke,
-        _arrowPaint = Paint()..style = PaintingStyle.fill;
+          ..style = PaintingStyle.stroke;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -68,19 +74,14 @@ class FlowPainter extends CustomPainter {
   void _drawEdges(Canvas canvas) {
     if (edges.isEmpty) return;
 
-    // Create a quick lookup map for node positions.
-    final nodeMap = {for (var node in nodes) node.id: node};
-
-    for (final edge in edges) {
-      final sourceNode = nodeMap[edge.sourceNodeId];
-      final targetNode = nodeMap[edge.targetNodeId];
+    for (MapEntry<String, FlowEdge> edge in edges.entries) {
+      final sourceNode = nodes[edge.value.sourceNodeId];
+      final targetNode = nodes[edge.value.targetNodeId];
 
       if (sourceNode == null || targetNode == null) continue;
 
-      final sourceHandle = sourceNode.handles
-          .firstWhereOrNull((h) => h.id == edge.sourceHandleId);
-      final targetHandle = targetNode.handles
-          .firstWhereOrNull((h) => h.id == edge.targetHandleId);
+      final sourceHandle = sourceNode.handles[edge.value.sourceHandleId];
+      final targetHandle = sourceNode.handles[edge.value.targetHandleId];
 
       if (sourceHandle == null || targetHandle == null) continue;
 
@@ -90,30 +91,9 @@ class FlowPainter extends CustomPainter {
       final isSelected = sourceNode.isSelected || targetNode.isSelected;
       final paint = isSelected ? _selectedEdgePaint : _defaultEdgePaint;
 
-      final path = EdgePathCreator.createPath(edge.pathType, start, end);
+      final path = EdgePathCreator.createPath(edge.value.pathType, start, end);
       canvas.drawPath(path, paint);
-
-      _arrowPaint.color = paint.color;
-      _drawArrowHead(canvas, start, end, _arrowPaint);
     }
-  }
-
-  void _drawArrowHead(Canvas canvas, Offset start, Offset end, Paint paint) {
-    final double arrowSize = theme.edge.arrowHeadSize;
-    if (arrowSize <= 0) return;
-
-    final direction = (end - start).direction;
-    if (direction.isNaN) return;
-
-    final arrowPath = Path()
-      ..moveTo(end.dx, end.dy)
-      ..lineTo(end.dx - arrowSize * (cos(direction) - sin(direction) * 0.5),
-          end.dy - arrowSize * (sin(direction) + cos(direction) * 0.5))
-      ..lineTo(end.dx - arrowSize * (cos(direction) + sin(direction) * 0.5),
-          end.dy - arrowSize * (sin(direction) - cos(direction) * 0.5))
-      ..close();
-
-    canvas.drawPath(arrowPath, paint);
   }
 
   void _drawConnection(Canvas canvas) {
@@ -155,10 +135,4 @@ class FlowPainter extends CustomPainter {
         oldDelegate.theme != theme ||
         oldDelegate.zoom != zoom;
   }
-}
-
-// Helper extension to get angle from an Offset
-extension on Offset {
-  // ignore: unused_element
-  double get direction => dx == 0 && dy == 0 ? 0 : atan2(dy, dx);
 }

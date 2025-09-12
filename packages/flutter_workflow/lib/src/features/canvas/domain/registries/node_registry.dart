@@ -11,9 +11,8 @@ class NodeRegistry {
   final Map<String, NodeWidgetBuilder> _builders = {};
 
   void register(String type, NodeWidgetBuilder builder) {
-    if (type.trim().isEmpty) {
-      throw ArgumentError('Node type cannot be empty or whitespace');
-    }
+    assert(type.isNotEmpty, 'Node type cannot be empty');
+    assert(!_builders.containsKey(type), 'Node type $type already registered');
     _builders[type] = builder;
   }
 

@@ -1,12 +1,24 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/models/minimap_transform.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/theme/components/minimap_theme.dart';
 
+/// Holds the calculated transformation values for rendering the minimap.
+class MiniMapTransform {
+  final double scale;
+  final Offset offset;
+  final Rect contentBounds;
+
+  const MiniMapTransform({
+    required this.scale,
+    required this.offset,
+    required this.contentBounds,
+  });
+}
+
 /// A highly optimized painter for the canvas minimap.
 class MiniMapPainter extends CustomPainter {
-  final List<FlowNode> nodes;
+  final Map<String, FlowNode> nodes;
   final Rect viewport;
   final FlowCanvasMiniMapTheme theme;
 
@@ -51,9 +63,9 @@ class MiniMapPainter extends CustomPainter {
     final regularNodesPath = Path();
     final selectedNodesPath = Path();
 
-    for (final node in nodes) {
-      final nodeRect = fromCanvasToMiniMap(node.rect, transform);
-      if (node.isSelected) {
+    for (MapEntry<String, FlowNode> node in nodes.entries) {
+      final nodeRect = fromCanvasToMiniMap(node.value.rect, transform);
+      if (node.value.isSelected) {
         selectedNodesPath.addRect(nodeRect);
       } else {
         regularNodesPath.addRect(nodeRect);
@@ -74,9 +86,11 @@ class MiniMapPainter extends CustomPainter {
     canvas.drawRect(viewportInMiniMap, _viewportStrokePaint);
   }
 
-  Rect _getBounds(List<FlowNode> nodes) {
+  Rect _getBounds(Map<String, FlowNode> nodes) {
     if (nodes.isEmpty) return Rect.zero;
-    return nodes.map((n) => n.rect).reduce((a, b) => a.expandToInclude(b));
+    return nodes.values
+        .map((node) => node.rect)
+        .reduce((a, b) => a.expandToInclude(b));
   }
 
   // --- STATIC UTILITY METHODS ---

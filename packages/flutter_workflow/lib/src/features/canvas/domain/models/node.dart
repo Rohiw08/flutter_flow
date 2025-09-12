@@ -10,16 +10,18 @@ part 'node.freezed.dart';
 @freezed
 abstract class FlowNode with _$FlowNode {
   const FlowNode._();
+
   factory FlowNode({
     required String type,
     required String id,
     required Offset position,
     required Size size,
+    bool? isDraggable,
+    bool? isSelectable,
+    bool? isFocusable, // optional
     required BuiltMap<String, NodeHandle> internalHandles,
     required BuiltMap<String, dynamic> internalData,
     @Default(false) bool isSelected,
-    @Default(true) bool isDraggable,
-    @Default(true) bool isSelectable,
     @Default(false) bool isHidden,
     @Default(false) bool isDragging,
     @Default(false) bool isResizing,
@@ -31,9 +33,15 @@ abstract class FlowNode with _$FlowNode {
       Map.unmodifiable(internalHandles.asMap());
   Map<String, dynamic> get data => Map.unmodifiable(internalData.asMap());
 
+  Offset get center =>
+      Offset(position.dx + size.width / 2, position.dy + size.height / 2);
+
   // A getter for the node's rectangle, derived from its properties.
   Rect get rect =>
       Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+
+  bool get isConnectable => !isHidden && (isDraggable ?? true);
+  // bool canConnectTo(FlowNode other) => /* validation logic */;
 
   /// Creates a new node with a unique ID.
   factory FlowNode.create({
@@ -45,6 +53,7 @@ abstract class FlowNode with _$FlowNode {
     bool isSelected = false,
     bool isDraggable = true,
     bool isSelectable = true,
+    bool? isFocusable,
     bool isHidden = false,
     bool isDragging = false,
     bool isResizing = false,
@@ -60,10 +69,11 @@ abstract class FlowNode with _$FlowNode {
       isSelected: isSelected,
       isDraggable: isDraggable,
       isSelectable: isSelectable,
-      zIndex: zIndex,
+      isFocusable: isFocusable,
       isHidden: isHidden,
-      isDragging: isDraggable,
+      isDragging: isDragging,
       isResizing: isResizing,
+      zIndex: zIndex,
     );
   }
 }

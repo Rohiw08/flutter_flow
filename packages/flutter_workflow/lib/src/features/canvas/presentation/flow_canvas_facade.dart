@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/flow_canvas_controller.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/models/connection_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
@@ -47,6 +47,13 @@ class FlowCanvasFacade {
       _controller.transformationController;
 
   FlowCanvasState get state => _container.read(_provider(_registries));
+
+  NodeRegistry get nodeRegistry => _registries.nodeRegistry;
+  EdgeRegistry get edgeRegistry => _registries.edgeRegistry;
+
+  //
+  Offset get canvasCentre =>
+      Offset(state.canvasHeight / 2, state.canvasWidth / 2);
 
   // --- COMMANDS ---
   void setViewportSize(Size size) => _controller.setViewportSize(size);
