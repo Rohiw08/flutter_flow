@@ -15,10 +15,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FlowCanvasState {
 // Core data
-  BuiltMap<String, FlowNode> get internalNodes;
-  BuiltMap<String, FlowEdge> get internalEdges;
-  BuiltSet<String> get internalSelectedNodes;
-  BuiltMap<String, BuiltSet<String>> get internalSpatialHash; // Edge indexing
+  Map<String, FlowNode> get nodes;
+  Map<String, FlowEdge> get edges;
+  Set<String> get selectedNodes;
+  Set<String> get selectedEdges;
+  Map<String, BuiltSet<String>> get spatialHash; // Edge indexing
   EdgeIndex get edgeIndex;
   NodeIndex get nodeIndex; // Z-index management
   int get minZIndex;
@@ -44,14 +45,14 @@ mixin _$FlowCanvasState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowCanvasState &&
-            (identical(other.internalNodes, internalNodes) ||
-                other.internalNodes == internalNodes) &&
-            (identical(other.internalEdges, internalEdges) ||
-                other.internalEdges == internalEdges) &&
+            const DeepCollectionEquality().equals(other.nodes, nodes) &&
+            const DeepCollectionEquality().equals(other.edges, edges) &&
             const DeepCollectionEquality()
-                .equals(other.internalSelectedNodes, internalSelectedNodes) &&
-            (identical(other.internalSpatialHash, internalSpatialHash) ||
-                other.internalSpatialHash == internalSpatialHash) &&
+                .equals(other.selectedNodes, selectedNodes) &&
+            const DeepCollectionEquality()
+                .equals(other.selectedEdges, selectedEdges) &&
+            const DeepCollectionEquality()
+                .equals(other.spatialHash, spatialHash) &&
             (identical(other.edgeIndex, edgeIndex) ||
                 other.edgeIndex == edgeIndex) &&
             (identical(other.nodeIndex, nodeIndex) ||
@@ -78,10 +79,11 @@ mixin _$FlowCanvasState {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      internalNodes,
-      internalEdges,
-      const DeepCollectionEquality().hash(internalSelectedNodes),
-      internalSpatialHash,
+      const DeepCollectionEquality().hash(nodes),
+      const DeepCollectionEquality().hash(edges),
+      const DeepCollectionEquality().hash(selectedNodes),
+      const DeepCollectionEquality().hash(selectedEdges),
+      const DeepCollectionEquality().hash(spatialHash),
       edgeIndex,
       nodeIndex,
       minZIndex,
@@ -96,7 +98,7 @@ mixin _$FlowCanvasState {
 
   @override
   String toString() {
-    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -107,10 +109,11 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       _$FlowCanvasStateCopyWithImpl;
   @useResult
   $Res call(
-      {BuiltMap<String, FlowNode> internalNodes,
-      BuiltMap<String, FlowEdge> internalEdges,
-      BuiltSet<String> internalSelectedNodes,
-      BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+      {Map<String, FlowNode> nodes,
+      Map<String, FlowEdge> edges,
+      Set<String> selectedNodes,
+      Set<String> selectedEdges,
+      Map<String, BuiltSet<String>> spatialHash,
       EdgeIndex edgeIndex,
       NodeIndex nodeIndex,
       int minZIndex,
@@ -139,10 +142,11 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? internalNodes = null,
-    Object? internalEdges = null,
-    Object? internalSelectedNodes = null,
-    Object? internalSpatialHash = null,
+    Object? nodes = null,
+    Object? edges = null,
+    Object? selectedNodes = null,
+    Object? selectedEdges = null,
+    Object? spatialHash = null,
     Object? edgeIndex = null,
     Object? nodeIndex = null,
     Object? minZIndex = null,
@@ -156,22 +160,26 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? dragMode = null,
   }) {
     return _then(_self.copyWith(
-      internalNodes: null == internalNodes
-          ? _self.internalNodes
-          : internalNodes // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, FlowNode>,
-      internalEdges: null == internalEdges
-          ? _self.internalEdges
-          : internalEdges // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, FlowEdge>,
-      internalSelectedNodes: null == internalSelectedNodes
-          ? _self.internalSelectedNodes
-          : internalSelectedNodes // ignore: cast_nullable_to_non_nullable
-              as BuiltSet<String>,
-      internalSpatialHash: null == internalSpatialHash
-          ? _self.internalSpatialHash
-          : internalSpatialHash // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, BuiltSet<String>>,
+      nodes: null == nodes
+          ? _self.nodes
+          : nodes // ignore: cast_nullable_to_non_nullable
+              as Map<String, FlowNode>,
+      edges: null == edges
+          ? _self.edges
+          : edges // ignore: cast_nullable_to_non_nullable
+              as Map<String, FlowEdge>,
+      selectedNodes: null == selectedNodes
+          ? _self.selectedNodes
+          : selectedNodes // ignore: cast_nullable_to_non_nullable
+              as Set<String>,
+      selectedEdges: null == selectedEdges
+          ? _self.selectedEdges
+          : selectedEdges // ignore: cast_nullable_to_non_nullable
+              as Set<String>,
+      spatialHash: null == spatialHash
+          ? _self.spatialHash
+          : spatialHash // ignore: cast_nullable_to_non_nullable
+              as Map<String, BuiltSet<String>>,
       edgeIndex: null == edgeIndex
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable
@@ -328,10 +336,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
-            BuiltMap<String, FlowNode> internalNodes,
-            BuiltMap<String, FlowEdge> internalEdges,
-            BuiltSet<String> internalSelectedNodes,
-            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            Map<String, FlowNode> nodes,
+            Map<String, FlowEdge> edges,
+            Set<String> selectedNodes,
+            Set<String> selectedEdges,
+            Map<String, BuiltSet<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -350,10 +359,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
     switch (_that) {
       case _FlowCanvasState() when $default != null:
         return $default(
-            _that.internalNodes,
-            _that.internalEdges,
-            _that.internalSelectedNodes,
-            _that.internalSpatialHash,
+            _that.nodes,
+            _that.edges,
+            _that.selectedNodes,
+            _that.selectedEdges,
+            _that.spatialHash,
             _that.edgeIndex,
             _that.nodeIndex,
             _that.minZIndex,
@@ -386,10 +396,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            BuiltMap<String, FlowNode> internalNodes,
-            BuiltMap<String, FlowEdge> internalEdges,
-            BuiltSet<String> internalSelectedNodes,
-            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            Map<String, FlowNode> nodes,
+            Map<String, FlowEdge> edges,
+            Set<String> selectedNodes,
+            Set<String> selectedEdges,
+            Map<String, BuiltSet<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -407,10 +418,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
     switch (_that) {
       case _FlowCanvasState():
         return $default(
-            _that.internalNodes,
-            _that.internalEdges,
-            _that.internalSelectedNodes,
-            _that.internalSpatialHash,
+            _that.nodes,
+            _that.edges,
+            _that.selectedNodes,
+            _that.selectedEdges,
+            _that.spatialHash,
             _that.edgeIndex,
             _that.nodeIndex,
             _that.minZIndex,
@@ -442,10 +454,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
-            BuiltMap<String, FlowNode> internalNodes,
-            BuiltMap<String, FlowEdge> internalEdges,
-            BuiltSet<String> internalSelectedNodes,
-            BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+            Map<String, FlowNode> nodes,
+            Map<String, FlowEdge> edges,
+            Set<String> selectedNodes,
+            Set<String> selectedEdges,
+            Map<String, BuiltSet<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -463,10 +476,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
     switch (_that) {
       case _FlowCanvasState() when $default != null:
         return $default(
-            _that.internalNodes,
-            _that.internalEdges,
-            _that.internalSelectedNodes,
-            _that.internalSpatialHash,
+            _that.nodes,
+            _that.edges,
+            _that.selectedNodes,
+            _that.selectedEdges,
+            _that.spatialHash,
             _that.edgeIndex,
             _that.nodeIndex,
             _that.minZIndex,
@@ -488,10 +502,11 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
 
 class _FlowCanvasState extends FlowCanvasState {
   const _FlowCanvasState(
-      {required this.internalNodes,
-      required this.internalEdges,
-      required this.internalSelectedNodes,
-      required this.internalSpatialHash,
+      {final Map<String, FlowNode> nodes = const {},
+      final Map<String, FlowEdge> edges = const {},
+      final Set<String> selectedNodes = const {},
+      final Set<String> selectedEdges = const {},
+      final Map<String, BuiltSet<String>> spatialHash = const {},
       required this.edgeIndex,
       required this.nodeIndex,
       this.minZIndex = 0,
@@ -503,17 +518,60 @@ class _FlowCanvasState extends FlowCanvasState {
       this.connection,
       this.selectionRect,
       this.dragMode = DragMode.none})
-      : super._();
+      : _nodes = nodes,
+        _edges = edges,
+        _selectedNodes = selectedNodes,
+        _selectedEdges = selectedEdges,
+        _spatialHash = spatialHash,
+        super._();
 
 // Core data
+  final Map<String, FlowNode> _nodes;
+// Core data
   @override
-  final BuiltMap<String, FlowNode> internalNodes;
+  @JsonKey()
+  Map<String, FlowNode> get nodes {
+    if (_nodes is EqualUnmodifiableMapView) return _nodes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_nodes);
+  }
+
+  final Map<String, FlowEdge> _edges;
   @override
-  final BuiltMap<String, FlowEdge> internalEdges;
+  @JsonKey()
+  Map<String, FlowEdge> get edges {
+    if (_edges is EqualUnmodifiableMapView) return _edges;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_edges);
+  }
+
+  final Set<String> _selectedNodes;
   @override
-  final BuiltSet<String> internalSelectedNodes;
+  @JsonKey()
+  Set<String> get selectedNodes {
+    if (_selectedNodes is EqualUnmodifiableSetView) return _selectedNodes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_selectedNodes);
+  }
+
+  final Set<String> _selectedEdges;
   @override
-  final BuiltMap<String, BuiltSet<String>> internalSpatialHash;
+  @JsonKey()
+  Set<String> get selectedEdges {
+    if (_selectedEdges is EqualUnmodifiableSetView) return _selectedEdges;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_selectedEdges);
+  }
+
+  final Map<String, BuiltSet<String>> _spatialHash;
+  @override
+  @JsonKey()
+  Map<String, BuiltSet<String>> get spatialHash {
+    if (_spatialHash is EqualUnmodifiableMapView) return _spatialHash;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_spatialHash);
+  }
+
 // Edge indexing
   @override
   final EdgeIndex edgeIndex;
@@ -560,14 +618,14 @@ class _FlowCanvasState extends FlowCanvasState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowCanvasState &&
-            (identical(other.internalNodes, internalNodes) ||
-                other.internalNodes == internalNodes) &&
-            (identical(other.internalEdges, internalEdges) ||
-                other.internalEdges == internalEdges) &&
+            const DeepCollectionEquality().equals(other._nodes, _nodes) &&
+            const DeepCollectionEquality().equals(other._edges, _edges) &&
             const DeepCollectionEquality()
-                .equals(other.internalSelectedNodes, internalSelectedNodes) &&
-            (identical(other.internalSpatialHash, internalSpatialHash) ||
-                other.internalSpatialHash == internalSpatialHash) &&
+                .equals(other._selectedNodes, _selectedNodes) &&
+            const DeepCollectionEquality()
+                .equals(other._selectedEdges, _selectedEdges) &&
+            const DeepCollectionEquality()
+                .equals(other._spatialHash, _spatialHash) &&
             (identical(other.edgeIndex, edgeIndex) ||
                 other.edgeIndex == edgeIndex) &&
             (identical(other.nodeIndex, nodeIndex) ||
@@ -594,10 +652,11 @@ class _FlowCanvasState extends FlowCanvasState {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      internalNodes,
-      internalEdges,
-      const DeepCollectionEquality().hash(internalSelectedNodes),
-      internalSpatialHash,
+      const DeepCollectionEquality().hash(_nodes),
+      const DeepCollectionEquality().hash(_edges),
+      const DeepCollectionEquality().hash(_selectedNodes),
+      const DeepCollectionEquality().hash(_selectedEdges),
+      const DeepCollectionEquality().hash(_spatialHash),
       edgeIndex,
       nodeIndex,
       minZIndex,
@@ -612,7 +671,7 @@ class _FlowCanvasState extends FlowCanvasState {
 
   @override
   String toString() {
-    return 'FlowCanvasState(internalNodes: $internalNodes, internalEdges: $internalEdges, internalSelectedNodes: $internalSelectedNodes, internalSpatialHash: $internalSpatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, zoom: $zoom, viewportOffset: $viewportOffset, isPanZoomLocked: $isPanZoomLocked, viewportSize: $viewportSize, connection: $connection, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -625,10 +684,11 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {BuiltMap<String, FlowNode> internalNodes,
-      BuiltMap<String, FlowEdge> internalEdges,
-      BuiltSet<String> internalSelectedNodes,
-      BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+      {Map<String, FlowNode> nodes,
+      Map<String, FlowEdge> edges,
+      Set<String> selectedNodes,
+      Set<String> selectedEdges,
+      Map<String, BuiltSet<String>> spatialHash,
       EdgeIndex edgeIndex,
       NodeIndex nodeIndex,
       int minZIndex,
@@ -658,10 +718,11 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? internalNodes = null,
-    Object? internalEdges = null,
-    Object? internalSelectedNodes = null,
-    Object? internalSpatialHash = null,
+    Object? nodes = null,
+    Object? edges = null,
+    Object? selectedNodes = null,
+    Object? selectedEdges = null,
+    Object? spatialHash = null,
     Object? edgeIndex = null,
     Object? nodeIndex = null,
     Object? minZIndex = null,
@@ -675,22 +736,26 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? dragMode = null,
   }) {
     return _then(_FlowCanvasState(
-      internalNodes: null == internalNodes
-          ? _self.internalNodes
-          : internalNodes // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, FlowNode>,
-      internalEdges: null == internalEdges
-          ? _self.internalEdges
-          : internalEdges // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, FlowEdge>,
-      internalSelectedNodes: null == internalSelectedNodes
-          ? _self.internalSelectedNodes
-          : internalSelectedNodes // ignore: cast_nullable_to_non_nullable
-              as BuiltSet<String>,
-      internalSpatialHash: null == internalSpatialHash
-          ? _self.internalSpatialHash
-          : internalSpatialHash // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, BuiltSet<String>>,
+      nodes: null == nodes
+          ? _self._nodes
+          : nodes // ignore: cast_nullable_to_non_nullable
+              as Map<String, FlowNode>,
+      edges: null == edges
+          ? _self._edges
+          : edges // ignore: cast_nullable_to_non_nullable
+              as Map<String, FlowEdge>,
+      selectedNodes: null == selectedNodes
+          ? _self._selectedNodes
+          : selectedNodes // ignore: cast_nullable_to_non_nullable
+              as Set<String>,
+      selectedEdges: null == selectedEdges
+          ? _self._selectedEdges
+          : selectedEdges // ignore: cast_nullable_to_non_nullable
+              as Set<String>,
+      spatialHash: null == spatialHash
+          ? _self._spatialHash
+          : spatialHash // ignore: cast_nullable_to_non_nullable
+              as Map<String, BuiltSet<String>>,
       edgeIndex: null == edgeIndex
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable

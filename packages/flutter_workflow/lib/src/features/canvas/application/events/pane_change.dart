@@ -1,4 +1,4 @@
-import '../options/viewport_options.dart';
+import '../../../../options/components/viewport_options.dart';
 
 enum PaneEventType {
   move,

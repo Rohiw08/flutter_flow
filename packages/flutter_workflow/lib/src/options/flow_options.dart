@@ -1,6 +1,6 @@
-import 'package:flutter_workflow/src/features/canvas/domain/options/edge_options.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/options/node_options.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/options/viewport_options.dart';
+import 'package:flutter_workflow/src/options/components/edge_options.dart';
+import 'package:flutter_workflow/src/options/components/node_options.dart';
+import 'package:flutter_workflow/src/options/components/viewport_options.dart';
 
 class FlowOptions {
   final bool enableMultiSelection;
@@ -13,16 +13,17 @@ class FlowOptions {
   final NodeOptions defaultNodeOptions;
   final ViewportOptions viewportOptions;
 
-  const FlowOptions(
-      {this.enableMultiSelection = true,
-      this.enableBoxSelection = true,
-      this.enableKeyboardInteraction = true,
-      this.enableConnectivity = true,
-      this.canvasWidth = 500000,
-      this.canvasHeight = 500000,
-      this.edgeOptions = const EdgeOptions(),
-      this.defaultNodeOptions = const NodeOptions(),
-      this.viewportOptions = const ViewportOptions()});
+  const FlowOptions({
+    this.enableMultiSelection = true,
+    this.enableBoxSelection = true,
+    this.enableKeyboardInteraction = true,
+    this.enableConnectivity = true,
+    this.canvasWidth = 500000,
+    this.canvasHeight = 500000,
+    this.edgeOptions = const EdgeOptions(),
+    this.defaultNodeOptions = const NodeOptions(),
+    this.viewportOptions = const ViewportOptions(),
+  });
 
   FlowOptions copyWith({
     bool? enableMultiSelection,

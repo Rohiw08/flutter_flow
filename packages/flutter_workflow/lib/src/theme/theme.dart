@@ -20,7 +20,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   final FlowCanvasSelectionTheme selection;
   final FlowCanvasControlTheme controls;
   final FlowCanvasMiniMapTheme miniMap;
-  final FlowCanvasConnectionTheme connection;
+  final FlowConnectionStyle connection;
 
   const FlowCanvasTheme({
     required this.background,
@@ -43,7 +43,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       selection: FlowCanvasSelectionTheme.light(),
       controls: FlowCanvasControlTheme.light(),
       miniMap: FlowCanvasMiniMapTheme.light(),
-      connection: FlowCanvasConnectionTheme.light(),
+      connection: FlowConnectionStyle.light(),
     );
   }
 
@@ -57,7 +57,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       selection: FlowCanvasSelectionTheme.dark(),
       controls: FlowCanvasControlTheme.dark(),
       miniMap: FlowCanvasMiniMapTheme.dark(),
-      connection: FlowCanvasConnectionTheme.dark(),
+      connection: FlowConnectionStyle.dark(),
     );
   }
 
@@ -71,7 +71,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     FlowCanvasSelectionTheme? selection,
     FlowCanvasControlTheme? controls,
     FlowCanvasMiniMapTheme? miniMap,
-    FlowCanvasConnectionTheme? connection,
+    FlowConnectionStyle? connection,
   }) {
     return FlowCanvasTheme(
       background: background ?? this.background,
@@ -163,7 +163,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         maskColor: colorScheme.scrim.withAlpha(153),
         maskStrokeColor: colorScheme.outline,
       ),
-      connection: FlowCanvasConnectionTheme(
+      connection: FlowConnectionStyle(
         activeColor: colorScheme.primary,
         validTargetColor: colorScheme.tertiary,
         invalidTargetColor: colorScheme.error,

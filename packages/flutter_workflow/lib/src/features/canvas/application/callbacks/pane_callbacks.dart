@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/enums.dart';
-import '../options/viewport_options.dart';
+import '../../../../options/components/viewport_options.dart';
 import '../streams/pane_change_stream.dart';
 
 typedef OnMove = void Function(FlowViewport viewport, DragDetails? details);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../state/connection_state.dart';
+import '../../domain/state/connection_state.dart';
 import '../streams/connection_change_stream.dart';
 
 typedef OnConnect = void Function(FlowConnectionState connection);

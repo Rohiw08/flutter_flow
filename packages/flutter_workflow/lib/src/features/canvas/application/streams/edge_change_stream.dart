@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_workflow/src/features/canvas/domain/events/edge_change_event.dart';
+import 'package:flutter_workflow/src/features/canvas/application/events/edge_change_event.dart';
 
 class EdgeStreams {
   final StreamController<EdgeChangeEvent> _edgeChangeEventController =

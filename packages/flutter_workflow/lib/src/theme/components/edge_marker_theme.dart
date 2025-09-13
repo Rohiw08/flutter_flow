@@ -21,7 +21,7 @@ class EdgeMarkerStyle {
   });
 
   EdgeMarkerStyle copyWith({
-    MarkerType? type,
+    EdgeMarkerType? type,
     Color? color,
     double? width,
     double? height,

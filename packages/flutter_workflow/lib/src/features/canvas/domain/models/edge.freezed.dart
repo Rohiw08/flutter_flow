@@ -14,28 +14,27 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowEdge {
-// Core identifiers
   String get id;
   String get sourceNodeId;
   String get targetNodeId;
   String? get sourceHandleId;
   String? get targetHandleId;
-  BuiltMap<String, dynamic> get internalData; // Rendering
+  int get zIndex;
   EdgePathType get pathType;
-  bool get animated;
-  bool get hidden;
-  bool get deletable;
-  bool get selectable;
-  bool get selected;
-  int get zIndex; // Interaction
-  bool? get focusable;
-  bool get reconnectable;
-  double get interactionWidth; // Label
+  double get interactionWidth;
   Widget? get label;
-  BoxDecoration? get labelDecoration; // Markers
+  BoxDecoration? get labelDecoration;
   EdgeMarkerStyle? get startMarkerStyle;
-  EdgeMarkerStyle? get endMarkerStyle; // Style
+  EdgeMarkerStyle? get endMarkerStyle;
   EdgeStyle? get style;
+  dynamic get data;
+  bool? get animated;
+  bool? get hidden;
+  bool? get deletable;
+  bool? get selectable;
+  bool? get focusable;
+  bool? get reconnectable;
+  bool? get elevateEdgeOnSelected;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -58,24 +57,9 @@ mixin _$FlowEdge {
                 other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetHandleId, targetHandleId) ||
                 other.targetHandleId == targetHandleId) &&
-            (identical(other.internalData, internalData) ||
-                other.internalData == internalData) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
             (identical(other.pathType, pathType) ||
                 other.pathType == pathType) &&
-            (identical(other.animated, animated) ||
-                other.animated == animated) &&
-            (identical(other.hidden, hidden) || other.hidden == hidden) &&
-            (identical(other.deletable, deletable) ||
-                other.deletable == deletable) &&
-            (identical(other.selectable, selectable) ||
-                other.selectable == selectable) &&
-            (identical(other.selected, selected) ||
-                other.selected == selected) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
-            (identical(other.focusable, focusable) ||
-                other.focusable == focusable) &&
-            (identical(other.reconnectable, reconnectable) ||
-                other.reconnectable == reconnectable) &&
             (identical(other.interactionWidth, interactionWidth) ||
                 other.interactionWidth == interactionWidth) &&
             (identical(other.label, label) || other.label == label) &&
@@ -85,7 +69,21 @@ mixin _$FlowEdge {
                 other.startMarkerStyle == startMarkerStyle) &&
             (identical(other.endMarkerStyle, endMarkerStyle) ||
                 other.endMarkerStyle == endMarkerStyle) &&
-            (identical(other.style, style) || other.style == style));
+            (identical(other.style, style) || other.style == style) &&
+            const DeepCollectionEquality().equals(other.data, data) &&
+            (identical(other.animated, animated) ||
+                other.animated == animated) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
+            (identical(other.reconnectable, reconnectable) ||
+                other.reconnectable == reconnectable) &&
+            (identical(other.elevateEdgeOnSelected, elevateEdgeOnSelected) ||
+                other.elevateEdgeOnSelected == elevateEdgeOnSelected));
   }
 
   @override
@@ -96,27 +94,27 @@ mixin _$FlowEdge {
         targetNodeId,
         sourceHandleId,
         targetHandleId,
-        internalData,
-        pathType,
-        animated,
-        hidden,
-        deletable,
-        selectable,
-        selected,
         zIndex,
-        focusable,
-        reconnectable,
+        pathType,
         interactionWidth,
         label,
         labelDecoration,
         startMarkerStyle,
         endMarkerStyle,
-        style
+        style,
+        const DeepCollectionEquality().hash(data),
+        animated,
+        hidden,
+        deletable,
+        selectable,
+        focusable,
+        reconnectable,
+        elevateEdgeOnSelected
       ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, focusable: $focusable, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelected: $elevateEdgeOnSelected)';
   }
 }
 
@@ -131,22 +129,22 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       String targetNodeId,
       String? sourceHandleId,
       String? targetHandleId,
-      BuiltMap<String, dynamic> internalData,
-      EdgePathType pathType,
-      bool animated,
-      bool hidden,
-      bool deletable,
-      bool selectable,
-      bool selected,
       int zIndex,
-      bool? focusable,
-      bool reconnectable,
+      EdgePathType pathType,
       double interactionWidth,
       Widget? label,
       BoxDecoration? labelDecoration,
       EdgeMarkerStyle? startMarkerStyle,
       EdgeMarkerStyle? endMarkerStyle,
-      EdgeStyle? style});
+      EdgeStyle? style,
+      dynamic data,
+      bool? animated,
+      bool? hidden,
+      bool? deletable,
+      bool? selectable,
+      bool? focusable,
+      bool? reconnectable,
+      bool? elevateEdgeOnSelected});
 }
 
 /// @nodoc
@@ -166,22 +164,22 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
     Object? targetNodeId = null,
     Object? sourceHandleId = freezed,
     Object? targetHandleId = freezed,
-    Object? internalData = null,
-    Object? pathType = null,
-    Object? animated = null,
-    Object? hidden = null,
-    Object? deletable = null,
-    Object? selectable = null,
-    Object? selected = null,
     Object? zIndex = null,
-    Object? focusable = freezed,
-    Object? reconnectable = null,
+    Object? pathType = null,
     Object? interactionWidth = null,
     Object? label = freezed,
     Object? labelDecoration = freezed,
     Object? startMarkerStyle = freezed,
     Object? endMarkerStyle = freezed,
     Object? style = freezed,
+    Object? data = freezed,
+    Object? animated = freezed,
+    Object? hidden = freezed,
+    Object? deletable = freezed,
+    Object? selectable = freezed,
+    Object? focusable = freezed,
+    Object? reconnectable = freezed,
+    Object? elevateEdgeOnSelected = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -204,46 +202,14 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
           ? _self.targetHandleId
           : targetHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
-      internalData: null == internalData
-          ? _self.internalData
-          : internalData // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, dynamic>,
-      pathType: null == pathType
-          ? _self.pathType
-          : pathType // ignore: cast_nullable_to_non_nullable
-              as EdgePathType,
-      animated: null == animated
-          ? _self.animated
-          : animated // ignore: cast_nullable_to_non_nullable
-              as bool,
-      hidden: null == hidden
-          ? _self.hidden
-          : hidden // ignore: cast_nullable_to_non_nullable
-              as bool,
-      deletable: null == deletable
-          ? _self.deletable
-          : deletable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      selectable: null == selectable
-          ? _self.selectable
-          : selectable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      selected: null == selected
-          ? _self.selected
-          : selected // ignore: cast_nullable_to_non_nullable
-              as bool,
       zIndex: null == zIndex
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      focusable: freezed == focusable
-          ? _self.focusable
-          : focusable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      reconnectable: null == reconnectable
-          ? _self.reconnectable
-          : reconnectable // ignore: cast_nullable_to_non_nullable
-              as bool,
+      pathType: null == pathType
+          ? _self.pathType
+          : pathType // ignore: cast_nullable_to_non_nullable
+              as EdgePathType,
       interactionWidth: null == interactionWidth
           ? _self.interactionWidth
           : interactionWidth // ignore: cast_nullable_to_non_nullable
@@ -268,6 +234,38 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as EdgeStyle?,
+      data: freezed == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      animated: freezed == animated
+          ? _self.animated
+          : animated // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hidden: freezed == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      deletable: freezed == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      selectable: freezed == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      reconnectable: freezed == reconnectable
+          ? _self.reconnectable
+          : reconnectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      elevateEdgeOnSelected: freezed == elevateEdgeOnSelected
+          ? _self.elevateEdgeOnSelected
+          : elevateEdgeOnSelected // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
@@ -371,22 +369,22 @@ extension FlowEdgePatterns on FlowEdge {
             String targetNodeId,
             String? sourceHandleId,
             String? targetHandleId,
-            BuiltMap<String, dynamic> internalData,
-            EdgePathType pathType,
-            bool animated,
-            bool hidden,
-            bool deletable,
-            bool selectable,
-            bool selected,
             int zIndex,
-            bool? focusable,
-            bool reconnectable,
+            EdgePathType pathType,
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style)?
+            EdgeStyle? style,
+            dynamic data,
+            bool? animated,
+            bool? hidden,
+            bool? deletable,
+            bool? selectable,
+            bool? focusable,
+            bool? reconnectable,
+            bool? elevateEdgeOnSelected)?
         $default, {
     required TResult orElse(),
   }) {
@@ -399,22 +397,22 @@ extension FlowEdgePatterns on FlowEdge {
             _that.targetNodeId,
             _that.sourceHandleId,
             _that.targetHandleId,
-            _that.internalData,
-            _that.pathType,
-            _that.animated,
-            _that.hidden,
-            _that.deletable,
-            _that.selectable,
-            _that.selected,
             _that.zIndex,
-            _that.focusable,
-            _that.reconnectable,
+            _that.pathType,
             _that.interactionWidth,
             _that.label,
             _that.labelDecoration,
             _that.startMarkerStyle,
             _that.endMarkerStyle,
-            _that.style);
+            _that.style,
+            _that.data,
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.focusable,
+            _that.reconnectable,
+            _that.elevateEdgeOnSelected);
       case _:
         return orElse();
     }
@@ -441,22 +439,22 @@ extension FlowEdgePatterns on FlowEdge {
             String targetNodeId,
             String? sourceHandleId,
             String? targetHandleId,
-            BuiltMap<String, dynamic> internalData,
-            EdgePathType pathType,
-            bool animated,
-            bool hidden,
-            bool deletable,
-            bool selectable,
-            bool selected,
             int zIndex,
-            bool? focusable,
-            bool reconnectable,
+            EdgePathType pathType,
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style)
+            EdgeStyle? style,
+            dynamic data,
+            bool? animated,
+            bool? hidden,
+            bool? deletable,
+            bool? selectable,
+            bool? focusable,
+            bool? reconnectable,
+            bool? elevateEdgeOnSelected)
         $default,
   ) {
     final _that = this;
@@ -468,22 +466,22 @@ extension FlowEdgePatterns on FlowEdge {
             _that.targetNodeId,
             _that.sourceHandleId,
             _that.targetHandleId,
-            _that.internalData,
-            _that.pathType,
-            _that.animated,
-            _that.hidden,
-            _that.deletable,
-            _that.selectable,
-            _that.selected,
             _that.zIndex,
-            _that.focusable,
-            _that.reconnectable,
+            _that.pathType,
             _that.interactionWidth,
             _that.label,
             _that.labelDecoration,
             _that.startMarkerStyle,
             _that.endMarkerStyle,
-            _that.style);
+            _that.style,
+            _that.data,
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.focusable,
+            _that.reconnectable,
+            _that.elevateEdgeOnSelected);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -509,22 +507,22 @@ extension FlowEdgePatterns on FlowEdge {
             String targetNodeId,
             String? sourceHandleId,
             String? targetHandleId,
-            BuiltMap<String, dynamic> internalData,
-            EdgePathType pathType,
-            bool animated,
-            bool hidden,
-            bool deletable,
-            bool selectable,
-            bool selected,
             int zIndex,
-            bool? focusable,
-            bool reconnectable,
+            EdgePathType pathType,
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style)?
+            EdgeStyle? style,
+            dynamic data,
+            bool? animated,
+            bool? hidden,
+            bool? deletable,
+            bool? selectable,
+            bool? focusable,
+            bool? reconnectable,
+            bool? elevateEdgeOnSelected)?
         $default,
   ) {
     final _that = this;
@@ -536,22 +534,22 @@ extension FlowEdgePatterns on FlowEdge {
             _that.targetNodeId,
             _that.sourceHandleId,
             _that.targetHandleId,
-            _that.internalData,
-            _that.pathType,
-            _that.animated,
-            _that.hidden,
-            _that.deletable,
-            _that.selectable,
-            _that.selected,
             _that.zIndex,
-            _that.focusable,
-            _that.reconnectable,
+            _that.pathType,
             _that.interactionWidth,
             _that.label,
             _that.labelDecoration,
             _that.startMarkerStyle,
             _that.endMarkerStyle,
-            _that.style);
+            _that.style,
+            _that.data,
+            _that.animated,
+            _that.hidden,
+            _that.deletable,
+            _that.selectable,
+            _that.focusable,
+            _that.reconnectable,
+            _that.elevateEdgeOnSelected);
       case _:
         return null;
     }
@@ -567,27 +565,26 @@ class _FlowEdge extends FlowEdge {
       required this.targetNodeId,
       required this.sourceHandleId,
       required this.targetHandleId,
-      required this.internalData,
-      this.pathType = EdgePathType.bezier,
-      this.animated = false,
-      this.hidden = false,
-      this.deletable = true,
-      this.selectable = true,
-      this.selected = false,
       this.zIndex = 0,
-      this.focusable,
-      this.reconnectable = true,
+      this.pathType = EdgePathType.bezier,
       this.interactionWidth = 10.0,
       this.label,
       this.labelDecoration,
       this.startMarkerStyle,
       this.endMarkerStyle,
-      this.style})
+      this.style,
+      this.data = const {},
+      this.animated,
+      this.hidden,
+      this.deletable,
+      this.selectable,
+      this.focusable,
+      this.reconnectable,
+      this.elevateEdgeOnSelected})
       : assert(sourceNodeId != targetNodeId,
             'Source and target cannot be the same node'),
         super._();
 
-// Core identifiers
   @override
   final String id;
   @override
@@ -599,51 +596,41 @@ class _FlowEdge extends FlowEdge {
   @override
   final String? targetHandleId;
   @override
-  final BuiltMap<String, dynamic> internalData;
-// Rendering
+  @JsonKey()
+  final int zIndex;
   @override
   @JsonKey()
   final EdgePathType pathType;
   @override
   @JsonKey()
-  final bool animated;
-  @override
-  @JsonKey()
-  final bool hidden;
-  @override
-  @JsonKey()
-  final bool deletable;
-  @override
-  @JsonKey()
-  final bool selectable;
-  @override
-  @JsonKey()
-  final bool selected;
-  @override
-  @JsonKey()
-  final int zIndex;
-// Interaction
-  @override
-  final bool? focusable;
-  @override
-  @JsonKey()
-  final bool reconnectable;
-  @override
-  @JsonKey()
   final double interactionWidth;
-// Label
   @override
   final Widget? label;
   @override
   final BoxDecoration? labelDecoration;
-// Markers
   @override
   final EdgeMarkerStyle? startMarkerStyle;
   @override
   final EdgeMarkerStyle? endMarkerStyle;
-// Style
   @override
   final EdgeStyle? style;
+  @override
+  @JsonKey()
+  final dynamic data;
+  @override
+  final bool? animated;
+  @override
+  final bool? hidden;
+  @override
+  final bool? deletable;
+  @override
+  final bool? selectable;
+  @override
+  final bool? focusable;
+  @override
+  final bool? reconnectable;
+  @override
+  final bool? elevateEdgeOnSelected;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -667,24 +654,9 @@ class _FlowEdge extends FlowEdge {
                 other.sourceHandleId == sourceHandleId) &&
             (identical(other.targetHandleId, targetHandleId) ||
                 other.targetHandleId == targetHandleId) &&
-            (identical(other.internalData, internalData) ||
-                other.internalData == internalData) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
             (identical(other.pathType, pathType) ||
                 other.pathType == pathType) &&
-            (identical(other.animated, animated) ||
-                other.animated == animated) &&
-            (identical(other.hidden, hidden) || other.hidden == hidden) &&
-            (identical(other.deletable, deletable) ||
-                other.deletable == deletable) &&
-            (identical(other.selectable, selectable) ||
-                other.selectable == selectable) &&
-            (identical(other.selected, selected) ||
-                other.selected == selected) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
-            (identical(other.focusable, focusable) ||
-                other.focusable == focusable) &&
-            (identical(other.reconnectable, reconnectable) ||
-                other.reconnectable == reconnectable) &&
             (identical(other.interactionWidth, interactionWidth) ||
                 other.interactionWidth == interactionWidth) &&
             (identical(other.label, label) || other.label == label) &&
@@ -694,7 +666,21 @@ class _FlowEdge extends FlowEdge {
                 other.startMarkerStyle == startMarkerStyle) &&
             (identical(other.endMarkerStyle, endMarkerStyle) ||
                 other.endMarkerStyle == endMarkerStyle) &&
-            (identical(other.style, style) || other.style == style));
+            (identical(other.style, style) || other.style == style) &&
+            const DeepCollectionEquality().equals(other.data, data) &&
+            (identical(other.animated, animated) ||
+                other.animated == animated) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
+            (identical(other.reconnectable, reconnectable) ||
+                other.reconnectable == reconnectable) &&
+            (identical(other.elevateEdgeOnSelected, elevateEdgeOnSelected) ||
+                other.elevateEdgeOnSelected == elevateEdgeOnSelected));
   }
 
   @override
@@ -705,27 +691,27 @@ class _FlowEdge extends FlowEdge {
         targetNodeId,
         sourceHandleId,
         targetHandleId,
-        internalData,
-        pathType,
-        animated,
-        hidden,
-        deletable,
-        selectable,
-        selected,
         zIndex,
-        focusable,
-        reconnectable,
+        pathType,
         interactionWidth,
         label,
         labelDecoration,
         startMarkerStyle,
         endMarkerStyle,
-        style
+        style,
+        const DeepCollectionEquality().hash(data),
+        animated,
+        hidden,
+        deletable,
+        selectable,
+        focusable,
+        reconnectable,
+        elevateEdgeOnSelected
       ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, internalData: $internalData, pathType: $pathType, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, selected: $selected, zIndex: $zIndex, focusable: $focusable, reconnectable: $reconnectable, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelected: $elevateEdgeOnSelected)';
   }
 }
 
@@ -742,22 +728,22 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       String targetNodeId,
       String? sourceHandleId,
       String? targetHandleId,
-      BuiltMap<String, dynamic> internalData,
-      EdgePathType pathType,
-      bool animated,
-      bool hidden,
-      bool deletable,
-      bool selectable,
-      bool selected,
       int zIndex,
-      bool? focusable,
-      bool reconnectable,
+      EdgePathType pathType,
       double interactionWidth,
       Widget? label,
       BoxDecoration? labelDecoration,
       EdgeMarkerStyle? startMarkerStyle,
       EdgeMarkerStyle? endMarkerStyle,
-      EdgeStyle? style});
+      EdgeStyle? style,
+      dynamic data,
+      bool? animated,
+      bool? hidden,
+      bool? deletable,
+      bool? selectable,
+      bool? focusable,
+      bool? reconnectable,
+      bool? elevateEdgeOnSelected});
 }
 
 /// @nodoc
@@ -777,22 +763,22 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
     Object? targetNodeId = null,
     Object? sourceHandleId = freezed,
     Object? targetHandleId = freezed,
-    Object? internalData = null,
-    Object? pathType = null,
-    Object? animated = null,
-    Object? hidden = null,
-    Object? deletable = null,
-    Object? selectable = null,
-    Object? selected = null,
     Object? zIndex = null,
-    Object? focusable = freezed,
-    Object? reconnectable = null,
+    Object? pathType = null,
     Object? interactionWidth = null,
     Object? label = freezed,
     Object? labelDecoration = freezed,
     Object? startMarkerStyle = freezed,
     Object? endMarkerStyle = freezed,
     Object? style = freezed,
+    Object? data = freezed,
+    Object? animated = freezed,
+    Object? hidden = freezed,
+    Object? deletable = freezed,
+    Object? selectable = freezed,
+    Object? focusable = freezed,
+    Object? reconnectable = freezed,
+    Object? elevateEdgeOnSelected = freezed,
   }) {
     return _then(_FlowEdge(
       id: null == id
@@ -815,46 +801,14 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
           ? _self.targetHandleId
           : targetHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
-      internalData: null == internalData
-          ? _self.internalData
-          : internalData // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, dynamic>,
-      pathType: null == pathType
-          ? _self.pathType
-          : pathType // ignore: cast_nullable_to_non_nullable
-              as EdgePathType,
-      animated: null == animated
-          ? _self.animated
-          : animated // ignore: cast_nullable_to_non_nullable
-              as bool,
-      hidden: null == hidden
-          ? _self.hidden
-          : hidden // ignore: cast_nullable_to_non_nullable
-              as bool,
-      deletable: null == deletable
-          ? _self.deletable
-          : deletable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      selectable: null == selectable
-          ? _self.selectable
-          : selectable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      selected: null == selected
-          ? _self.selected
-          : selected // ignore: cast_nullable_to_non_nullable
-              as bool,
       zIndex: null == zIndex
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      focusable: freezed == focusable
-          ? _self.focusable
-          : focusable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      reconnectable: null == reconnectable
-          ? _self.reconnectable
-          : reconnectable // ignore: cast_nullable_to_non_nullable
-              as bool,
+      pathType: null == pathType
+          ? _self.pathType
+          : pathType // ignore: cast_nullable_to_non_nullable
+              as EdgePathType,
       interactionWidth: null == interactionWidth
           ? _self.interactionWidth
           : interactionWidth // ignore: cast_nullable_to_non_nullable
@@ -879,6 +833,38 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as EdgeStyle?,
+      data: freezed == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      animated: freezed == animated
+          ? _self.animated
+          : animated // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hidden: freezed == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      deletable: freezed == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      selectable: freezed == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      reconnectable: freezed == reconnectable
+          ? _self.reconnectable
+          : reconnectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      elevateEdgeOnSelected: freezed == elevateEdgeOnSelected
+          ? _self.elevateEdgeOnSelected
+          : elevateEdgeOnSelected // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }

@@ -16,10 +16,11 @@ abstract class FlowCanvasState with _$FlowCanvasState {
 
   const factory FlowCanvasState({
     // Core data
-    required BuiltMap<String, FlowNode> internalNodes,
-    required BuiltMap<String, FlowEdge> internalEdges,
-    required BuiltSet<String> internalSelectedNodes,
-    required BuiltMap<String, BuiltSet<String>> internalSpatialHash,
+    @Default({}) Map<String, FlowNode> nodes,
+    @Default({}) Map<String, FlowEdge> edges,
+    @Default({}) Set<String> selectedNodes,
+    @Default({}) Set<String> selectedEdges,
+    @Default({}) Map<String, BuiltSet<String>> spatialHash,
 
     // Edge indexing
     required EdgeIndex edgeIndex,
@@ -41,20 +42,12 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default(DragMode.none) DragMode dragMode,
   }) = _FlowCanvasState;
 
-  // Getters
-  Map<String, FlowNode> get nodes => Map.unmodifiable(internalNodes.asMap());
-  Map<String, FlowEdge> get edges => Map.unmodifiable(internalEdges.asMap());
-  Set<String> get selectedNodes =>
-      Set.unmodifiable(internalSelectedNodes.asSet());
-  Map<String, Set<String>> get spatialHash => Map.unmodifiable(
-        internalSpatialHash.map((k, v) => MapEntry(k, v.toSet())).asMap(),
-      );
-
   factory FlowCanvasState.initial() => FlowCanvasState(
-      internalNodes: BuiltMap<String, FlowNode>(),
-      internalEdges: BuiltMap<String, FlowEdge>(),
-      internalSelectedNodes: BuiltSet<String>(),
-      internalSpatialHash: BuiltMap<String, BuiltSet<String>>(),
+      nodes: {},
+      edges: {},
+      selectedNodes: {},
+      selectedEdges: {},
+      spatialHash: {},
       edgeIndex: EdgeIndex.empty(),
       nodeIndex: NodeIndex.empty());
 }

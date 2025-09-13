@@ -1,8 +1,8 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/options/flow_options.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/options/viewport_options.dart';
+import 'package:flutter_workflow/src/options/flow_options.dart';
+import 'package:flutter_workflow/src/options/components/viewport_options.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
@@ -21,7 +21,7 @@ class SelectionService {
   }) {
     final node = currentState.internalNodes[nodeId];
     if (node == null ||
-        !(node.isSelectable ?? flowOptions.elementsSelectable)) {
+        !(node.isSelectable ?? flowOptions.defaultNodeOptions.connectable)) {
       return currentState;
     }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
-class FlowCanvasConnectionTheme {
+class FlowConnectionStyle {
   final Color activeColor;
   final Color validTargetColor;
   final Color invalidTargetColor;
@@ -9,7 +9,7 @@ class FlowCanvasConnectionTheme {
   final double endPointRadius;
   final EdgePathType pathType; // NEW: Added pathType property
 
-  const FlowCanvasConnectionTheme({
+  const FlowConnectionStyle({
     required this.activeColor,
     required this.validTargetColor,
     required this.invalidTargetColor,
@@ -18,8 +18,8 @@ class FlowCanvasConnectionTheme {
     this.pathType = EdgePathType.bezier, // NEW: Default to bezier
   });
 
-  factory FlowCanvasConnectionTheme.light() {
-    return const FlowCanvasConnectionTheme(
+  factory FlowConnectionStyle.light() {
+    return const FlowConnectionStyle(
       activeColor: Color(0xFF2196F3),
       validTargetColor: Color(0xFF4CAF50),
       invalidTargetColor: Color(0xFFF44336),
@@ -29,8 +29,8 @@ class FlowCanvasConnectionTheme {
     );
   }
 
-  factory FlowCanvasConnectionTheme.dark() {
-    return const FlowCanvasConnectionTheme(
+  factory FlowConnectionStyle.dark() {
+    return const FlowConnectionStyle(
       activeColor: Color(0xFF64B5F6),
       validTargetColor: Color(0xFF81C784),
       invalidTargetColor: Color(0xFFE57373),
@@ -40,7 +40,7 @@ class FlowCanvasConnectionTheme {
     );
   }
 
-  FlowCanvasConnectionTheme copyWith({
+  FlowConnectionStyle copyWith({
     Color? activeColor,
     Color? validTargetColor,
     Color? invalidTargetColor,
@@ -48,7 +48,7 @@ class FlowCanvasConnectionTheme {
     double? endPointRadius,
     EdgePathType? pathType, // NEW: Added to copyWith
   }) {
-    return FlowCanvasConnectionTheme(
+    return FlowConnectionStyle(
       activeColor: activeColor ?? this.activeColor,
       validTargetColor: validTargetColor ?? this.validTargetColor,
       invalidTargetColor: invalidTargetColor ?? this.invalidTargetColor,
@@ -61,7 +61,7 @@ class FlowCanvasConnectionTheme {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is FlowCanvasConnectionTheme &&
+    return other is FlowConnectionStyle &&
         other.activeColor == activeColor &&
         other.validTargetColor == validTargetColor &&
         other.invalidTargetColor == invalidTargetColor &&

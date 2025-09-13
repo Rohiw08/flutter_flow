@@ -1,10 +1,9 @@
+import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/callbacks/connection_callbacks.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/callbacks/edge_callbacks.dart';
+import 'package:flutter_workflow/src/features/canvas/application/callbacks/connection_callbacks.dart';
+import 'package:flutter_workflow/src/features/canvas/application/callbacks/edge_callbacks.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
-import '../features/canvas/application/services/edge_query_service.dart';
-import '../features/canvas/application/services/node_query_service.dart';
-import '../features/canvas/domain/callbacks/node_callbacks.dart';
+import '../features/canvas/application/callbacks/node_callbacks.dart';
 import '../features/canvas/domain/state/flow_canvas_state.dart';
 import '../features/canvas/domain/registries/edge_registry.dart';
 import '../features/canvas/domain/registries/node_registry.dart';
@@ -42,14 +41,4 @@ final globalEdgeCallbacksProvider = Provider<EdgeCallbacks>((ref) {
 // Global edges callbacks that apply to all nodes unless overridden
 final globalConnectionCallbacksProvider = Provider<ConnectionCallbacks>((ref) {
   return const ConnectionCallbacks();
-});
-
-/// Provider for efficient node queries using the NodeIndex
-final nodeQueryProvider = Provider<NodeQueryService>((ref) {
-  return NodeQueryService();
-});
-
-/// Provider for efficient edge queries using the EdgeIndex
-final edgeQueryProvider = Provider<EdgeQueryService>((ref) {
-  return EdgeQueryService();
 });

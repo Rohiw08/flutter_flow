@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/options/fitview_options.dart';
+import 'package:flutter_workflow/src/options/components/fitview_options.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
 /// Configuration options for the viewport behavior
 class ViewportOptions {
   final FlowViewport? defaultViewport;
   final FlowViewport? viewport;
-  final ValueChanged<FlowViewport>? onViewportChange;
   final bool fitView;
   final FitViewOptions fitViewOptions;
   final double minZoom;
@@ -33,7 +33,6 @@ class ViewportOptions {
   const ViewportOptions({
     this.defaultViewport,
     this.viewport,
-    this.onViewportChange,
     this.fitView = false,
     this.fitViewOptions = const FitViewOptions(),
     this.minZoom = 0.5,
@@ -88,7 +87,6 @@ class ViewportOptions {
     return ViewportOptions(
       defaultViewport: defaultViewport ?? this.defaultViewport,
       viewport: viewport ?? this.viewport,
-      onViewportChange: onViewportChange ?? this.onViewportChange,
       fitView: fitView ?? this.fitView,
       fitViewOptions: fitViewOptions ?? this.fitViewOptions,
       minZoom: minZoom ?? this.minZoom,
@@ -121,7 +119,6 @@ class ViewportOptions {
 
     return other.defaultViewport == defaultViewport &&
         other.viewport == viewport &&
-        other.onViewportChange == onViewportChange &&
         other.fitView == fitView &&
         other.fitViewOptions == fitViewOptions &&
         other.minZoom == minZoom &&
@@ -150,7 +147,6 @@ class ViewportOptions {
   int get hashCode {
     return defaultViewport.hashCode ^
         viewport.hashCode ^
-        onViewportChange.hashCode ^
         fitView.hashCode ^
         fitViewOptions.hashCode ^
         minZoom.hashCode ^
@@ -174,92 +170,4 @@ class ViewportOptions {
         zoomOnPinch.hashCode ^
         zoomOnDoubleClick.hashCode;
   }
-}
-
-class FlowViewport {
-  final Offset offset;
-  final double zoom;
-  FlowViewport({
-    required this.offset,
-    required this.zoom,
-  });
-
-  FlowViewport copyWith({
-    Offset? offset,
-    double? zoom,
-  }) {
-    return FlowViewport(
-      offset: offset ?? this.offset,
-      zoom: zoom ?? this.zoom,
-    );
-  }
-
-  @override
-  String toString() => 'FlowViewport(offset: $offset, zoom: $zoom)';
-
-  @override
-  bool operator ==(covariant FlowViewport other) {
-    if (identical(this, other)) return true;
-
-    return other.offset == offset && other.zoom == zoom;
-  }
-
-  @override
-  int get hashCode => offset.hashCode ^ zoom.hashCode;
-}
-
-/// Defines the coordinate extent for viewport and node boundaries
-class CoordinateExtent {
-  final Offset min;
-  final Offset max;
-
-  const CoordinateExtent(
-      {this.min = const Offset(-double.infinity, -double.infinity),
-      this.max = const Offset(double.infinity, double.infinity)});
-
-  CoordinateExtent copyWith({Offset? min, Offset? max}) {
-    return CoordinateExtent(
-      min: min ?? this.min,
-      max: max ?? this.max,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is CoordinateExtent &&
-            runtimeType == other.runtimeType &&
-            min == other.min &&
-            max == other.max;
-  }
-
-  @override
-  int get hashCode => min.hashCode ^ max.hashCode;
-}
-
-/// Defines the grid for snapping
-class SnapGrid {
-  final double width;
-  final double height;
-
-  const SnapGrid({this.width = 10, this.height = 10});
-
-  SnapGrid copyWith({double? width, double? height}) {
-    return SnapGrid(
-      width: width ?? this.width,
-      height: height ?? this.height,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is SnapGrid &&
-            runtimeType == other.runtimeType &&
-            width == other.width &&
-            height == other.height;
-  }
-
-  @override
-  int get hashCode => width.hashCode ^ height.hashCode;
 }

@@ -18,16 +18,16 @@ mixin _$FlowNode {
   String get id;
   Offset get position;
   Size get size;
-  BuiltMap<String, NodeHandle> get internalHandles;
-  BuiltMap<String, dynamic> get internalData;
-  bool get isSelected;
-  bool? get isDraggable;
-  bool? get isSelectable;
-  bool? get isFocusable; // optional
-  bool get isHidden;
-  bool get isDragging;
-  bool get isResizing;
+  Map<String, NodeHandle> get handles;
+  Map<String, dynamic> get data;
   int get zIndex;
+  bool? get hidden;
+  bool? get draggable;
+  bool? get selectable;
+  bool? get connectable;
+  bool? get deletable;
+  bool? get focusable;
+  bool? get elevateNodeOnSelected;
 
   /// Create a copy of FlowNode
   /// with the given fields replaced by the non-null parameter values.
@@ -46,25 +46,22 @@ mixin _$FlowNode {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
-            (identical(other.internalHandles, internalHandles) ||
-                other.internalHandles == internalHandles) &&
-            (identical(other.internalData, internalData) ||
-                other.internalData == internalData) &&
-            (identical(other.isSelected, isSelected) ||
-                other.isSelected == isSelected) &&
-            (identical(other.isDraggable, isDraggable) ||
-                other.isDraggable == isDraggable) &&
-            (identical(other.isSelectable, isSelectable) ||
-                other.isSelectable == isSelectable) &&
-            (identical(other.isFocusable, isFocusable) ||
-                other.isFocusable == isFocusable) &&
-            (identical(other.isHidden, isHidden) ||
-                other.isHidden == isHidden) &&
-            (identical(other.isDragging, isDragging) ||
-                other.isDragging == isDragging) &&
-            (identical(other.isResizing, isResizing) ||
-                other.isResizing == isResizing) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex));
+            const DeepCollectionEquality().equals(other.handles, handles) &&
+            const DeepCollectionEquality().equals(other.data, data) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.draggable, draggable) ||
+                other.draggable == draggable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.connectable, connectable) ||
+                other.connectable == connectable) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
+            (identical(other.elevateNodeOnSelected, elevateNodeOnSelected) ||
+                other.elevateNodeOnSelected == elevateNodeOnSelected));
   }
 
   @override
@@ -74,20 +71,20 @@ mixin _$FlowNode {
       id,
       position,
       size,
-      internalHandles,
-      internalData,
-      isSelected,
-      isDraggable,
-      isSelectable,
-      isFocusable,
-      isHidden,
-      isDragging,
-      isResizing,
-      zIndex);
+      const DeepCollectionEquality().hash(handles),
+      const DeepCollectionEquality().hash(data),
+      zIndex,
+      hidden,
+      draggable,
+      selectable,
+      connectable,
+      deletable,
+      focusable,
+      elevateNodeOnSelected);
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isFocusable: $isFocusable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -101,16 +98,16 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       String id,
       Offset position,
       Size size,
-      BuiltMap<String, NodeHandle> internalHandles,
-      BuiltMap<String, dynamic> internalData,
-      bool isSelected,
-      bool? isDraggable,
-      bool? isSelectable,
-      bool? isFocusable,
-      bool isHidden,
-      bool isDragging,
-      bool isResizing,
-      int zIndex});
+      Map<String, NodeHandle> handles,
+      Map<String, dynamic> data,
+      int zIndex,
+      bool? hidden,
+      bool? draggable,
+      bool? selectable,
+      bool? connectable,
+      bool? deletable,
+      bool? focusable,
+      bool? elevateNodeOnSelected});
 }
 
 /// @nodoc
@@ -129,16 +126,16 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? id = null,
     Object? position = null,
     Object? size = null,
-    Object? internalHandles = null,
-    Object? internalData = null,
-    Object? isSelected = null,
-    Object? isDraggable = freezed,
-    Object? isSelectable = freezed,
-    Object? isFocusable = freezed,
-    Object? isHidden = null,
-    Object? isDragging = null,
-    Object? isResizing = null,
+    Object? handles = null,
+    Object? data = null,
     Object? zIndex = null,
+    Object? hidden = freezed,
+    Object? draggable = freezed,
+    Object? selectable = freezed,
+    Object? connectable = freezed,
+    Object? deletable = freezed,
+    Object? focusable = freezed,
+    Object? elevateNodeOnSelected = freezed,
   }) {
     return _then(_self.copyWith(
       type: null == type
@@ -157,46 +154,46 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
-      internalHandles: null == internalHandles
-          ? _self.internalHandles
-          : internalHandles // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, NodeHandle>,
-      internalData: null == internalData
-          ? _self.internalData
-          : internalData // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, dynamic>,
-      isSelected: null == isSelected
-          ? _self.isSelected
-          : isSelected // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isDraggable: freezed == isDraggable
-          ? _self.isDraggable
-          : isDraggable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isSelectable: freezed == isSelectable
-          ? _self.isSelectable
-          : isSelectable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isFocusable: freezed == isFocusable
-          ? _self.isFocusable
-          : isFocusable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isHidden: null == isHidden
-          ? _self.isHidden
-          : isHidden // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isDragging: null == isDragging
-          ? _self.isDragging
-          : isDragging // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isResizing: null == isResizing
-          ? _self.isResizing
-          : isResizing // ignore: cast_nullable_to_non_nullable
-              as bool,
+      handles: null == handles
+          ? _self.handles
+          : handles // ignore: cast_nullable_to_non_nullable
+              as Map<String, NodeHandle>,
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
       zIndex: null == zIndex
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      hidden: freezed == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      draggable: freezed == draggable
+          ? _self.draggable
+          : draggable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      selectable: freezed == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      connectable: freezed == connectable
+          ? _self.connectable
+          : connectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      deletable: freezed == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      elevateNodeOnSelected: freezed == elevateNodeOnSelected
+          ? _self.elevateNodeOnSelected
+          : elevateNodeOnSelected // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
@@ -299,16 +296,16 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
-            BuiltMap<String, NodeHandle> internalHandles,
-            BuiltMap<String, dynamic> internalData,
-            bool isSelected,
-            bool? isDraggable,
-            bool? isSelectable,
-            bool? isFocusable,
-            bool isHidden,
-            bool isDragging,
-            bool isResizing,
-            int zIndex)?
+            Map<String, NodeHandle> handles,
+            Map<String, dynamic> data,
+            int zIndex,
+            bool? hidden,
+            bool? draggable,
+            bool? selectable,
+            bool? connectable,
+            bool? deletable,
+            bool? focusable,
+            bool? elevateNodeOnSelected)?
         $default, {
     required TResult orElse(),
   }) {
@@ -320,16 +317,16 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
-            _that.internalHandles,
-            _that.internalData,
-            _that.isSelected,
-            _that.isDraggable,
-            _that.isSelectable,
-            _that.isFocusable,
-            _that.isHidden,
-            _that.isDragging,
-            _that.isResizing,
-            _that.zIndex);
+            _that.handles,
+            _that.data,
+            _that.zIndex,
+            _that.hidden,
+            _that.draggable,
+            _that.selectable,
+            _that.connectable,
+            _that.deletable,
+            _that.focusable,
+            _that.elevateNodeOnSelected);
       case _:
         return orElse();
     }
@@ -355,16 +352,16 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
-            BuiltMap<String, NodeHandle> internalHandles,
-            BuiltMap<String, dynamic> internalData,
-            bool isSelected,
-            bool? isDraggable,
-            bool? isSelectable,
-            bool? isFocusable,
-            bool isHidden,
-            bool isDragging,
-            bool isResizing,
-            int zIndex)
+            Map<String, NodeHandle> handles,
+            Map<String, dynamic> data,
+            int zIndex,
+            bool? hidden,
+            bool? draggable,
+            bool? selectable,
+            bool? connectable,
+            bool? deletable,
+            bool? focusable,
+            bool? elevateNodeOnSelected)
         $default,
   ) {
     final _that = this;
@@ -375,16 +372,16 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
-            _that.internalHandles,
-            _that.internalData,
-            _that.isSelected,
-            _that.isDraggable,
-            _that.isSelectable,
-            _that.isFocusable,
-            _that.isHidden,
-            _that.isDragging,
-            _that.isResizing,
-            _that.zIndex);
+            _that.handles,
+            _that.data,
+            _that.zIndex,
+            _that.hidden,
+            _that.draggable,
+            _that.selectable,
+            _that.connectable,
+            _that.deletable,
+            _that.focusable,
+            _that.elevateNodeOnSelected);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -409,16 +406,16 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
-            BuiltMap<String, NodeHandle> internalHandles,
-            BuiltMap<String, dynamic> internalData,
-            bool isSelected,
-            bool? isDraggable,
-            bool? isSelectable,
-            bool? isFocusable,
-            bool isHidden,
-            bool isDragging,
-            bool isResizing,
-            int zIndex)?
+            Map<String, NodeHandle> handles,
+            Map<String, dynamic> data,
+            int zIndex,
+            bool? hidden,
+            bool? draggable,
+            bool? selectable,
+            bool? connectable,
+            bool? deletable,
+            bool? focusable,
+            bool? elevateNodeOnSelected)?
         $default,
   ) {
     final _that = this;
@@ -429,16 +426,16 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
-            _that.internalHandles,
-            _that.internalData,
-            _that.isSelected,
-            _that.isDraggable,
-            _that.isSelectable,
-            _that.isFocusable,
-            _that.isHidden,
-            _that.isDragging,
-            _that.isResizing,
-            _that.zIndex);
+            _that.handles,
+            _that.data,
+            _that.zIndex,
+            _that.hidden,
+            _that.draggable,
+            _that.selectable,
+            _that.connectable,
+            _that.deletable,
+            _that.focusable,
+            _that.elevateNodeOnSelected);
       case _:
         return null;
     }
@@ -453,17 +450,19 @@ class _FlowNode extends FlowNode {
       required this.id,
       required this.position,
       required this.size,
-      required this.internalHandles,
-      required this.internalData,
-      this.isSelected = false,
-      this.isDraggable,
-      this.isSelectable,
-      this.isFocusable,
-      this.isHidden = false,
-      this.isDragging = false,
-      this.isResizing = false,
-      this.zIndex = 0})
-      : super._();
+      final Map<String, NodeHandle> handles = const {},
+      final Map<String, dynamic> data = const {},
+      this.zIndex = 0,
+      this.hidden,
+      this.draggable,
+      this.selectable,
+      this.connectable,
+      this.deletable,
+      this.focusable,
+      this.elevateNodeOnSelected})
+      : _handles = handles,
+        _data = data,
+        super._();
 
   @override
   final String type;
@@ -473,32 +472,41 @@ class _FlowNode extends FlowNode {
   final Offset position;
   @override
   final Size size;
-  @override
-  final BuiltMap<String, NodeHandle> internalHandles;
-  @override
-  final BuiltMap<String, dynamic> internalData;
+  final Map<String, NodeHandle> _handles;
   @override
   @JsonKey()
-  final bool isSelected;
-  @override
-  final bool? isDraggable;
-  @override
-  final bool? isSelectable;
-  @override
-  final bool? isFocusable;
-// optional
-  @override
-  @JsonKey()
-  final bool isHidden;
+  Map<String, NodeHandle> get handles {
+    if (_handles is EqualUnmodifiableMapView) return _handles;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_handles);
+  }
+
+  final Map<String, dynamic> _data;
   @override
   @JsonKey()
-  final bool isDragging;
-  @override
-  @JsonKey()
-  final bool isResizing;
+  Map<String, dynamic> get data {
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_data);
+  }
+
   @override
   @JsonKey()
   final int zIndex;
+  @override
+  final bool? hidden;
+  @override
+  final bool? draggable;
+  @override
+  final bool? selectable;
+  @override
+  final bool? connectable;
+  @override
+  final bool? deletable;
+  @override
+  final bool? focusable;
+  @override
+  final bool? elevateNodeOnSelected;
 
   /// Create a copy of FlowNode
   /// with the given fields replaced by the non-null parameter values.
@@ -518,25 +526,22 @@ class _FlowNode extends FlowNode {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
-            (identical(other.internalHandles, internalHandles) ||
-                other.internalHandles == internalHandles) &&
-            (identical(other.internalData, internalData) ||
-                other.internalData == internalData) &&
-            (identical(other.isSelected, isSelected) ||
-                other.isSelected == isSelected) &&
-            (identical(other.isDraggable, isDraggable) ||
-                other.isDraggable == isDraggable) &&
-            (identical(other.isSelectable, isSelectable) ||
-                other.isSelectable == isSelectable) &&
-            (identical(other.isFocusable, isFocusable) ||
-                other.isFocusable == isFocusable) &&
-            (identical(other.isHidden, isHidden) ||
-                other.isHidden == isHidden) &&
-            (identical(other.isDragging, isDragging) ||
-                other.isDragging == isDragging) &&
-            (identical(other.isResizing, isResizing) ||
-                other.isResizing == isResizing) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex));
+            const DeepCollectionEquality().equals(other._handles, _handles) &&
+            const DeepCollectionEquality().equals(other._data, _data) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.hidden, hidden) || other.hidden == hidden) &&
+            (identical(other.draggable, draggable) ||
+                other.draggable == draggable) &&
+            (identical(other.selectable, selectable) ||
+                other.selectable == selectable) &&
+            (identical(other.connectable, connectable) ||
+                other.connectable == connectable) &&
+            (identical(other.deletable, deletable) ||
+                other.deletable == deletable) &&
+            (identical(other.focusable, focusable) ||
+                other.focusable == focusable) &&
+            (identical(other.elevateNodeOnSelected, elevateNodeOnSelected) ||
+                other.elevateNodeOnSelected == elevateNodeOnSelected));
   }
 
   @override
@@ -546,20 +551,20 @@ class _FlowNode extends FlowNode {
       id,
       position,
       size,
-      internalHandles,
-      internalData,
-      isSelected,
-      isDraggable,
-      isSelectable,
-      isFocusable,
-      isHidden,
-      isDragging,
-      isResizing,
-      zIndex);
+      const DeepCollectionEquality().hash(_handles),
+      const DeepCollectionEquality().hash(_data),
+      zIndex,
+      hidden,
+      draggable,
+      selectable,
+      connectable,
+      deletable,
+      focusable,
+      elevateNodeOnSelected);
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, internalHandles: $internalHandles, internalData: $internalData, isSelected: $isSelected, isDraggable: $isDraggable, isSelectable: $isSelectable, isFocusable: $isFocusable, isHidden: $isHidden, isDragging: $isDragging, isResizing: $isResizing, zIndex: $zIndex)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -575,16 +580,16 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
       String id,
       Offset position,
       Size size,
-      BuiltMap<String, NodeHandle> internalHandles,
-      BuiltMap<String, dynamic> internalData,
-      bool isSelected,
-      bool? isDraggable,
-      bool? isSelectable,
-      bool? isFocusable,
-      bool isHidden,
-      bool isDragging,
-      bool isResizing,
-      int zIndex});
+      Map<String, NodeHandle> handles,
+      Map<String, dynamic> data,
+      int zIndex,
+      bool? hidden,
+      bool? draggable,
+      bool? selectable,
+      bool? connectable,
+      bool? deletable,
+      bool? focusable,
+      bool? elevateNodeOnSelected});
 }
 
 /// @nodoc
@@ -603,16 +608,16 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? id = null,
     Object? position = null,
     Object? size = null,
-    Object? internalHandles = null,
-    Object? internalData = null,
-    Object? isSelected = null,
-    Object? isDraggable = freezed,
-    Object? isSelectable = freezed,
-    Object? isFocusable = freezed,
-    Object? isHidden = null,
-    Object? isDragging = null,
-    Object? isResizing = null,
+    Object? handles = null,
+    Object? data = null,
     Object? zIndex = null,
+    Object? hidden = freezed,
+    Object? draggable = freezed,
+    Object? selectable = freezed,
+    Object? connectable = freezed,
+    Object? deletable = freezed,
+    Object? focusable = freezed,
+    Object? elevateNodeOnSelected = freezed,
   }) {
     return _then(_FlowNode(
       type: null == type
@@ -631,46 +636,46 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
-      internalHandles: null == internalHandles
-          ? _self.internalHandles
-          : internalHandles // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, NodeHandle>,
-      internalData: null == internalData
-          ? _self.internalData
-          : internalData // ignore: cast_nullable_to_non_nullable
-              as BuiltMap<String, dynamic>,
-      isSelected: null == isSelected
-          ? _self.isSelected
-          : isSelected // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isDraggable: freezed == isDraggable
-          ? _self.isDraggable
-          : isDraggable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isSelectable: freezed == isSelectable
-          ? _self.isSelectable
-          : isSelectable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isFocusable: freezed == isFocusable
-          ? _self.isFocusable
-          : isFocusable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isHidden: null == isHidden
-          ? _self.isHidden
-          : isHidden // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isDragging: null == isDragging
-          ? _self.isDragging
-          : isDragging // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isResizing: null == isResizing
-          ? _self.isResizing
-          : isResizing // ignore: cast_nullable_to_non_nullable
-              as bool,
+      handles: null == handles
+          ? _self._handles
+          : handles // ignore: cast_nullable_to_non_nullable
+              as Map<String, NodeHandle>,
+      data: null == data
+          ? _self._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
       zIndex: null == zIndex
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      hidden: freezed == hidden
+          ? _self.hidden
+          : hidden // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      draggable: freezed == draggable
+          ? _self.draggable
+          : draggable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      selectable: freezed == selectable
+          ? _self.selectable
+          : selectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      connectable: freezed == connectable
+          ? _self.connectable
+          : connectable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      deletable: freezed == deletable
+          ? _self.deletable
+          : deletable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      focusable: freezed == focusable
+          ? _self.focusable
+          : focusable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      elevateNodeOnSelected: freezed == elevateNodeOnSelected
+          ? _self.elevateNodeOnSelected
+          : elevateNodeOnSelected // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }

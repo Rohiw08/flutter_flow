@@ -1,7 +1,5 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/handle.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/utility/random_id_generator.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'node.freezed.dart';
@@ -16,22 +14,17 @@ abstract class FlowNode with _$FlowNode {
     required String id,
     required Offset position,
     required Size size,
-    bool? isDraggable,
-    bool? isSelectable,
-    bool? isFocusable, // optional
-    required BuiltMap<String, NodeHandle> internalHandles,
-    required BuiltMap<String, dynamic> internalData,
-    @Default(false) bool isSelected,
-    @Default(false) bool isHidden,
-    @Default(false) bool isDragging,
-    @Default(false) bool isResizing,
+    @Default({}) Map<String, NodeHandle> handles,
+    @Default({}) Map<String, dynamic> data,
     @Default(0) int zIndex,
+    bool? hidden,
+    bool? draggable,
+    bool? selectable,
+    bool? connectable,
+    bool? deletable,
+    bool? focusable,
+    bool? elevateNodeOnSelected,
   }) = _FlowNode;
-
-  // Getters
-  Map<String, NodeHandle> get handles =>
-      Map.unmodifiable(internalHandles.asMap());
-  Map<String, dynamic> get data => Map.unmodifiable(internalData.asMap());
 
   Offset get center =>
       Offset(position.dx + size.width / 2, position.dy + size.height / 2);
@@ -39,41 +32,4 @@ abstract class FlowNode with _$FlowNode {
   // A getter for the node's rectangle, derived from its properties.
   Rect get rect =>
       Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
-
-  bool get isConnectable => !isHidden && (isDraggable ?? true);
-  // bool canConnectTo(FlowNode other) => /* validation logic */;
-
-  /// Creates a new node with a unique ID.
-  factory FlowNode.create({
-    required Offset position,
-    required Size size,
-    required String type,
-    Map<String, NodeHandle>? handles,
-    Map<String, dynamic>? data,
-    bool isSelected = false,
-    bool isDraggable = true,
-    bool isSelectable = true,
-    bool? isFocusable,
-    bool isHidden = false,
-    bool isDragging = false,
-    bool isResizing = false,
-    int zIndex = 0,
-  }) {
-    return FlowNode(
-      id: generateUniqueId(),
-      position: position,
-      size: size,
-      type: type,
-      internalHandles: BuiltMap<String, NodeHandle>(handles ?? {}),
-      internalData: BuiltMap<String, dynamic>(data ?? {}),
-      isSelected: isSelected,
-      isDraggable: isDraggable,
-      isSelectable: isSelectable,
-      isFocusable: isFocusable,
-      isHidden: isHidden,
-      isDragging: isDragging,
-      isResizing: isResizing,
-      zIndex: zIndex,
-    );
-  }
 }
