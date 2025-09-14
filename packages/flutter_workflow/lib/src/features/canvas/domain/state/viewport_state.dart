@@ -32,35 +32,6 @@ class FlowViewport {
   int get hashCode => offset.hashCode ^ zoom.hashCode;
 }
 
-/// Defines the coordinate extent for viewport and node boundaries
-class CoordinateExtent {
-  final Offset min;
-  final Offset max;
-
-  const CoordinateExtent(
-      {this.min = const Offset(-double.infinity, -double.infinity),
-      this.max = const Offset(double.infinity, double.infinity)});
-
-  CoordinateExtent copyWith({Offset? min, Offset? max}) {
-    return CoordinateExtent(
-      min: min ?? this.min,
-      max: max ?? this.max,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        other is CoordinateExtent &&
-            runtimeType == other.runtimeType &&
-            min == other.min &&
-            max == other.max;
-  }
-
-  @override
-  int get hashCode => min.hashCode ^ max.hashCode;
-}
-
 /// Defines the grid for snapping
 class SnapGrid {
   final double width;

@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/callbacks/connection_callbacks.dart';
 import 'package:flutter_workflow/src/features/canvas/application/callbacks/edge_callbacks.dart';

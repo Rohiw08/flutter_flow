@@ -18,6 +18,7 @@ mixin _$FlowNode {
   String get id;
   Offset get position;
   Size get size;
+  String? get parentId;
   Map<String, NodeHandle> get handles;
   Map<String, dynamic> get data;
   int get zIndex;
@@ -46,6 +47,8 @@ mixin _$FlowNode {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
+            (identical(other.parentId, parentId) ||
+                other.parentId == parentId) &&
             const DeepCollectionEquality().equals(other.handles, handles) &&
             const DeepCollectionEquality().equals(other.data, data) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
@@ -71,6 +74,7 @@ mixin _$FlowNode {
       id,
       position,
       size,
+      parentId,
       const DeepCollectionEquality().hash(handles),
       const DeepCollectionEquality().hash(data),
       zIndex,
@@ -84,7 +88,7 @@ mixin _$FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -98,6 +102,7 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       String id,
       Offset position,
       Size size,
+      String? parentId,
       Map<String, NodeHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
@@ -126,6 +131,7 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? id = null,
     Object? position = null,
     Object? size = null,
+    Object? parentId = freezed,
     Object? handles = null,
     Object? data = null,
     Object? zIndex = null,
@@ -154,6 +160,10 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
+      parentId: freezed == parentId
+          ? _self.parentId
+          : parentId // ignore: cast_nullable_to_non_nullable
+              as String?,
       handles: null == handles
           ? _self.handles
           : handles // ignore: cast_nullable_to_non_nullable
@@ -296,6 +306,7 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
+            String? parentId,
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
@@ -317,6 +328,7 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
+            _that.parentId,
             _that.handles,
             _that.data,
             _that.zIndex,
@@ -352,6 +364,7 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
+            String? parentId,
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
@@ -372,6 +385,7 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
+            _that.parentId,
             _that.handles,
             _that.data,
             _that.zIndex,
@@ -406,6 +420,7 @@ extension FlowNodePatterns on FlowNode {
             String id,
             Offset position,
             Size size,
+            String? parentId,
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
@@ -426,6 +441,7 @@ extension FlowNodePatterns on FlowNode {
             _that.id,
             _that.position,
             _that.size,
+            _that.parentId,
             _that.handles,
             _that.data,
             _that.zIndex,
@@ -450,6 +466,7 @@ class _FlowNode extends FlowNode {
       required this.id,
       required this.position,
       required this.size,
+      this.parentId,
       final Map<String, NodeHandle> handles = const {},
       final Map<String, dynamic> data = const {},
       this.zIndex = 0,
@@ -472,6 +489,8 @@ class _FlowNode extends FlowNode {
   final Offset position;
   @override
   final Size size;
+  @override
+  final String? parentId;
   final Map<String, NodeHandle> _handles;
   @override
   @JsonKey()
@@ -526,6 +545,8 @@ class _FlowNode extends FlowNode {
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
+            (identical(other.parentId, parentId) ||
+                other.parentId == parentId) &&
             const DeepCollectionEquality().equals(other._handles, _handles) &&
             const DeepCollectionEquality().equals(other._data, _data) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
@@ -551,6 +572,7 @@ class _FlowNode extends FlowNode {
       id,
       position,
       size,
+      parentId,
       const DeepCollectionEquality().hash(_handles),
       const DeepCollectionEquality().hash(_data),
       zIndex,
@@ -564,7 +586,7 @@ class _FlowNode extends FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -580,6 +602,7 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
       String id,
       Offset position,
       Size size,
+      String? parentId,
       Map<String, NodeHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
@@ -608,6 +631,7 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? id = null,
     Object? position = null,
     Object? size = null,
+    Object? parentId = freezed,
     Object? handles = null,
     Object? data = null,
     Object? zIndex = null,
@@ -636,6 +660,10 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
+      parentId: freezed == parentId
+          ? _self.parentId
+          : parentId // ignore: cast_nullable_to_non_nullable
+              as String?,
       handles: null == handles
           ? _self._handles
           : handles // ignore: cast_nullable_to_non_nullable

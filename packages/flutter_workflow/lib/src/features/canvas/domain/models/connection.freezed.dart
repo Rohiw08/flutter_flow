@@ -18,14 +18,14 @@ mixin _$FlowConnection {
   String get type;
   Offset get startPoint;
   Offset get endPoint;
-  int get zIndex;
-  FlowConnectionStyle? get connectionStyle;
-  EdgeMarkerStyle? get startMarker;
-  EdgeMarkerStyle? get endMarker;
   String? get fromNodeId;
   String? get fromHandleId;
   String? get toNodeId;
   String? get toHandleId;
+  int get zIndex;
+  FlowConnectionStyle? get connectionStyle;
+  EdgeMarkerStyle? get startMarker;
+  EdgeMarkerStyle? get endMarker;
 
   /// Create a copy of FlowConnection
   /// with the given fields replaced by the non-null parameter values.
@@ -46,13 +46,6 @@ mixin _$FlowConnection {
                 other.startPoint == startPoint) &&
             (identical(other.endPoint, endPoint) ||
                 other.endPoint == endPoint) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
-            (identical(other.connectionStyle, connectionStyle) ||
-                other.connectionStyle == connectionStyle) &&
-            (identical(other.startMarker, startMarker) ||
-                other.startMarker == startMarker) &&
-            (identical(other.endMarker, endMarker) ||
-                other.endMarker == endMarker) &&
             (identical(other.fromNodeId, fromNodeId) ||
                 other.fromNodeId == fromNodeId) &&
             (identical(other.fromHandleId, fromHandleId) ||
@@ -60,7 +53,14 @@ mixin _$FlowConnection {
             (identical(other.toNodeId, toNodeId) ||
                 other.toNodeId == toNodeId) &&
             (identical(other.toHandleId, toHandleId) ||
-                other.toHandleId == toHandleId));
+                other.toHandleId == toHandleId) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.connectionStyle, connectionStyle) ||
+                other.connectionStyle == connectionStyle) &&
+            (identical(other.startMarker, startMarker) ||
+                other.startMarker == startMarker) &&
+            (identical(other.endMarker, endMarker) ||
+                other.endMarker == endMarker));
   }
 
   @override
@@ -70,18 +70,18 @@ mixin _$FlowConnection {
       type,
       startPoint,
       endPoint,
-      zIndex,
-      connectionStyle,
-      startMarker,
-      endMarker,
       fromNodeId,
       fromHandleId,
       toNodeId,
-      toHandleId);
+      toHandleId,
+      zIndex,
+      connectionStyle,
+      startMarker,
+      endMarker);
 
   @override
   String toString() {
-    return 'FlowConnection(id: $id, type: $type, startPoint: $startPoint, endPoint: $endPoint, zIndex: $zIndex, connectionStyle: $connectionStyle, startMarker: $startMarker, endMarker: $endMarker, fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, toNodeId: $toNodeId, toHandleId: $toHandleId)';
+    return 'FlowConnection(id: $id, type: $type, startPoint: $startPoint, endPoint: $endPoint, fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, toNodeId: $toNodeId, toHandleId: $toHandleId, zIndex: $zIndex, connectionStyle: $connectionStyle, startMarker: $startMarker, endMarker: $endMarker)';
   }
 }
 
@@ -96,14 +96,14 @@ abstract mixin class $FlowConnectionCopyWith<$Res> {
       String type,
       Offset startPoint,
       Offset endPoint,
-      int zIndex,
-      FlowConnectionStyle? connectionStyle,
-      EdgeMarkerStyle? startMarker,
-      EdgeMarkerStyle? endMarker,
       String? fromNodeId,
       String? fromHandleId,
       String? toNodeId,
-      String? toHandleId});
+      String? toHandleId,
+      int zIndex,
+      FlowConnectionStyle? connectionStyle,
+      EdgeMarkerStyle? startMarker,
+      EdgeMarkerStyle? endMarker});
 }
 
 /// @nodoc
@@ -123,14 +123,14 @@ class _$FlowConnectionCopyWithImpl<$Res>
     Object? type = null,
     Object? startPoint = null,
     Object? endPoint = null,
-    Object? zIndex = null,
-    Object? connectionStyle = freezed,
-    Object? startMarker = freezed,
-    Object? endMarker = freezed,
     Object? fromNodeId = freezed,
     Object? fromHandleId = freezed,
     Object? toNodeId = freezed,
     Object? toHandleId = freezed,
+    Object? zIndex = null,
+    Object? connectionStyle = freezed,
+    Object? startMarker = freezed,
+    Object? endMarker = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -149,22 +149,6 @@ class _$FlowConnectionCopyWithImpl<$Res>
           ? _self.endPoint
           : endPoint // ignore: cast_nullable_to_non_nullable
               as Offset,
-      zIndex: null == zIndex
-          ? _self.zIndex
-          : zIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      connectionStyle: freezed == connectionStyle
-          ? _self.connectionStyle
-          : connectionStyle // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionStyle?,
-      startMarker: freezed == startMarker
-          ? _self.startMarker
-          : startMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
-      endMarker: freezed == endMarker
-          ? _self.endMarker
-          : endMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
       fromNodeId: freezed == fromNodeId
           ? _self.fromNodeId
           : fromNodeId // ignore: cast_nullable_to_non_nullable
@@ -181,6 +165,22 @@ class _$FlowConnectionCopyWithImpl<$Res>
           ? _self.toHandleId
           : toHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      connectionStyle: freezed == connectionStyle
+          ? _self.connectionStyle
+          : connectionStyle // ignore: cast_nullable_to_non_nullable
+              as FlowConnectionStyle?,
+      startMarker: freezed == startMarker
+          ? _self.startMarker
+          : startMarker // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      endMarker: freezed == endMarker
+          ? _self.endMarker
+          : endMarker // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
     ));
   }
 }
@@ -283,14 +283,14 @@ extension FlowConnectionPatterns on FlowConnection {
             String type,
             Offset startPoint,
             Offset endPoint,
-            int zIndex,
-            FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker,
             String? fromNodeId,
             String? fromHandleId,
             String? toNodeId,
-            String? toHandleId)?
+            String? toHandleId,
+            int zIndex,
+            FlowConnectionStyle? connectionStyle,
+            EdgeMarkerStyle? startMarker,
+            EdgeMarkerStyle? endMarker)?
         $default, {
     required TResult orElse(),
   }) {
@@ -302,14 +302,14 @@ extension FlowConnectionPatterns on FlowConnection {
             _that.type,
             _that.startPoint,
             _that.endPoint,
-            _that.zIndex,
-            _that.connectionStyle,
-            _that.startMarker,
-            _that.endMarker,
             _that.fromNodeId,
             _that.fromHandleId,
             _that.toNodeId,
-            _that.toHandleId);
+            _that.toHandleId,
+            _that.zIndex,
+            _that.connectionStyle,
+            _that.startMarker,
+            _that.endMarker);
       case _:
         return orElse();
     }
@@ -335,14 +335,14 @@ extension FlowConnectionPatterns on FlowConnection {
             String type,
             Offset startPoint,
             Offset endPoint,
-            int zIndex,
-            FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker,
             String? fromNodeId,
             String? fromHandleId,
             String? toNodeId,
-            String? toHandleId)
+            String? toHandleId,
+            int zIndex,
+            FlowConnectionStyle? connectionStyle,
+            EdgeMarkerStyle? startMarker,
+            EdgeMarkerStyle? endMarker)
         $default,
   ) {
     final _that = this;
@@ -353,14 +353,14 @@ extension FlowConnectionPatterns on FlowConnection {
             _that.type,
             _that.startPoint,
             _that.endPoint,
-            _that.zIndex,
-            _that.connectionStyle,
-            _that.startMarker,
-            _that.endMarker,
             _that.fromNodeId,
             _that.fromHandleId,
             _that.toNodeId,
-            _that.toHandleId);
+            _that.toHandleId,
+            _that.zIndex,
+            _that.connectionStyle,
+            _that.startMarker,
+            _that.endMarker);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -385,14 +385,14 @@ extension FlowConnectionPatterns on FlowConnection {
             String type,
             Offset startPoint,
             Offset endPoint,
-            int zIndex,
-            FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker,
             String? fromNodeId,
             String? fromHandleId,
             String? toNodeId,
-            String? toHandleId)?
+            String? toHandleId,
+            int zIndex,
+            FlowConnectionStyle? connectionStyle,
+            EdgeMarkerStyle? startMarker,
+            EdgeMarkerStyle? endMarker)?
         $default,
   ) {
     final _that = this;
@@ -403,14 +403,14 @@ extension FlowConnectionPatterns on FlowConnection {
             _that.type,
             _that.startPoint,
             _that.endPoint,
-            _that.zIndex,
-            _that.connectionStyle,
-            _that.startMarker,
-            _that.endMarker,
             _that.fromNodeId,
             _that.fromHandleId,
             _that.toNodeId,
-            _that.toHandleId);
+            _that.toHandleId,
+            _that.zIndex,
+            _that.connectionStyle,
+            _that.startMarker,
+            _that.endMarker);
       case _:
         return null;
     }
@@ -425,14 +425,14 @@ class _FlowConnection extends FlowConnection {
       required this.type,
       required this.startPoint,
       required this.endPoint,
-      this.zIndex = 0,
-      this.connectionStyle,
-      this.startMarker,
-      this.endMarker,
       this.fromNodeId,
       this.fromHandleId,
       this.toNodeId,
-      this.toHandleId})
+      this.toHandleId,
+      this.zIndex = 0,
+      this.connectionStyle,
+      this.startMarker,
+      this.endMarker})
       : super._();
 
   @override
@@ -444,6 +444,14 @@ class _FlowConnection extends FlowConnection {
   @override
   final Offset endPoint;
   @override
+  final String? fromNodeId;
+  @override
+  final String? fromHandleId;
+  @override
+  final String? toNodeId;
+  @override
+  final String? toHandleId;
+  @override
   @JsonKey()
   final int zIndex;
   @override
@@ -452,14 +460,6 @@ class _FlowConnection extends FlowConnection {
   final EdgeMarkerStyle? startMarker;
   @override
   final EdgeMarkerStyle? endMarker;
-  @override
-  final String? fromNodeId;
-  @override
-  final String? fromHandleId;
-  @override
-  final String? toNodeId;
-  @override
-  final String? toHandleId;
 
   /// Create a copy of FlowConnection
   /// with the given fields replaced by the non-null parameter values.
@@ -480,13 +480,6 @@ class _FlowConnection extends FlowConnection {
                 other.startPoint == startPoint) &&
             (identical(other.endPoint, endPoint) ||
                 other.endPoint == endPoint) &&
-            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
-            (identical(other.connectionStyle, connectionStyle) ||
-                other.connectionStyle == connectionStyle) &&
-            (identical(other.startMarker, startMarker) ||
-                other.startMarker == startMarker) &&
-            (identical(other.endMarker, endMarker) ||
-                other.endMarker == endMarker) &&
             (identical(other.fromNodeId, fromNodeId) ||
                 other.fromNodeId == fromNodeId) &&
             (identical(other.fromHandleId, fromHandleId) ||
@@ -494,7 +487,14 @@ class _FlowConnection extends FlowConnection {
             (identical(other.toNodeId, toNodeId) ||
                 other.toNodeId == toNodeId) &&
             (identical(other.toHandleId, toHandleId) ||
-                other.toHandleId == toHandleId));
+                other.toHandleId == toHandleId) &&
+            (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.connectionStyle, connectionStyle) ||
+                other.connectionStyle == connectionStyle) &&
+            (identical(other.startMarker, startMarker) ||
+                other.startMarker == startMarker) &&
+            (identical(other.endMarker, endMarker) ||
+                other.endMarker == endMarker));
   }
 
   @override
@@ -504,18 +504,18 @@ class _FlowConnection extends FlowConnection {
       type,
       startPoint,
       endPoint,
-      zIndex,
-      connectionStyle,
-      startMarker,
-      endMarker,
       fromNodeId,
       fromHandleId,
       toNodeId,
-      toHandleId);
+      toHandleId,
+      zIndex,
+      connectionStyle,
+      startMarker,
+      endMarker);
 
   @override
   String toString() {
-    return 'FlowConnection(id: $id, type: $type, startPoint: $startPoint, endPoint: $endPoint, zIndex: $zIndex, connectionStyle: $connectionStyle, startMarker: $startMarker, endMarker: $endMarker, fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, toNodeId: $toNodeId, toHandleId: $toHandleId)';
+    return 'FlowConnection(id: $id, type: $type, startPoint: $startPoint, endPoint: $endPoint, fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, toNodeId: $toNodeId, toHandleId: $toHandleId, zIndex: $zIndex, connectionStyle: $connectionStyle, startMarker: $startMarker, endMarker: $endMarker)';
   }
 }
 
@@ -532,14 +532,14 @@ abstract mixin class _$FlowConnectionCopyWith<$Res>
       String type,
       Offset startPoint,
       Offset endPoint,
-      int zIndex,
-      FlowConnectionStyle? connectionStyle,
-      EdgeMarkerStyle? startMarker,
-      EdgeMarkerStyle? endMarker,
       String? fromNodeId,
       String? fromHandleId,
       String? toNodeId,
-      String? toHandleId});
+      String? toHandleId,
+      int zIndex,
+      FlowConnectionStyle? connectionStyle,
+      EdgeMarkerStyle? startMarker,
+      EdgeMarkerStyle? endMarker});
 }
 
 /// @nodoc
@@ -559,14 +559,14 @@ class __$FlowConnectionCopyWithImpl<$Res>
     Object? type = null,
     Object? startPoint = null,
     Object? endPoint = null,
-    Object? zIndex = null,
-    Object? connectionStyle = freezed,
-    Object? startMarker = freezed,
-    Object? endMarker = freezed,
     Object? fromNodeId = freezed,
     Object? fromHandleId = freezed,
     Object? toNodeId = freezed,
     Object? toHandleId = freezed,
+    Object? zIndex = null,
+    Object? connectionStyle = freezed,
+    Object? startMarker = freezed,
+    Object? endMarker = freezed,
   }) {
     return _then(_FlowConnection(
       id: null == id
@@ -585,22 +585,6 @@ class __$FlowConnectionCopyWithImpl<$Res>
           ? _self.endPoint
           : endPoint // ignore: cast_nullable_to_non_nullable
               as Offset,
-      zIndex: null == zIndex
-          ? _self.zIndex
-          : zIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      connectionStyle: freezed == connectionStyle
-          ? _self.connectionStyle
-          : connectionStyle // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionStyle?,
-      startMarker: freezed == startMarker
-          ? _self.startMarker
-          : startMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
-      endMarker: freezed == endMarker
-          ? _self.endMarker
-          : endMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
       fromNodeId: freezed == fromNodeId
           ? _self.fromNodeId
           : fromNodeId // ignore: cast_nullable_to_non_nullable
@@ -617,6 +601,22 @@ class __$FlowConnectionCopyWithImpl<$Res>
           ? _self.toHandleId
           : toHandleId // ignore: cast_nullable_to_non_nullable
               as String?,
+      zIndex: null == zIndex
+          ? _self.zIndex
+          : zIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      connectionStyle: freezed == connectionStyle
+          ? _self.connectionStyle
+          : connectionStyle // ignore: cast_nullable_to_non_nullable
+              as FlowConnectionStyle?,
+      startMarker: freezed == startMarker
+          ? _self.startMarker
+          : startMarker // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
+      endMarker: freezed == endMarker
+          ? _self.endMarker
+          : endMarker // ignore: cast_nullable_to_non_nullable
+              as EdgeMarkerStyle?,
     ));
   }
 }

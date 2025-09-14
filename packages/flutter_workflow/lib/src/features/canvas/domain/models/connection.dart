@@ -14,13 +14,13 @@ abstract class FlowConnection with _$FlowConnection {
     required String type,
     required Offset startPoint,
     required Offset endPoint,
-    @Default(0) int zIndex,
-    FlowConnectionStyle? connectionStyle,
-    EdgeMarkerStyle? startMarker,
-    EdgeMarkerStyle? endMarker,
     String? fromNodeId,
     String? fromHandleId,
     String? toNodeId,
     String? toHandleId,
+    @Default(0) int zIndex,
+    FlowConnectionStyle? connectionStyle,
+    EdgeMarkerStyle? startMarker,
+    EdgeMarkerStyle? endMarker,
   }) = _FlowConnection;
 }

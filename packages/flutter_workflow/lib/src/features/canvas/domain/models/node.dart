@@ -14,6 +14,7 @@ abstract class FlowNode with _$FlowNode {
     required String id,
     required Offset position,
     required Size size,
+    String? parentId,
     @Default({}) Map<String, NodeHandle> handles,
     @Default({}) Map<String, dynamic> data,
     @Default(0) int zIndex,

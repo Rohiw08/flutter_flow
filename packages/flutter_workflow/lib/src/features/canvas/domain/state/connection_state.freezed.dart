@@ -14,12 +14,7 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowConnectionState {
-  String get fromNodeId;
-  String get fromHandleId;
-  Offset get startPosition;
-  Offset get endPosition;
-  String? get targetNodeId;
-  String? get targetHandleId;
+  bool get isAnimating;
   bool get isValid;
 
   /// Create a copy of FlowConnectionState
@@ -35,28 +30,17 @@ mixin _$FlowConnectionState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowConnectionState &&
-            (identical(other.fromNodeId, fromNodeId) ||
-                other.fromNodeId == fromNodeId) &&
-            (identical(other.fromHandleId, fromHandleId) ||
-                other.fromHandleId == fromHandleId) &&
-            (identical(other.startPosition, startPosition) ||
-                other.startPosition == startPosition) &&
-            (identical(other.endPosition, endPosition) ||
-                other.endPosition == endPosition) &&
-            (identical(other.targetNodeId, targetNodeId) ||
-                other.targetNodeId == targetNodeId) &&
-            (identical(other.targetHandleId, targetHandleId) ||
-                other.targetHandleId == targetHandleId) &&
+            (identical(other.isAnimating, isAnimating) ||
+                other.isAnimating == isAnimating) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, fromNodeId, fromHandleId,
-      startPosition, endPosition, targetNodeId, targetHandleId, isValid);
+  int get hashCode => Object.hash(runtimeType, isAnimating, isValid);
 
   @override
   String toString() {
-    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, isValid: $isValid)';
+    return 'FlowConnectionState(isAnimating: $isAnimating, isValid: $isValid)';
   }
 }
 
@@ -66,14 +50,7 @@ abstract mixin class $FlowConnectionStateCopyWith<$Res> {
           FlowConnectionState value, $Res Function(FlowConnectionState) _then) =
       _$FlowConnectionStateCopyWithImpl;
   @useResult
-  $Res call(
-      {String fromNodeId,
-      String fromHandleId,
-      Offset startPosition,
-      Offset endPosition,
-      String? targetNodeId,
-      String? targetHandleId,
-      bool isValid});
+  $Res call({bool isAnimating, bool isValid});
 }
 
 /// @nodoc
@@ -89,39 +66,14 @@ class _$FlowConnectionStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? fromNodeId = null,
-    Object? fromHandleId = null,
-    Object? startPosition = null,
-    Object? endPosition = null,
-    Object? targetNodeId = freezed,
-    Object? targetHandleId = freezed,
+    Object? isAnimating = null,
     Object? isValid = null,
   }) {
     return _then(_self.copyWith(
-      fromNodeId: null == fromNodeId
-          ? _self.fromNodeId
-          : fromNodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fromHandleId: null == fromHandleId
-          ? _self.fromHandleId
-          : fromHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
-      startPosition: null == startPosition
-          ? _self.startPosition
-          : startPosition // ignore: cast_nullable_to_non_nullable
-              as Offset,
-      endPosition: null == endPosition
-          ? _self.endPosition
-          : endPosition // ignore: cast_nullable_to_non_nullable
-              as Offset,
-      targetNodeId: freezed == targetNodeId
-          ? _self.targetNodeId
-          : targetNodeId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      targetHandleId: freezed == targetHandleId
-          ? _self.targetHandleId
-          : targetHandleId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      isAnimating: null == isAnimating
+          ? _self.isAnimating
+          : isAnimating // ignore: cast_nullable_to_non_nullable
+              as bool,
       isValid: null == isValid
           ? _self.isValid
           : isValid // ignore: cast_nullable_to_non_nullable
@@ -223,28 +175,13 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String fromNodeId,
-            String fromHandleId,
-            Offset startPosition,
-            Offset endPosition,
-            String? targetNodeId,
-            String? targetHandleId,
-            bool isValid)?
-        $default, {
+    TResult Function(bool isAnimating, bool isValid)? $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionState() when $default != null:
-        return $default(
-            _that.fromNodeId,
-            _that.fromHandleId,
-            _that.startPosition,
-            _that.endPosition,
-            _that.targetNodeId,
-            _that.targetHandleId,
-            _that.isValid);
+        return $default(_that.isAnimating, _that.isValid);
       case _:
         return orElse();
     }
@@ -265,27 +202,12 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(
-            String fromNodeId,
-            String fromHandleId,
-            Offset startPosition,
-            Offset endPosition,
-            String? targetNodeId,
-            String? targetHandleId,
-            bool isValid)
-        $default,
+    TResult Function(bool isAnimating, bool isValid) $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionState():
-        return $default(
-            _that.fromNodeId,
-            _that.fromHandleId,
-            _that.startPosition,
-            _that.endPosition,
-            _that.targetNodeId,
-            _that.targetHandleId,
-            _that.isValid);
+        return $default(_that.isAnimating, _that.isValid);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -305,27 +227,12 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String fromNodeId,
-            String fromHandleId,
-            Offset startPosition,
-            Offset endPosition,
-            String? targetNodeId,
-            String? targetHandleId,
-            bool isValid)?
-        $default,
+    TResult? Function(bool isAnimating, bool isValid)? $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionState() when $default != null:
-        return $default(
-            _that.fromNodeId,
-            _that.fromHandleId,
-            _that.startPosition,
-            _that.endPosition,
-            _that.targetNodeId,
-            _that.targetHandleId,
-            _that.isValid);
+        return $default(_that.isAnimating, _that.isValid);
       case _:
         return null;
     }
@@ -335,27 +242,11 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 /// @nodoc
 
 class _FlowConnectionState implements FlowConnectionState {
-  const _FlowConnectionState(
-      {required this.fromNodeId,
-      required this.fromHandleId,
-      required this.startPosition,
-      required this.endPosition,
-      this.targetNodeId,
-      this.targetHandleId,
-      this.isValid = false});
+  const _FlowConnectionState({this.isAnimating = false, this.isValid = false});
 
   @override
-  final String fromNodeId;
-  @override
-  final String fromHandleId;
-  @override
-  final Offset startPosition;
-  @override
-  final Offset endPosition;
-  @override
-  final String? targetNodeId;
-  @override
-  final String? targetHandleId;
+  @JsonKey()
+  final bool isAnimating;
   @override
   @JsonKey()
   final bool isValid;
@@ -374,28 +265,17 @@ class _FlowConnectionState implements FlowConnectionState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowConnectionState &&
-            (identical(other.fromNodeId, fromNodeId) ||
-                other.fromNodeId == fromNodeId) &&
-            (identical(other.fromHandleId, fromHandleId) ||
-                other.fromHandleId == fromHandleId) &&
-            (identical(other.startPosition, startPosition) ||
-                other.startPosition == startPosition) &&
-            (identical(other.endPosition, endPosition) ||
-                other.endPosition == endPosition) &&
-            (identical(other.targetNodeId, targetNodeId) ||
-                other.targetNodeId == targetNodeId) &&
-            (identical(other.targetHandleId, targetHandleId) ||
-                other.targetHandleId == targetHandleId) &&
+            (identical(other.isAnimating, isAnimating) ||
+                other.isAnimating == isAnimating) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, fromNodeId, fromHandleId,
-      startPosition, endPosition, targetNodeId, targetHandleId, isValid);
+  int get hashCode => Object.hash(runtimeType, isAnimating, isValid);
 
   @override
   String toString() {
-    return 'FlowConnectionState(fromNodeId: $fromNodeId, fromHandleId: $fromHandleId, startPosition: $startPosition, endPosition: $endPosition, targetNodeId: $targetNodeId, targetHandleId: $targetHandleId, isValid: $isValid)';
+    return 'FlowConnectionState(isAnimating: $isAnimating, isValid: $isValid)';
   }
 }
 
@@ -407,14 +287,7 @@ abstract mixin class _$FlowConnectionStateCopyWith<$Res>
       __$FlowConnectionStateCopyWithImpl;
   @override
   @useResult
-  $Res call(
-      {String fromNodeId,
-      String fromHandleId,
-      Offset startPosition,
-      Offset endPosition,
-      String? targetNodeId,
-      String? targetHandleId,
-      bool isValid});
+  $Res call({bool isAnimating, bool isValid});
 }
 
 /// @nodoc
@@ -430,39 +303,14 @@ class __$FlowConnectionStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? fromNodeId = null,
-    Object? fromHandleId = null,
-    Object? startPosition = null,
-    Object? endPosition = null,
-    Object? targetNodeId = freezed,
-    Object? targetHandleId = freezed,
+    Object? isAnimating = null,
     Object? isValid = null,
   }) {
     return _then(_FlowConnectionState(
-      fromNodeId: null == fromNodeId
-          ? _self.fromNodeId
-          : fromNodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fromHandleId: null == fromHandleId
-          ? _self.fromHandleId
-          : fromHandleId // ignore: cast_nullable_to_non_nullable
-              as String,
-      startPosition: null == startPosition
-          ? _self.startPosition
-          : startPosition // ignore: cast_nullable_to_non_nullable
-              as Offset,
-      endPosition: null == endPosition
-          ? _self.endPosition
-          : endPosition // ignore: cast_nullable_to_non_nullable
-              as Offset,
-      targetNodeId: freezed == targetNodeId
-          ? _self.targetNodeId
-          : targetNodeId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      targetHandleId: freezed == targetHandleId
-          ? _self.targetHandleId
-          : targetHandleId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      isAnimating: null == isAnimating
+          ? _self.isAnimating
+          : isAnimating // ignore: cast_nullable_to_non_nullable
+              as bool,
       isValid: null == isValid
           ? _self.isValid
           : isValid // ignore: cast_nullable_to_non_nullable
