@@ -1,35 +1,13 @@
 import 'dart:ui';
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'viewport_state.freezed.dart';
 
-class FlowViewport {
-  final Offset offset;
-  final double zoom;
-  FlowViewport({
-    required this.offset,
-    required this.zoom,
-  });
-
-  FlowViewport copyWith({
-    Offset? offset,
-    double? zoom,
-  }) {
-    return FlowViewport(
-      offset: offset ?? this.offset,
-      zoom: zoom ?? this.zoom,
-    );
-  }
-
-  @override
-  String toString() => 'FlowViewport(offset: $offset, zoom: $zoom)';
-
-  @override
-  bool operator ==(covariant FlowViewport other) {
-    if (identical(this, other)) return true;
-
-    return other.offset == offset && other.zoom == zoom;
-  }
-
-  @override
-  int get hashCode => offset.hashCode ^ zoom.hashCode;
+@freezed
+abstract class FlowViewport with _$FlowViewport {
+  const factory FlowViewport({
+    @Default(Offset.zero) Offset offset,
+    @Default(1.0) double zoom,
+  }) = _FlowViewport;
 }
 
 /// Defines the grid for snapping

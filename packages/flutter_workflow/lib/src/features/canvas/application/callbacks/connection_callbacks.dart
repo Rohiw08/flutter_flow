@@ -1,57 +1,76 @@
 import 'package:flutter/material.dart';
-import '../../domain/state/connection_state.dart';
+
+import '../../domain/models/connection.dart';
+import '../../domain/models/handle.dart';
+import '../../domain/models/node.dart';
 import '../streams/connection_change_stream.dart';
 
-typedef OnConnect = void Function(FlowConnectionState connection);
-typedef OnConnectStart = void Function(FlowConnectionState connection);
-typedef OnConnectEnd = void Function(FlowConnectionState? connection);
-typedef OnClickConnectStart = void Function(FlowConnectionState connection);
-typedef OnClickConnectEnd = void Function(FlowConnectionState? connection);
-typedef IsValidConnection = bool Function(FlowConnectionState connection);
+/// Called when a valid connection is successfully created.
+typedef ConnectCallback = void Function(FlowConnection connection);
+
+/// Called when a connection gesture starts (drag from a handle begins).
+typedef ConnectStartCallback = void Function(FlowConnection pendingConnection);
+
+/// Called when a connection gesture ends, whether successful or cancelled.
+typedef ConnectEndCallback = void Function(FlowConnection? connection);
+
+/// Validation function to decide if a proposed connection is allowed.
+typedef ConnectionValidator = bool Function({
+  required FlowNode sourceNode,
+  required NodeHandle sourceHandle,
+  required FlowNode targetNode,
+  required NodeHandle targetHandle,
+});
 
 @immutable
 class ConnectionCallbacks {
-  final OnConnect onConnect;
-  final OnConnectStart onConnectStart;
-  final OnConnectEnd onConnectEnd;
-  final OnClickConnectStart onClickConnectStart;
-  final OnClickConnectEnd onClickConnectEnd;
-  final IsValidConnection isValidConnection;
+  /// Fires when a valid connection is successfully created.
+  final ConnectCallback onConnect;
+
+  /// Fires when a connection gesture starts.
+  final ConnectStartCallback onConnectStart;
+
+  /// Fires when a connection gesture ends (successfully or not).
+  final ConnectEndCallback onConnectEnd;
+
+  /// Custom validation for proposed connections.
+  final ConnectionValidator isValidConnection;
+
+  /// Optional event stream for external listeners.
   final ConnectionStreams? streams;
 
   const ConnectionCallbacks({
     this.onConnect = _defaultOnConnect,
     this.onConnectStart = _defaultOnConnectStart,
     this.onConnectEnd = _defaultOnConnectEnd,
-    this.onClickConnectStart = _defaultOnClickConnectStart,
-    this.onClickConnectEnd = _defaultOnClickConnectEnd,
     this.isValidConnection = _defaultIsValidConnection,
     this.streams,
   });
 
-  // Default implementations
-  static void _defaultOnConnect(FlowConnectionState connection) {}
-  static void _defaultOnConnectStart(FlowConnectionState connection) {}
-  static void _defaultOnConnectEnd(FlowConnectionState? connection) {}
-  static void _defaultOnClickConnectStart(FlowConnectionState connection) {}
-  static void _defaultOnClickConnectEnd(FlowConnectionState? connection) {}
-  static bool _defaultIsValidConnection(FlowConnectionState connection) => true;
+  // ---- Default no-op implementations ----
+  static void _defaultOnConnect(FlowConnection connection) {}
+  static void _defaultOnConnectStart(FlowConnection pendingConnection) {}
+  static void _defaultOnConnectEnd(FlowConnection? connection) {}
+  static bool _defaultIsValidConnection({
+    required FlowNode sourceNode,
+    required NodeHandle sourceHandle,
+    required FlowNode targetNode,
+    required NodeHandle targetHandle,
+  }) =>
+      true; // Default allows all connections.
 
+  /// Creates a copy with any subset of callbacks replaced.
   ConnectionCallbacks copyWith({
-    OnConnect? onConnect,
-    OnConnectStart? onConnectStart,
-    OnConnectEnd? onConnectEnd,
-    OnClickConnectStart? onClickConnectStart,
-    OnClickConnectEnd? onClickConnectEnd,
-    IsValidConnection? isValidConnection,
+    ConnectCallback? onConnect,
+    ConnectStartCallback? onConnectStart,
+    ConnectEndCallback? onConnectEnd,
+    ConnectionValidator? isValidConnection,
     ConnectionStreams? streams,
   }) {
     return ConnectionCallbacks(
       onConnect: onConnect ?? this.onConnect,
       onConnectStart: onConnectStart ?? this.onConnectStart,
       onConnectEnd: onConnectEnd ?? this.onConnectEnd,
-      onClickConnectStart: onClickConnectStart ?? this.onClickConnectStart,
-      onClickConnectEnd: onClickConnectEnd ?? this.onClickConnectEnd,
       isValidConnection: isValidConnection ?? this.isValidConnection,
       streams: streams ?? this.streams,
     );
@@ -64,22 +83,16 @@ class ConnectionCallbacks {
         other.onConnect == onConnect &&
         other.onConnectStart == onConnectStart &&
         other.onConnectEnd == onConnectEnd &&
-        other.onClickConnectStart == onClickConnectStart &&
-        other.onClickConnectEnd == onClickConnectEnd &&
         other.isValidConnection == isValidConnection &&
         other.streams == streams;
   }
 
   @override
-  int get hashCode {
-    return Object.hash(
-      onConnect,
-      onConnectStart,
-      onConnectEnd,
-      onClickConnectStart,
-      onClickConnectEnd,
-      isValidConnection,
-      streams,
-    );
-  }
+  int get hashCode => Object.hash(
+        onConnect,
+        onConnectStart,
+        onConnectEnd,
+        isValidConnection,
+        streams,
+      );
 }

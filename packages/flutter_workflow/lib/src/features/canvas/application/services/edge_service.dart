@@ -1,161 +1,106 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/edge_indexing_service.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 
+/// Provider for the stateless EdgeService.
+final edgeServiceProvider = Provider<EdgeService>((ref) {
+  return EdgeService();
+});
+
+/// A function type for updating the data map of a FlowEdge.
+///
+/// It receives the current data map and should return a new, updated map.
+typedef EdgeDataUpdater = Map<String, dynamic> Function(
+    Map<String, dynamic> currentData);
+
+/// A stateless service for handling all logic related to managing edges.
+///
+/// This service operates on a `FlowCanvasState` object and returns a new, updated
+/// state, ensuring immutability.
 class EdgeService {
-  /// Add edge with validation and indexing
-  FlowCanvasState addEdge(FlowCanvasState currentState, FlowEdge edge) {
-    // Validate nodes exist
-    if (!currentState.internalNodes.containsKey(edge.sourceNodeId) ||
-        !currentState.internalNodes.containsKey(edge.targetNodeId)) {
-      return currentState;
+  /// Adds a single edge to the canvas state.
+  FlowCanvasState addEdge(FlowCanvasState state, FlowEdge edge) {
+    // 1. Validation
+    if (state.edges.containsKey(edge.id)) return state; // Already exists
+    if (!state.nodes.containsKey(edge.sourceNodeId) ||
+        !state.nodes.containsKey(edge.targetNodeId)) {
+      return state; // Source or target node does not exist
     }
 
-    // Prevent duplicate connections
-    final exists = currentState.internalEdges.values.any((e) =>
-        e.sourceNodeId == edge.sourceNodeId &&
-        e.sourceHandleId == edge.sourceHandleId &&
-        e.targetNodeId == edge.targetNodeId &&
-        e.targetHandleId == edge.targetHandleId);
+    // 2. Create new immutable map
+    final newEdges = Map<String, FlowEdge>.from(state.edges);
+    newEdges[edge.id] = edge;
 
-    if (exists) return currentState;
+    // 3. Update the index
+    final newIndex = state.edgeIndex.addEdge(edge, edge.id);
 
-    // Add edge to edges map
-    final edgesBuilder = currentState.internalEdges.toBuilder();
-    edgesBuilder[edge.id] = edge;
-
-    // Update edge index incrementally
-    final newIndex = currentState.edgeIndex.addEdge(edge, edge.id);
-
-    return currentState.copyWith(
-      internalEdges: edgesBuilder.build(),
+    return state.copyWith(
+      edges: newEdges,
       edgeIndex: newIndex,
     );
   }
 
-  /// Remove edge and update index
-  FlowCanvasState removeEdge(FlowCanvasState currentState, String edgeId) {
-    final edge = currentState.internalEdges[edgeId];
-    if (edge == null) return currentState;
+  /// Removes a single edge from the canvas state.
+  FlowCanvasState removeEdge(FlowCanvasState state, String edgeId) {
+    final edge = state.edges[edgeId];
+    if (edge == null) return state;
 
-    final edgesBuilder = currentState.internalEdges.toBuilder();
-    edgesBuilder.remove(edgeId);
+    final newEdges = Map<String, FlowEdge>.from(state.edges);
+    newEdges.remove(edgeId);
 
-    // Update edge index incrementally
-    final newIndex = currentState.edgeIndex.removeEdge(edgeId, edge);
+    final newIndex = state.edgeIndex.removeEdge(edgeId, edge);
 
-    return currentState.copyWith(
-      internalEdges: edgesBuilder.build(),
+    return state.copyWith(
+      edges: newEdges,
       edgeIndex: newIndex,
     );
   }
 
-  /// Remove multiple edges efficiently
-  FlowCanvasState removeEdges(
-      FlowCanvasState currentState, List<String> edgeIds) {
-    if (edgeIds.isEmpty) return currentState;
+  /// Removes a list of edges efficiently.
+  FlowCanvasState removeEdges(FlowCanvasState state, List<String> edgeIds) {
+    if (edgeIds.isEmpty) return state;
 
-    final edgesBuilder = currentState.internalEdges.toBuilder();
-    EdgeIndex newIndex = currentState.edgeIndex;
+    final newEdges = Map<String, FlowEdge>.from(state.edges);
+    EdgeIndex newIndex = state.edgeIndex;
+    bool changed = false;
 
     for (final edgeId in edgeIds) {
-      final edge = edgesBuilder[edgeId];
+      final edge = newEdges[edgeId];
       if (edge != null) {
-        edgesBuilder.remove(edgeId);
+        newEdges.remove(edgeId);
         newIndex = newIndex.removeEdge(edgeId, edge);
+        changed = true;
       }
     }
 
-    return currentState.copyWith(
-      internalEdges: edgesBuilder.build(),
-      edgeIndex: newIndex,
-    );
+    return changed
+        ? state.copyWith(edges: newEdges, edgeIndex: newIndex)
+        : state;
   }
 
-  /// Get edges for a node using the index
-  List<FlowEdge> getEdgesForNode(FlowCanvasState state, String nodeId) {
-    final edgeIds = state.edgeIndex.getEdgesForNode(nodeId);
-    return edgeIds
-        .map((id) => state.internalEdges[id])
-        .whereType<FlowEdge>()
-        .toList();
-  }
-
-  /// Get edges for a handle using the index
-  List<FlowEdge> getEdgesForHandle(
-      FlowCanvasState state, String nodeId, String handleId) {
-    final edgeIds = state.edgeIndex.getEdgesForHandle(nodeId, handleId);
-    return edgeIds
-        .map((id) => state.internalEdges[id])
-        .whereType<FlowEdge>()
-        .toList();
-  }
-
-  /// Check if a handle is connected using the index
-  bool isHandleConnected(
-      FlowCanvasState state, String nodeId, String handleId) {
-    return state.edgeIndex.isHandleConnected(nodeId, handleId);
-  }
-
-  /// Check if a node is connected using the index
-  bool isNodeConnected(FlowCanvasState state, String nodeId) {
-    return state.edgeIndex.isNodeConnected(nodeId);
-  }
-
-  /// Get all nodes connected to a specific node
-  List<String> getConnectedNodes(FlowCanvasState state, String nodeId) {
-    return state.edgeIndex.getConnectedNodes(nodeId).toList();
-  }
-
-  /// Disconnect all edges from a handle
-  FlowCanvasState disconnectHandle(
-      FlowCanvasState state, String nodeId, String handleId) {
-    final edgeIds = state.edgeIndex.getEdgesForHandle(nodeId, handleId);
-    if (edgeIds.isEmpty) return state;
-
-    return removeEdges(state, edgeIds.toList());
-  }
-
-  /// Disconnect all edges from a node
-  FlowCanvasState disconnectNode(FlowCanvasState state, String nodeId) {
-    final edgeIds = state.edgeIndex.getEdgesForNode(nodeId);
-    if (edgeIds.isEmpty) return state;
-
-    return removeEdges(state, edgeIds.toList());
-  }
-
-  /// Update edge data
+  /// Updates the data payload of a specific edge.
   FlowCanvasState updateEdgeData(
     FlowCanvasState state,
     String edgeId,
-    Map<String, dynamic> Function(Map<String, dynamic>) updater,
+    EdgeDataUpdater updater,
   ) {
-    final edge = state.internalEdges[edgeId];
+    final edge = state.edges[edgeId];
     if (edge == null) return state;
 
-    final updatedEdge = edge.updateData(updater);
-    final edgesBuilder = state.internalEdges.toBuilder();
-    edgesBuilder[edgeId] = updatedEdge;
+    // Your FlowEdge `data` property is dynamic, so we handle it safely.
+    final currentData = (edge.data is Map<String, dynamic>)
+        ? edge.data as Map<String, dynamic>
+        : <String, dynamic>{};
 
-    return state.copyWith(internalEdges: edgesBuilder.build());
+    final updatedEdge = edge.copyWith(data: updater(currentData));
+    final newEdges = Map<String, FlowEdge>.from(state.edges);
+    newEdges[edgeId] = updatedEdge;
+
+    return state.copyWith(edges: newEdges);
   }
 
-  /// Find edges by type
-  List<FlowEdge> findEdgesByType(FlowCanvasState state, String type) {
-    return state.internalEdges.values
-        .where((edge) => edge.pathType.toString() == type)
-        .toList();
-  }
-
-  /// Find edges by data property
-  List<FlowEdge> findEdgesByData(
-      FlowCanvasState state, String key, dynamic value) {
-    return state.internalEdges.values
-        .where((edge) => edge.data[key] == value)
-        .toList();
-  }
-
-  /// Reconnect edge to different source/target
+  /// Reconnects an edge to a new source or target handle.
   FlowCanvasState reconnectEdge(
     FlowCanvasState state,
     String edgeId, {
@@ -164,18 +109,17 @@ class EdgeService {
     String? newTargetNodeId,
     String? newTargetHandleId,
   }) {
-    final edge = state.internalEdges[edgeId];
+    final edge = state.edges[edgeId];
     if (edge == null) return state;
 
-    // Validate new nodes exist if provided
+    // Validate that the new nodes exist
     if ((newSourceNodeId != null &&
-            !state.internalNodes.containsKey(newSourceNodeId)) ||
+            !state.nodes.containsKey(newSourceNodeId)) ||
         (newTargetNodeId != null &&
-            !state.internalNodes.containsKey(newTargetNodeId))) {
+            !state.nodes.containsKey(newTargetNodeId))) {
       return state;
     }
 
-    // Create updated edge (keeping same ID!)
     final updatedEdge = edge.copyWith(
       sourceNodeId: newSourceNodeId ?? edge.sourceNodeId,
       sourceHandleId: newSourceHandleId ?? edge.sourceHandleId,
@@ -183,40 +127,32 @@ class EdgeService {
       targetHandleId: newTargetHandleId ?? edge.targetHandleId,
     );
 
-    // Remove old edge and add updated one
-    var newState = removeEdge(state, edgeId);
-    return addEdge(newState, updatedEdge);
+    // This is an atomic operation: the index is updated for the new connection.
+    final stateWithoutOldEdge = removeEdge(state, edgeId);
+    return addEdge(stateWithoutOldEdge, updatedEdge);
   }
 
-  /// Bulk import edges with efficient indexing
+  /// Imports a list of edges, skipping any that already exist or are invalid.
   FlowCanvasState importEdges(FlowCanvasState state, List<FlowEdge> edges) {
     if (edges.isEmpty) return state;
 
-    final edgesBuilder = state.internalEdges.toBuilder();
+    Map<String, FlowEdge> newEdges = Map.from(state.edges);
     EdgeIndex newIndex = state.edgeIndex;
+    bool changed = false;
 
     for (final edge in edges) {
-      // Skip if edge already exists
-      if (state.internalEdges.containsKey(edge.id)) continue;
-
-      // Validate nodes exist
-      if (!state.internalNodes.containsKey(edge.sourceNodeId) ||
-          !state.internalNodes.containsKey(edge.targetNodeId)) {
+      if (newEdges.containsKey(edge.id)) continue;
+      if (!state.nodes.containsKey(edge.sourceNodeId) ||
+          !state.nodes.containsKey(edge.targetNodeId)) {
         continue;
       }
-
-      edgesBuilder[edge.id] = edge;
+      newEdges[edge.id] = edge;
       newIndex = newIndex.addEdge(edge, edge.id);
+      changed = true;
     }
 
-    return state.copyWith(
-      internalEdges: edgesBuilder.build(),
-      edgeIndex: newIndex,
-    );
-  }
-
-  /// Get statistics about edges for debugging
-  Map<String, dynamic> getEdgeStats(FlowCanvasState state) {
-    return state.edgeIndex.stats;
+    return changed
+        ? state.copyWith(edges: newEdges, edgeIndex: newIndex)
+        : state;
   }
 }

@@ -1,81 +1,107 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
 import '../../../../shared/enums.dart';
-import '../../../../options/components/viewport_options.dart';
 import '../streams/pane_change_stream.dart';
 
-typedef OnMove = void Function(FlowViewport viewport, DragDetails? details);
-typedef OnMoveStart = void Function(
-    FlowViewport viewport, DragDetails? details);
-typedef OnMoveEnd = void Function(FlowViewport viewport, DragDetails? details);
-typedef OnPaneClick = void Function(TapDownDetails details);
-typedef OnPaneContextMenu = void Function(LongPressStartDetails details);
-typedef OnPaneScroll = void Function(PointerScrollEvent event);
-typedef OnPaneMouseMove = void Function(PointerHoverEvent event);
-typedef OnPaneMouseEnter = void Function(PointerEnterEvent event);
-typedef OnPaneMouseLeave = void Function(PointerExitEvent event);
+/// Called when the viewport is moved (panned or zoomed).
+typedef PaneMoveCallback = void Function(
+  FlowViewport viewport,
+  DragDetails? details,
+);
+
+/// Called when a viewport move gesture starts.
+typedef PaneMoveStartCallback = void Function(
+  FlowViewport viewport,
+  DragDetails? details,
+);
+
+/// Called when a viewport move gesture ends.
+typedef PaneMoveEndCallback = void Function(
+  FlowViewport viewport,
+  DragDetails? details,
+);
+
+/// Called when the user taps the empty pane area.
+typedef PaneTapCallback = void Function(TapDownDetails details);
+
+/// Called when the user opens a context menu (long-press) on the pane.
+typedef PaneContextMenuCallback = void Function(LongPressStartDetails details);
+
+/// Called when the user scrolls inside the pane (e.g., for zoom).
+typedef PaneScrollCallback = void Function(PointerScrollEvent event);
+
+/// Called when the mouse moves over the pane.
+typedef PaneMouseMoveCallback = void Function(PointerHoverEvent event);
+
+/// Called when the mouse enters the pane.
+typedef PaneMouseEnterCallback = void Function(PointerEnterEvent event);
+
+/// Called when the mouse leaves the pane.
+typedef PaneMouseLeaveCallback = void Function(PointerExitEvent event);
 
 @immutable
 class PaneCallbacks {
-  final OnMove onMove;
-  final OnMoveStart onMoveStart;
-  final OnMoveEnd onMoveEnd;
-  final OnPaneClick onPaneClick;
-  final OnPaneContextMenu onPaneContextMenu;
-  final OnPaneScroll onPaneScroll;
-  final OnPaneMouseMove onPaneMouseMove;
-  final OnPaneMouseEnter onPaneMouseEnter;
-  final OnPaneMouseLeave onPaneMouseLeave;
+  final PaneMoveCallback onMove;
+  final PaneMoveStartCallback onMoveStart;
+  final PaneMoveEndCallback onMoveEnd;
+  final PaneTapCallback onTap;
+  final PaneContextMenuCallback onContextMenu;
+  final PaneScrollCallback onScroll;
+  final PaneMouseMoveCallback onMouseMove;
+  final PaneMouseEnterCallback onMouseEnter;
+  final PaneMouseLeaveCallback onMouseLeave;
   final PaneStreams? streams;
 
   const PaneCallbacks({
     this.onMove = _defaultOnMove,
     this.onMoveStart = _defaultOnMoveStart,
     this.onMoveEnd = _defaultOnMoveEnd,
-    this.onPaneClick = _defaultOnPaneClick,
-    this.onPaneContextMenu = _defaultOnPaneContextMenu,
-    this.onPaneScroll = _defaultOnPaneScroll,
-    this.onPaneMouseMove = _defaultOnPaneMouseMove,
-    this.onPaneMouseEnter = _defaultOnPaneMouseEnter,
-    this.onPaneMouseLeave = _defaultOnPaneMouseLeave,
+    this.onTap = _defaultOnTap,
+    this.onContextMenu = _defaultOnContextMenu,
+    this.onScroll = _defaultOnScroll,
+    this.onMouseMove = _defaultOnMouseMove,
+    this.onMouseEnter = _defaultOnMouseEnter,
+    this.onMouseLeave = _defaultOnMouseLeave,
     this.streams,
   });
 
-  // Default implementations (do nothing)
+  // ---- Default no-op implementations ----
   static void _defaultOnMove(FlowViewport viewport, DragDetails? details) {}
   static void _defaultOnMoveStart(
       FlowViewport viewport, DragDetails? details) {}
   static void _defaultOnMoveEnd(FlowViewport viewport, DragDetails? details) {}
-  static void _defaultOnPaneClick(TapDownDetails details) {}
-  static void _defaultOnPaneContextMenu(LongPressStartDetails details) {}
-  static void _defaultOnPaneScroll(PointerScrollEvent event) {}
-  static void _defaultOnPaneMouseMove(PointerHoverEvent event) {}
-  static void _defaultOnPaneMouseEnter(PointerEnterEvent event) {}
-  static void _defaultOnPaneMouseLeave(PointerExitEvent event) {}
+  static void _defaultOnTap(TapDownDetails details) {}
+  static void _defaultOnContextMenu(LongPressStartDetails details) {}
+  static void _defaultOnScroll(PointerScrollEvent event) {}
+  static void _defaultOnMouseMove(PointerHoverEvent event) {}
+  static void _defaultOnMouseEnter(PointerEnterEvent event) {}
+  static void _defaultOnMouseLeave(PointerExitEvent event) {}
 
+  /// Returns a copy with selectively overridden callbacks/streams.
   PaneCallbacks copyWith({
-    OnMove? onMove,
-    OnMoveStart? onMoveStart,
-    OnMoveEnd? onMoveEnd,
-    OnPaneClick? onPaneClick,
-    OnPaneContextMenu? onPaneContextMenu,
-    OnPaneScroll? onPaneScroll,
-    OnPaneMouseMove? onPaneMouseMove,
-    OnPaneMouseEnter? onPaneMouseEnter,
-    OnPaneMouseLeave? onPaneMouseLeave,
+    PaneMoveCallback? onMove,
+    PaneMoveStartCallback? onMoveStart,
+    PaneMoveEndCallback? onMoveEnd,
+    PaneTapCallback? onTap,
+    PaneContextMenuCallback? onContextMenu,
+    PaneScrollCallback? onScroll,
+    PaneMouseMoveCallback? onMouseMove,
+    PaneMouseEnterCallback? onMouseEnter,
+    PaneMouseLeaveCallback? onMouseLeave,
     PaneStreams? streams,
   }) {
     return PaneCallbacks(
       onMove: onMove ?? this.onMove,
       onMoveStart: onMoveStart ?? this.onMoveStart,
       onMoveEnd: onMoveEnd ?? this.onMoveEnd,
-      onPaneClick: onPaneClick ?? this.onPaneClick,
-      onPaneContextMenu: onPaneContextMenu ?? this.onPaneContextMenu,
-      onPaneScroll: onPaneScroll ?? this.onPaneScroll,
-      onPaneMouseMove: onPaneMouseMove ?? this.onPaneMouseMove,
-      onPaneMouseEnter: onPaneMouseEnter ?? this.onPaneMouseEnter,
-      onPaneMouseLeave: onPaneMouseLeave ?? this.onPaneMouseLeave,
+      onTap: onTap ?? this.onTap,
+      onContextMenu: onContextMenu ?? this.onContextMenu,
+      onScroll: onScroll ?? this.onScroll,
+      onMouseMove: onMouseMove ?? this.onMouseMove,
+      onMouseEnter: onMouseEnter ?? this.onMouseEnter,
+      onMouseLeave: onMouseLeave ?? this.onMouseLeave,
       streams: streams ?? this.streams,
     );
   }
@@ -87,32 +113,31 @@ class PaneCallbacks {
         other.onMove == onMove &&
         other.onMoveStart == onMoveStart &&
         other.onMoveEnd == onMoveEnd &&
-        other.onPaneClick == onPaneClick &&
-        other.onPaneContextMenu == onPaneContextMenu &&
-        other.onPaneScroll == onPaneScroll &&
-        other.onPaneMouseMove == onPaneMouseMove &&
-        other.onPaneMouseEnter == onPaneMouseEnter &&
-        other.onPaneMouseLeave == onPaneMouseLeave &&
+        other.onTap == onTap &&
+        other.onContextMenu == onContextMenu &&
+        other.onScroll == onScroll &&
+        other.onMouseMove == onMouseMove &&
+        other.onMouseEnter == onMouseEnter &&
+        other.onMouseLeave == onMouseLeave &&
         other.streams == streams;
   }
 
   @override
-  int get hashCode {
-    return Object.hash(
-      onMove,
-      onMoveStart,
-      onMoveEnd,
-      onPaneClick,
-      onPaneContextMenu,
-      onPaneScroll,
-      onPaneMouseMove,
-      onPaneMouseEnter,
-      onPaneMouseLeave,
-      streams,
-    );
-  }
+  int get hashCode => Object.hash(
+        onMove,
+        onMoveStart,
+        onMoveEnd,
+        onTap,
+        onContextMenu,
+        onScroll,
+        onMouseMove,
+        onMouseEnter,
+        onMouseLeave,
+        streams,
+      );
 }
 
+/// Details for a viewport drag/pan gesture.
 class DragDetails {
   final DragMode dragMode;
   final Offset localPosition;
@@ -127,7 +152,7 @@ class DragDetails {
   });
 
   @override
-  String toString() {
-    return 'DragDetails{dragMode: $dragMode, localPosition: $localPosition, globalPosition: $globalPosition, delta: $delta}';
-  }
+  String toString() =>
+      'DragDetails(dragMode: $dragMode, local: $localPosition, '
+      'global: $globalPosition, delta: $delta)';
 }

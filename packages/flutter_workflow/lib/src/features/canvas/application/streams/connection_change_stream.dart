@@ -9,15 +9,11 @@ class ConnectionStreams {
 
   // Filtered streams for specific event types
   Stream<ConnectionEvent> get connectStartEvents =>
-      events.where((event) => event.type == ConnectionEventType.connectStart);
+      events.where((event) => event.type == ConnectionEventType.start);
   Stream<ConnectionEvent> get connectEvents =>
       events.where((event) => event.type == ConnectionEventType.connect);
   Stream<ConnectionEvent> get connectEndEvents =>
-      events.where((event) => event.type == ConnectionEventType.connectEnd);
-  Stream<ConnectionEvent> get clickConnectStartEvents => events
-      .where((event) => event.type == ConnectionEventType.clickConnectStart);
-  Stream<ConnectionEvent> get clickConnectEndEvents => events
-      .where((event) => event.type == ConnectionEventType.clickConnectEnd);
+      events.where((event) => event.type == ConnectionEventType.end);
 
   void emitEvent(ConnectionEvent event) {
     if (!_connectionEventController.isClosed) {

@@ -1,12 +1,19 @@
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 
-/// Optimized edge indexing service for fast lookups
+/// An immutable, optimized indexing service for fast edge-related lookups.
+///
+/// This class creates and maintains several maps to answer questions like:
+/// - "Which edges are connected to this node?"
+/// - "Which nodes are connected to this node?"
+/// - "Is this handle connected to anything?"
+///
+/// All modification methods (`addEdge`, `removeEdge`) return a *new* instance
+/// of the index, preserving immutability.
 class EdgeIndex {
   final Map<String, Set<String>> _nodeToEdges;
   final Map<String, Set<String>> _handleToEdges;
   final Map<String, Set<String>> _nodeConnections;
 
-  /// Private constructor
   const EdgeIndex._({
     required Map<String, Set<String>> nodeToEdges,
     required Map<String, Set<String>> handleToEdges,
@@ -15,14 +22,14 @@ class EdgeIndex {
         _handleToEdges = handleToEdges,
         _nodeConnections = nodeConnections;
 
-  /// Create an empty index
+  /// Creates a new, empty index.
   factory EdgeIndex.empty() => const EdgeIndex._(
         nodeToEdges: {},
         handleToEdges: {},
         nodeConnections: {},
       );
 
-  /// Create index from edges
+  /// Creates a new index from an existing map of edges.
   factory EdgeIndex.fromEdges(Map<String, FlowEdge> edges) {
     final nodeToEdges = <String, Set<String>>{};
     final handleToEdges = <String, Set<String>>{};
@@ -32,23 +39,25 @@ class EdgeIndex {
       final edge = entry.value;
       final edgeId = entry.key;
 
-      // Node → Edge IDs
-      nodeToEdges.putIfAbsent(edge.sourceNodeId, () => {}).add(edgeId);
-      nodeToEdges.putIfAbsent(edge.targetNodeId, () => {}).add(edgeId);
+      // --- Node to Edges Index ---
+      (nodeToEdges[edge.sourceNodeId] ??= {}).add(edgeId);
+      (nodeToEdges[edge.targetNodeId] ??= {}).add(edgeId);
 
-      // Handle → Edge IDs
-      final sourceHandleKey = '${edge.sourceNodeId}/${edge.sourceHandleId}';
-      final targetHandleKey = '${edge.targetNodeId}/${edge.targetHandleId}';
-      handleToEdges.putIfAbsent(sourceHandleKey, () => {}).add(edgeId);
-      handleToEdges.putIfAbsent(targetHandleKey, () => {}).add(edgeId);
+      // --- Handle to Edges Index (handles null safety) ---
+      final sourceHandleKey =
+          _getHandleKey(edge.sourceNodeId, edge.sourceHandleId);
+      if (sourceHandleKey != null) {
+        (handleToEdges[sourceHandleKey] ??= {}).add(edgeId);
+      }
+      final targetHandleKey =
+          _getHandleKey(edge.targetNodeId, edge.targetHandleId);
+      if (targetHandleKey != null) {
+        (handleToEdges[targetHandleKey] ??= {}).add(edgeId);
+      }
 
-      // Node connections (bidirectional)
-      nodeConnections
-          .putIfAbsent(edge.sourceNodeId, () => {})
-          .add(edge.targetNodeId);
-      nodeConnections
-          .putIfAbsent(edge.targetNodeId, () => {})
-          .add(edge.sourceNodeId);
+      // --- Node to Node Connections Index ---
+      (nodeConnections[edge.sourceNodeId] ??= {}).add(edge.targetNodeId);
+      (nodeConnections[edge.targetNodeId] ??= {}).add(edge.sourceNodeId);
     }
 
     return EdgeIndex._(
@@ -58,50 +67,65 @@ class EdgeIndex {
     );
   }
 
-  /// Get edges for a node
+  /// **[Corrected]** Creates a unique, safe key for a handle.
+  static String? _getHandleKey(String nodeId, String? handleId) {
+    if (handleId == null || handleId.isEmpty) return null;
+    return '$nodeId/$handleId';
+  }
+
+  // --- PUBLIC GETTERS ---
+
+  /// Returns the set of edge IDs connected to a given node.
   Set<String> getEdgesForNode(String nodeId) =>
-      _nodeToEdges[nodeId] ?? <String>{};
+      _nodeToEdges[nodeId] ?? const {};
 
-  /// Get edges for a specific handle
-  Set<String> getEdgesForHandle(String nodeId, String handleId) =>
-      _handleToEdges['$nodeId/$handleId'] ?? <String>{};
+  /// Returns the set of edge IDs connected to a specific handle on a node.
+  Set<String> getEdgesForHandle(String nodeId, String handleId) {
+    final key = _getHandleKey(nodeId, handleId);
+    return key == null ? const {} : _handleToEdges[key] ?? const {};
+  }
 
-  /// Get nodes connected to a specific node
+  /// Returns the set of node IDs connected to a given node.
   Set<String> getConnectedNodes(String nodeId) =>
-      _nodeConnections[nodeId] ?? <String>{};
+      _nodeConnections[nodeId] ?? const {};
 
-  /// Check if a node has any edges
+  /// Checks if a node has any edges connected to it.
   bool isNodeConnected(String nodeId) =>
-      _nodeToEdges.containsKey(nodeId) && _nodeToEdges[nodeId]!.isNotEmpty;
+      _nodeToEdges[nodeId]?.isNotEmpty ?? false;
 
-  /// Check if a handle has any edges
-  bool isHandleConnected(String nodeId, String handleId) =>
-      _handleToEdges.containsKey('$nodeId/$handleId') &&
-      _handleToEdges['$nodeId/$handleId']!.isNotEmpty;
+  /// Checks if a specific handle has any edges connected to it.
+  bool isHandleConnected(String nodeId, String handleId) {
+    final key = _getHandleKey(nodeId, handleId);
+    return key == null ? false : _handleToEdges[key]?.isNotEmpty ?? false;
+  }
 
-  /// Add an edge to the index
+  // --- IMMUTABLE MODIFICATION METHODS ---
+
+  /// Returns a new `EdgeIndex` instance with the added edge.
   EdgeIndex addEdge(FlowEdge edge, String edgeId) {
     final newNodeToEdges = _copyMapOfSets(_nodeToEdges);
     final newHandleToEdges = _copyMapOfSets(_handleToEdges);
     final newNodeConnections = _copyMapOfSets(_nodeConnections);
 
-    // Add to node → edges mapping
-    newNodeToEdges.putIfAbsent(edge.sourceNodeId, () => {}).add(edgeId);
-    newNodeToEdges.putIfAbsent(edge.targetNodeId, () => {}).add(edgeId);
+    // Add to node -> edges mapping
+    (newNodeToEdges[edge.sourceNodeId] ??= {}).add(edgeId);
+    (newNodeToEdges[edge.targetNodeId] ??= {}).add(edgeId);
 
-    // Add to handle → edges mapping
-    final sourceHandleKey = '${edge.sourceNodeId}/${edge.sourceHandleId}';
-    final targetHandleKey = '${edge.targetNodeId}/${edge.targetHandleId}';
-    newHandleToEdges.putIfAbsent(sourceHandleKey, () => {}).add(edgeId);
-    newHandleToEdges.putIfAbsent(targetHandleKey, () => {}).add(edgeId);
+    // Add to handle -> edges mapping
+    final sourceHandleKey =
+        _getHandleKey(edge.sourceNodeId, edge.sourceHandleId);
+    if (sourceHandleKey != null) {
+      (newHandleToEdges[sourceHandleKey] ??= {}).add(edgeId);
+    }
+    final targetHandleKey =
+        _getHandleKey(edge.targetNodeId, edge.targetHandleId);
+    if (targetHandleKey != null) {
+      (newHandleToEdges[targetHandleKey] ??= {}).add(edgeId);
+    }
 
     // Add to node connections
-    newNodeConnections
-        .putIfAbsent(edge.sourceNodeId, () => {})
-        .add(edge.targetNodeId);
-    newNodeConnections
-        .putIfAbsent(edge.targetNodeId, () => {})
-        .add(edge.sourceNodeId);
+    (newNodeConnections[edge.sourceNodeId] ??= {}).add(edge.targetNodeId);
+    (newNodeConnections[edge.targetNodeId] ??= {}).add(edge.sourceNodeId);
 
     return EdgeIndex._(
       nodeToEdges: newNodeToEdges,
@@ -110,25 +134,35 @@ class EdgeIndex {
     );
   }
 
-  /// Remove an edge from the index
+  /// Returns a new `EdgeIndex` instance with the removed edge.
   EdgeIndex removeEdge(String edgeId, FlowEdge edge) {
     final newNodeToEdges = _copyMapOfSets(_nodeToEdges);
     final newHandleToEdges = _copyMapOfSets(_handleToEdges);
     final newNodeConnections = _copyMapOfSets(_nodeConnections);
 
-    // Remove from node → edges mapping
+    // Remove from node -> edges mapping
     _removeFromSet(newNodeToEdges, edge.sourceNodeId, edgeId);
     _removeFromSet(newNodeToEdges, edge.targetNodeId, edgeId);
 
-    // Remove from handle → edges mapping
-    final sourceHandleKey = '${edge.sourceNodeId}/${edge.sourceHandleId}';
-    final targetHandleKey = '${edge.targetNodeId}/${edge.targetHandleId}';
-    _removeFromSet(newHandleToEdges, sourceHandleKey, edgeId);
-    _removeFromSet(newHandleToEdges, targetHandleKey, edgeId);
+    // Remove from handle -> edges mapping
+    final sourceHandleKey =
+        _getHandleKey(edge.sourceNodeId, edge.sourceHandleId);
+    if (sourceHandleKey != null) {
+      _removeFromSet(newHandleToEdges, sourceHandleKey, edgeId);
+    }
+    final targetHandleKey =
+        _getHandleKey(edge.targetNodeId, edge.targetHandleId);
+    if (targetHandleKey != null) {
+      _removeFromSet(newHandleToEdges, targetHandleKey, edgeId);
+    }
 
-    // Remove from node connections
-    _removeFromSet(newNodeConnections, edge.sourceNodeId, edge.targetNodeId);
-    _removeFromSet(newNodeConnections, edge.targetNodeId, edge.sourceNodeId);
+    // Remove from node connections (only if no other edges connect the two nodes)
+    final remainingEdges = newNodeToEdges[edge.sourceNodeId]
+        ?.intersection(newNodeToEdges[edge.targetNodeId] ?? {});
+    if (remainingEdges?.isEmpty ?? true) {
+      newNodeConnections[edge.sourceNodeId]?.remove(edge.targetNodeId);
+      newNodeConnections[edge.targetNodeId]?.remove(edge.sourceNodeId);
+    }
 
     return EdgeIndex._(
       nodeToEdges: newNodeToEdges,
@@ -137,7 +171,8 @@ class EdgeIndex {
     );
   }
 
-  /// Helper to remove an item from a set in a map
+  // --- PRIVATE HELPERS ---
+
   void _removeFromSet(Map<String, Set<String>> map, String key, String value) {
     final set = map[key];
     if (set != null) {
@@ -148,28 +183,11 @@ class EdgeIndex {
     }
   }
 
-  /// Deep copy a map of sets
   Map<String, Set<String>> _copyMapOfSets(Map<String, Set<String>> original) {
     final copy = <String, Set<String>>{};
     for (final entry in original.entries) {
       copy[entry.key] = Set<String>.from(entry.value);
     }
     return copy;
-  }
-
-  /// Get statistics for debugging
-  Map<String, dynamic> get stats {
-    final totalEdges =
-        _nodeToEdges.values.fold<int>(0, (sum, set) => sum + set.length) ~/ 2;
-    final nodesWithEdges = _nodeToEdges.keys.length;
-    final avgEdgesPerNode =
-        nodesWithEdges > 0 ? totalEdges / nodesWithEdges : 0;
-
-    return {
-      'total_edges': totalEdges,
-      'nodes_with_edges': nodesWithEdges,
-      'avg_edges_per_node': avgEdgesPerNode,
-      'handle_entries': _handleToEdges.length,
-    };
   }
 }

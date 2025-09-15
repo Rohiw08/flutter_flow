@@ -13,23 +13,24 @@ part of 'connection_state.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$FlowConnectionState {
+mixin _$FlowConnectionRuntimeState {
   bool get isAnimating;
   bool get isValid;
 
-  /// Create a copy of FlowConnectionState
+  /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $FlowConnectionStateCopyWith<FlowConnectionState> get copyWith =>
-      _$FlowConnectionStateCopyWithImpl<FlowConnectionState>(
-          this as FlowConnectionState, _$identity);
+  $FlowConnectionRuntimeStateCopyWith<FlowConnectionRuntimeState>
+      get copyWith =>
+          _$FlowConnectionRuntimeStateCopyWithImpl<FlowConnectionRuntimeState>(
+              this as FlowConnectionRuntimeState, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is FlowConnectionState &&
+            other is FlowConnectionRuntimeState &&
             (identical(other.isAnimating, isAnimating) ||
                 other.isAnimating == isAnimating) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
@@ -40,28 +41,28 @@ mixin _$FlowConnectionState {
 
   @override
   String toString() {
-    return 'FlowConnectionState(isAnimating: $isAnimating, isValid: $isValid)';
+    return 'FlowConnectionRuntimeState(isAnimating: $isAnimating, isValid: $isValid)';
   }
 }
 
 /// @nodoc
-abstract mixin class $FlowConnectionStateCopyWith<$Res> {
-  factory $FlowConnectionStateCopyWith(
-          FlowConnectionState value, $Res Function(FlowConnectionState) _then) =
-      _$FlowConnectionStateCopyWithImpl;
+abstract mixin class $FlowConnectionRuntimeStateCopyWith<$Res> {
+  factory $FlowConnectionRuntimeStateCopyWith(FlowConnectionRuntimeState value,
+          $Res Function(FlowConnectionRuntimeState) _then) =
+      _$FlowConnectionRuntimeStateCopyWithImpl;
   @useResult
   $Res call({bool isAnimating, bool isValid});
 }
 
 /// @nodoc
-class _$FlowConnectionStateCopyWithImpl<$Res>
-    implements $FlowConnectionStateCopyWith<$Res> {
-  _$FlowConnectionStateCopyWithImpl(this._self, this._then);
+class _$FlowConnectionRuntimeStateCopyWithImpl<$Res>
+    implements $FlowConnectionRuntimeStateCopyWith<$Res> {
+  _$FlowConnectionRuntimeStateCopyWithImpl(this._self, this._then);
 
-  final FlowConnectionState _self;
-  final $Res Function(FlowConnectionState) _then;
+  final FlowConnectionRuntimeState _self;
+  final $Res Function(FlowConnectionRuntimeState) _then;
 
-  /// Create a copy of FlowConnectionState
+  /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -82,8 +83,8 @@ class _$FlowConnectionStateCopyWithImpl<$Res>
   }
 }
 
-/// Adds pattern-matching-related methods to [FlowConnectionState].
-extension FlowConnectionStatePatterns on FlowConnectionState {
+/// Adds pattern-matching-related methods to [FlowConnectionRuntimeState].
+extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// A variant of `map` that fallback to returning `orElse`.
   ///
   /// It is equivalent to doing:
@@ -98,12 +99,12 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>(
-    TResult Function(_FlowConnectionState value)? $default, {
+    TResult Function(_FlowConnectionRuntimeState value)? $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState() when $default != null:
+      case _FlowConnectionRuntimeState() when $default != null:
         return $default(_that);
       case _:
         return orElse();
@@ -125,11 +126,11 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>(
-    TResult Function(_FlowConnectionState value) $default,
+    TResult Function(_FlowConnectionRuntimeState value) $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState():
+      case _FlowConnectionRuntimeState():
         return $default(_that);
       case _:
         throw StateError('Unexpected subclass');
@@ -150,11 +151,11 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_FlowConnectionState value)? $default,
+    TResult? Function(_FlowConnectionRuntimeState value)? $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState() when $default != null:
+      case _FlowConnectionRuntimeState() when $default != null:
         return $default(_that);
       case _:
         return null;
@@ -180,7 +181,7 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
   }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState() when $default != null:
+      case _FlowConnectionRuntimeState() when $default != null:
         return $default(_that.isAnimating, _that.isValid);
       case _:
         return orElse();
@@ -206,7 +207,7 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
   ) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState():
+      case _FlowConnectionRuntimeState():
         return $default(_that.isAnimating, _that.isValid);
       case _:
         throw StateError('Unexpected subclass');
@@ -231,7 +232,7 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
   ) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionState() when $default != null:
+      case _FlowConnectionRuntimeState() when $default != null:
         return $default(_that.isAnimating, _that.isValid);
       case _:
         return null;
@@ -241,8 +242,9 @@ extension FlowConnectionStatePatterns on FlowConnectionState {
 
 /// @nodoc
 
-class _FlowConnectionState implements FlowConnectionState {
-  const _FlowConnectionState({this.isAnimating = false, this.isValid = false});
+class _FlowConnectionRuntimeState implements FlowConnectionRuntimeState {
+  const _FlowConnectionRuntimeState(
+      {this.isAnimating = false, this.isValid = false});
 
   @override
   @JsonKey()
@@ -251,20 +253,20 @@ class _FlowConnectionState implements FlowConnectionState {
   @JsonKey()
   final bool isValid;
 
-  /// Create a copy of FlowConnectionState
+  /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$FlowConnectionStateCopyWith<_FlowConnectionState> get copyWith =>
-      __$FlowConnectionStateCopyWithImpl<_FlowConnectionState>(
-          this, _$identity);
+  _$FlowConnectionRuntimeStateCopyWith<_FlowConnectionRuntimeState>
+      get copyWith => __$FlowConnectionRuntimeStateCopyWithImpl<
+          _FlowConnectionRuntimeState>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _FlowConnectionState &&
+            other is _FlowConnectionRuntimeState &&
             (identical(other.isAnimating, isAnimating) ||
                 other.isAnimating == isAnimating) &&
             (identical(other.isValid, isValid) || other.isValid == isValid));
@@ -275,30 +277,31 @@ class _FlowConnectionState implements FlowConnectionState {
 
   @override
   String toString() {
-    return 'FlowConnectionState(isAnimating: $isAnimating, isValid: $isValid)';
+    return 'FlowConnectionRuntimeState(isAnimating: $isAnimating, isValid: $isValid)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$FlowConnectionStateCopyWith<$Res>
-    implements $FlowConnectionStateCopyWith<$Res> {
-  factory _$FlowConnectionStateCopyWith(_FlowConnectionState value,
-          $Res Function(_FlowConnectionState) _then) =
-      __$FlowConnectionStateCopyWithImpl;
+abstract mixin class _$FlowConnectionRuntimeStateCopyWith<$Res>
+    implements $FlowConnectionRuntimeStateCopyWith<$Res> {
+  factory _$FlowConnectionRuntimeStateCopyWith(
+          _FlowConnectionRuntimeState value,
+          $Res Function(_FlowConnectionRuntimeState) _then) =
+      __$FlowConnectionRuntimeStateCopyWithImpl;
   @override
   @useResult
   $Res call({bool isAnimating, bool isValid});
 }
 
 /// @nodoc
-class __$FlowConnectionStateCopyWithImpl<$Res>
-    implements _$FlowConnectionStateCopyWith<$Res> {
-  __$FlowConnectionStateCopyWithImpl(this._self, this._then);
+class __$FlowConnectionRuntimeStateCopyWithImpl<$Res>
+    implements _$FlowConnectionRuntimeStateCopyWith<$Res> {
+  __$FlowConnectionRuntimeStateCopyWithImpl(this._self, this._then);
 
-  final _FlowConnectionState _self;
-  final $Res Function(_FlowConnectionState) _then;
+  final _FlowConnectionRuntimeState _self;
+  final $Res Function(_FlowConnectionRuntimeState) _then;
 
-  /// Create a copy of FlowConnectionState
+  /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -306,7 +309,7 @@ class __$FlowConnectionStateCopyWithImpl<$Res>
     Object? isAnimating = null,
     Object? isValid = null,
   }) {
-    return _then(_FlowConnectionState(
+    return _then(_FlowConnectionRuntimeState(
       isAnimating: null == isAnimating
           ? _self.isAnimating
           : isAnimating // ignore: cast_nullable_to_non_nullable

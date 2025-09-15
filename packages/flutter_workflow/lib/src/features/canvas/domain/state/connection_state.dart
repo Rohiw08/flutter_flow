@@ -3,9 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'connection_state.freezed.dart';
 
 @freezed
-abstract class FlowConnectionState with _$FlowConnectionState {
-  const factory FlowConnectionState({
+abstract class FlowConnectionRuntimeState with _$FlowConnectionRuntimeState {
+  const factory FlowConnectionRuntimeState({
     @Default(false) bool isAnimating,
     @Default(false) bool isValid,
-  }) = _FlowConnectionState;
+  }) = _FlowConnectionRuntimeState;
 }

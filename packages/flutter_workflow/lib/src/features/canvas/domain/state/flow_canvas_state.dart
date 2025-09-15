@@ -1,9 +1,13 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/edge_indexing_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/node_indexing_service.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/edge_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/node_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter/painting.dart';
@@ -18,6 +22,8 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     // Core data
     @Default({}) Map<String, FlowNode> nodes,
     @Default({}) Map<String, FlowEdge> edges,
+    @Default({}) Map<String, NodeRuntimeState> nodeStates,
+    @Default({}) Map<String, EdgeRuntimeState> edgeStates,
     @Default({}) Set<String> selectedNodes,
     @Default({}) Set<String> selectedEdges,
     @Default({}) Map<String, BuiltSet<String>> spatialHash,
@@ -31,13 +37,13 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default(0) int maxZIndex,
 
     // Viewport state
-    @Default(1.0) double zoom,
-    @Default(Offset.zero) Offset viewportOffset,
     @Default(false) bool isPanZoomLocked,
+    @Default(FlowViewport()) FlowViewport viewport,
     Size? viewportSize,
 
     // Interaction state
-    FlowConnectionState? connection,
+    FlowConnection? connection,
+    FlowConnectionRuntimeState? connectionState,
     Rect? selectionRect,
     @Default(DragMode.none) DragMode dragMode,
   }) = _FlowCanvasState;
@@ -47,6 +53,8 @@ abstract class FlowCanvasState with _$FlowCanvasState {
       edges: {},
       selectedNodes: {},
       selectedEdges: {},
+      nodeStates: {},
+      edgeStates: {},
       spatialHash: {},
       edgeIndex: EdgeIndex.empty(),
       nodeIndex: NodeIndex.empty());

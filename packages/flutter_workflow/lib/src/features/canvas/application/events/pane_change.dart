@@ -1,4 +1,4 @@
-import '../../../../options/components/viewport_options.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
 
 enum PaneEventType {
   move,
@@ -16,17 +16,16 @@ class PaneEvent {
   final PaneEventType type;
   final FlowViewport? viewport;
   final dynamic details;
-  final DateTime timestamp;
 
   PaneEvent({
     required this.type,
     this.viewport,
     this.details,
     DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+  });
 
   @override
   String toString() {
-    return 'PaneEvent{type: $type, viewport: $viewport, details: $details, timestamp: $timestamp}';
+    return 'PaneEvent{type: $type, viewport: $viewport, details: $details}';
   }
 }

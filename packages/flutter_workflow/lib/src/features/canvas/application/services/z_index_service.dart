@@ -1,75 +1,75 @@
+import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 
 class ZIndexService {
-  /// Bring a node to front in O(1) using cached maxZIndex
   FlowCanvasState bringToFront(FlowCanvasState state, String nodeId) {
-    final node = state.internalNodes[nodeId];
+    final node = state.nodes[nodeId];
     if (node == null) return state;
 
     final newZIndex = state.maxZIndex + 1;
 
-    final nodesBuilder = state.internalNodes.toBuilder();
-    nodesBuilder[nodeId] = node.copyWith(zIndex: newZIndex);
+    final updatedNodes = Map<String, FlowNode>.from(state.nodes)
+      ..[nodeId] = node.copyWith(zIndex: newZIndex);
 
     return state.copyWith(
-      internalNodes: nodesBuilder.build(),
+      nodes: updatedNodes,
       maxZIndex: newZIndex,
     );
   }
 
   /// Send a node to back in O(1) using cached minZIndex
   FlowCanvasState sendToBack(FlowCanvasState state, String nodeId) {
-    final node = state.internalNodes[nodeId];
+    final node = state.nodes[nodeId];
     if (node == null) return state;
 
     final newZIndex = state.minZIndex - 1;
 
-    final nodesBuilder = state.internalNodes.toBuilder();
-    nodesBuilder[nodeId] = node.copyWith(zIndex: newZIndex);
+    final updatedNodes = Map<String, FlowNode>.from(state.nodes)
+      ..[nodeId] = node.copyWith(zIndex: newZIndex);
 
     return state.copyWith(
-      internalNodes: nodesBuilder.build(),
+      nodes: updatedNodes,
       minZIndex: newZIndex,
     );
   }
 
   /// Bring selected nodes to front in O(S) (S = # of selected nodes)
   FlowCanvasState bringSelectedToFront(FlowCanvasState state) {
-    if (state.internalSelectedNodes.isEmpty) return state;
+    if (state.nodes.isEmpty || state.selectedNodes.isEmpty) return state;
 
-    final nodesBuilder = state.internalNodes.toBuilder();
+    final updatedNodes = Map<String, FlowNode>.from(state.nodes);
     int zIndex = state.maxZIndex + 1;
 
-    for (final nodeId in state.internalSelectedNodes) {
-      final node = nodesBuilder[nodeId];
+    for (final nodeId in state.selectedNodes) {
+      final node = updatedNodes[nodeId];
       if (node != null) {
-        nodesBuilder[nodeId] = node.copyWith(zIndex: zIndex++);
+        updatedNodes[nodeId] = node.copyWith(zIndex: zIndex++);
       }
     }
 
     return state.copyWith(
-      internalNodes: nodesBuilder.build(),
+      nodes: updatedNodes,
       maxZIndex: zIndex - 1,
     );
   }
 
   /// Send selected nodes to back in O(S)
   FlowCanvasState sendSelectedToBack(FlowCanvasState state) {
-    if (state.internalSelectedNodes.isEmpty) return state;
+    if (state.nodes.isEmpty || state.selectedNodes.isEmpty) return state;
 
-    final nodesBuilder = state.internalNodes.toBuilder();
-    int zIndex = state.minZIndex - state.internalSelectedNodes.length;
+    final updatedNodes = Map<String, FlowNode>.from(state.nodes);
+    int zIndex = state.minZIndex - state.selectedNodes.length;
 
-    for (final nodeId in state.internalSelectedNodes) {
-      final node = nodesBuilder[nodeId];
+    for (final nodeId in state.selectedNodes) {
+      final node = updatedNodes[nodeId];
       if (node != null) {
-        nodesBuilder[nodeId] = node.copyWith(zIndex: zIndex++);
+        updatedNodes[nodeId] = node.copyWith(zIndex: zIndex++);
       }
     }
 
     return state.copyWith(
-      internalNodes: nodesBuilder.build(),
-      minZIndex: zIndex - state.internalSelectedNodes.length,
+      nodes: updatedNodes,
+      minZIndex: zIndex - state.selectedNodes.length,
     );
   }
 }
