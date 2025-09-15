@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/components/controller_theme.dart';
 import 'package:flutter_workflow/src/theme/theme_resolver/controller_button_inherited_theme.dart';
 
 class ControlButton extends StatefulWidget {
@@ -54,8 +54,8 @@ class _ControlButtonState extends State<ControlButton> {
 
     // Provide fallback if no theme is found
     final fallbackTheme = Theme.of(context).brightness == Brightness.dark
-        ? FlowCanvasControlTheme.dark()
-        : FlowCanvasControlTheme.light();
+        ? FlowCanvasControlsStyle.dark()
+        : FlowCanvasControlsStyle.light();
 
     final theme = (baseTheme ?? fallbackTheme).copyWith(
       buttonColor: widget.buttonColor,

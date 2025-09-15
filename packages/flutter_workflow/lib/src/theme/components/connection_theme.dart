@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
+import 'package:flutter_workflow/src/theme/theme_extensions.dart';
 
+@immutable
 class FlowConnectionStyle {
   final Color activeColor;
   final Color validTargetColor;
   final Color invalidTargetColor;
   final double strokeWidth;
-  final double endPointRadius;
-  final EdgePathType pathType; // NEW: Added pathType property
+  final EdgePathType pathType;
 
   const FlowConnectionStyle({
     required this.activeColor,
     required this.validTargetColor,
     required this.invalidTargetColor,
     this.strokeWidth = 2.0,
-    this.endPointRadius = 6.0,
     this.pathType = EdgePathType.bezier, // NEW: Default to bezier
   });
 
@@ -24,7 +24,6 @@ class FlowConnectionStyle {
       validTargetColor: Color(0xFF4CAF50),
       invalidTargetColor: Color(0xFFF44336),
       strokeWidth: 2.0,
-      endPointRadius: 6.0,
       pathType: EdgePathType.bezier,
     );
   }
@@ -35,7 +34,6 @@ class FlowConnectionStyle {
       validTargetColor: Color(0xFF81C784),
       invalidTargetColor: Color(0xFFE57373),
       strokeWidth: 2.0,
-      endPointRadius: 6.0,
       pathType: EdgePathType.bezier,
     );
   }
@@ -53,7 +51,6 @@ class FlowConnectionStyle {
       validTargetColor: validTargetColor ?? this.validTargetColor,
       invalidTargetColor: invalidTargetColor ?? this.invalidTargetColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
-      endPointRadius: endPointRadius ?? this.endPointRadius,
       pathType: pathType ?? this.pathType, // NEW
     );
   }
@@ -66,7 +63,6 @@ class FlowConnectionStyle {
         other.validTargetColor == validTargetColor &&
         other.invalidTargetColor == invalidTargetColor &&
         other.strokeWidth == strokeWidth &&
-        other.endPointRadius == endPointRadius &&
         other.pathType == pathType; // NEW
   }
 
@@ -76,7 +72,39 @@ class FlowConnectionStyle {
         validTargetColor,
         invalidTargetColor,
         strokeWidth,
-        endPointRadius,
         pathType, // NEW
       );
+
+  FlowConnectionStyle lerp(FlowConnectionStyle other, double t) {
+    return FlowConnectionStyle(
+      activeColor: Color.lerp(activeColor, other.activeColor, t) ?? activeColor,
+      validTargetColor:
+          Color.lerp(validTargetColor, other.validTargetColor, t) ??
+              validTargetColor,
+      invalidTargetColor:
+          Color.lerp(invalidTargetColor, other.invalidTargetColor, t) ??
+              invalidTargetColor,
+      strokeWidth: strokeWidth + (other.strokeWidth - strokeWidth) * t,
+      pathType: t < 0.5 ? pathType : other.pathType,
+    );
+  }
+
+  FlowConnectionStyle resolveConnectionTheme(
+    BuildContext context,
+    FlowConnectionStyle? theme, {
+    Color? activeColor,
+    Color? validTargetColor,
+    Color? invalidTargetColor,
+    double? strokeWidth,
+    EdgePathType? pathType,
+  }) {
+    final base = theme ?? context.flowCanvasTheme.connection;
+    return base.copyWith(
+      activeColor: activeColor,
+      validTargetColor: validTargetColor,
+      invalidTargetColor: invalidTargetColor,
+      strokeWidth: strokeWidth,
+      pathType: pathType,
+    );
+  }
 }

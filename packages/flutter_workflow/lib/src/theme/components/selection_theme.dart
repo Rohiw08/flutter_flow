@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-class FlowCanvasSelectionTheme {
+@immutable
+class FlowSelectionStyle {
   final Color fillColor;
   final Color borderColor;
   final double borderWidth;
   final double dashLength;
   final double gapLength;
 
-  const FlowCanvasSelectionTheme({
+  const FlowSelectionStyle({
     required this.fillColor,
     required this.borderColor,
     this.borderWidth = 1.0,
@@ -15,8 +16,8 @@ class FlowCanvasSelectionTheme {
     this.gapLength = 5.0,
   });
 
-  factory FlowCanvasSelectionTheme.light() {
-    return const FlowCanvasSelectionTheme(
+  factory FlowSelectionStyle.light() {
+    return const FlowSelectionStyle(
       fillColor: Color(0x1A2196F3),
       borderColor: Color(0xFF2196F3),
       borderWidth: 1.0,
@@ -25,8 +26,8 @@ class FlowCanvasSelectionTheme {
     );
   }
 
-  factory FlowCanvasSelectionTheme.dark() {
-    return const FlowCanvasSelectionTheme(
+  factory FlowSelectionStyle.dark() {
+    return const FlowSelectionStyle(
       fillColor: Color(0x1A64B5F6),
       borderColor: Color(0xFF64B5F6),
       borderWidth: 1.0,
@@ -35,19 +36,49 @@ class FlowCanvasSelectionTheme {
     );
   }
 
-  FlowCanvasSelectionTheme copyWith({
+  FlowSelectionStyle copyWith({
     Color? fillColor,
     Color? borderColor,
     double? borderWidth,
     double? dashLength,
     double? gapLength,
   }) {
-    return FlowCanvasSelectionTheme(
+    return FlowSelectionStyle(
       fillColor: fillColor ?? this.fillColor,
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
       dashLength: dashLength ?? this.dashLength,
       gapLength: gapLength ?? this.gapLength,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is FlowSelectionStyle &&
+        other.fillColor == fillColor &&
+        other.borderColor == borderColor &&
+        other.borderWidth == borderWidth &&
+        other.dashLength == dashLength &&
+        other.gapLength == gapLength;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        fillColor,
+        borderColor,
+        borderWidth,
+        dashLength,
+        gapLength,
+      );
+
+  FlowSelectionStyle lerp(FlowSelectionStyle other, double t) {
+    return FlowSelectionStyle(
+      fillColor: Color.lerp(fillColor, other.fillColor, t) ?? fillColor,
+      borderColor: Color.lerp(borderColor, other.borderColor, t) ?? borderColor,
+      borderWidth: borderWidth + (other.borderWidth - borderWidth) * t,
+      dashLength: dashLength + (other.dashLength - dashLength) * t,
+      gapLength: gapLength + (other.gapLength - gapLength) * t,
     );
   }
 }

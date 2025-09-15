@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/components/controller_theme.dart';
 
 class ControlThemeProvider extends InheritedWidget {
-  final FlowCanvasControlTheme theme;
+  final FlowCanvasControlsStyle theme;
 
   const ControlThemeProvider({
     super.key,
@@ -10,7 +10,7 @@ class ControlThemeProvider extends InheritedWidget {
     required super.child,
   });
 
-  static FlowCanvasControlTheme? of(BuildContext context) {
+  static FlowCanvasControlsStyle? of(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<ControlThemeProvider>()
         ?.theme;

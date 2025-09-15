@@ -9,6 +9,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
 import 'package:flutter_workflow/src/shared/providers.dart';
+import 'package:flutter_workflow/src/shared/enums.dart';
 // ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart';
 
@@ -61,9 +62,26 @@ class FlowCanvasFacade {
   void removeSelectedNodes() => _controller.removeSelectedNodes();
   void deselectAll() => _controller.deselectAll();
   void pan(Offset delta) => _controller.pan(delta);
-  void zoom(double delta) => _controller.zoom(delta);
+  void zoom(double delta,
+          {Offset focalPoint = Offset.zero,
+          double? minZoom,
+          double? maxZoom}) =>
+      _controller.zoom(delta,
+          focalPoint: focalPoint,
+          minZoom: minZoom ?? 0.5,
+          maxZoom: maxZoom ?? 2.0);
   void centerOnPosition(Offset canvasPosition) =>
       _controller.centerOnPosition(canvasPosition);
+  // Selection helpers
+  void selectNode(String nodeId) => _controller.selectNode(nodeId);
+  void addNodeToSelection(String nodeId) =>
+      _controller.addNodeToSelection(nodeId);
+  void toggleNodeSelection(String nodeId) =>
+      _controller.toggleNodeSelection(nodeId);
+  // Drag helpers
+  void dragSelectedBy(Offset delta,
+          {bool snapToGrid = false, SnapGrid? grid}) =>
+      _controller.dragSelectedBy(delta, snapToGrid: snapToGrid, grid: grid);
   void fitView() => _controller.fitView(); // This now works properly
   void centerView() => _controller.centerView(); // This centers the canvas
   void resetView() => _controller.resetView(); // This resets to initial view
@@ -76,6 +94,9 @@ class FlowCanvasFacade {
   void startSelection(Offset position) => _controller.startSelection(position);
   void updateSelection(Offset position) =>
       _controller.updateSelection(position);
+  void updateSelection(Offset position,
+          {required SelectionMode selectionMode}) =>
+      _controller.updateSelection(position, selectionMode: selectionMode);
   void endSelection() => _controller.endSelection();
 
   // --- QUERIES (STREAMS) ---

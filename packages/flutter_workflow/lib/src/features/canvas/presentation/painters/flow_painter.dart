@@ -3,7 +3,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/state/connection_sta
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/edge_path_creator.dart';
-import 'package:flutter_workflow/src/theme/theme.dart';
+import 'package:flutter_workflow/src/theme/flow_theme.dart';
 
 /// Abstract base class for all custom edge painters.
 /// Extend this class to create your own custom edge rendering logic.

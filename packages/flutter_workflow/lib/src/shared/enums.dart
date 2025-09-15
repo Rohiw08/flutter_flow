@@ -4,7 +4,7 @@ enum HandlePosition { top, right, bottom, left }
 
 enum HandleType { both, source, target }
 
-enum EdgePathType { bezier, step, straight }
+enum EdgePathType { bezier, step, straight, smoothStep }
 
 enum BackgroundVariant {
   dots, // index 0

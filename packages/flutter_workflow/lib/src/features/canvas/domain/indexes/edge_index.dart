@@ -7,7 +7,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 /// - "Which nodes are connected to this node?"
 /// - "Is this handle connected to anything?"
 ///
-/// All modification methods (`addEdge`, `removeEdge`) return a *new* instance
+/// All modification methods (`addEdge`, `removeEdge`) return a new instance
 /// of the index, preserving immutability.
 class EdgeIndex {
   final Map<String, Set<String>> _nodeToEdges;
@@ -39,11 +39,11 @@ class EdgeIndex {
       final edge = entry.value;
       final edgeId = entry.key;
 
-      // --- Node to Edges Index ---
+      // Node to Edges Index
       (nodeToEdges[edge.sourceNodeId] ??= {}).add(edgeId);
       (nodeToEdges[edge.targetNodeId] ??= {}).add(edgeId);
 
-      // --- Handle to Edges Index (handles null safety) ---
+      // Handle to Edges Index (handles null safety)
       final sourceHandleKey =
           _getHandleKey(edge.sourceNodeId, edge.sourceHandleId);
       if (sourceHandleKey != null) {
@@ -55,7 +55,7 @@ class EdgeIndex {
         (handleToEdges[targetHandleKey] ??= {}).add(edgeId);
       }
 
-      // --- Node to Node Connections Index ---
+      // Node to Node Connections Index
       (nodeConnections[edge.sourceNodeId] ??= {}).add(edge.targetNodeId);
       (nodeConnections[edge.targetNodeId] ??= {}).add(edge.sourceNodeId);
     }
@@ -67,13 +67,13 @@ class EdgeIndex {
     );
   }
 
-  /// **[Corrected]** Creates a unique, safe key for a handle.
+  /// Creates a unique, safe key for a handle.
   static String? _getHandleKey(String nodeId, String? handleId) {
     if (handleId == null || handleId.isEmpty) return null;
     return '$nodeId/$handleId';
   }
 
-  // --- PUBLIC GETTERS ---
+  // Public getters
 
   /// Returns the set of edge IDs connected to a given node.
   Set<String> getEdgesForNode(String nodeId) =>
@@ -99,7 +99,7 @@ class EdgeIndex {
     return key == null ? false : _handleToEdges[key]?.isNotEmpty ?? false;
   }
 
-  // --- IMMUTABLE MODIFICATION METHODS ---
+  // Immutable modification methods
 
   /// Returns a new `EdgeIndex` instance with the added edge.
   EdgeIndex addEdge(FlowEdge edge, String edgeId) {
@@ -157,8 +157,9 @@ class EdgeIndex {
     }
 
     // Remove from node connections (only if no other edges connect the two nodes)
-    final remainingEdges = newNodeToEdges[edge.sourceNodeId]
-        ?.intersection(newNodeToEdges[edge.targetNodeId] ?? {});
+    final remainingEdges = newNodeToEdges[edge.sourceNodeId]?.intersection(
+      newNodeToEdges[edge.targetNodeId] ?? {},
+    );
     if (remainingEdges?.isEmpty ?? true) {
       newNodeConnections[edge.sourceNodeId]?.remove(edge.targetNodeId);
       newNodeConnections[edge.targetNodeId]?.remove(edge.sourceNodeId);
@@ -171,7 +172,7 @@ class EdgeIndex {
     );
   }
 
-  // --- PRIVATE HELPERS ---
+  // Private helpers
 
   void _removeFromSet(Map<String, Set<String>> map, String key, String value) {
     final set = map[key];

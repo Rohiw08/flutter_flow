@@ -4,7 +4,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 /// Spatial grid cell key
 typedef CellKey = String;
 
-/// Highly optimized node indexing service for node-based editors
+/// Highly optimized node indexing for node-based editors
 class NodeIndex {
   static const double _defaultCellSize = 200.0;
 
@@ -13,7 +13,6 @@ class NodeIndex {
   final Map<CellKey, Set<String>> _spatialGrid;
   final double _cellSize;
 
-  /// Private constructor for internal use
   NodeIndex._({
     required Map<String, FlowNode> nodes,
     required Map<String, Set<String>> connections,
@@ -46,11 +45,7 @@ class NodeIndex {
 
     for (final node in nodes) {
       nodeMap[node.id] = node;
-
-      // Initialize connections
       connectionMap[node.id] = Set<String>.from(adjacency?[node.id] ?? {});
-
-      // Add to spatial grid
       final cellKey = _cellKey(node.position, cellSize);
       spatialGrid.putIfAbsent(cellKey, () => {}).add(node.id);
     }
@@ -80,8 +75,6 @@ class NodeIndex {
   /// Query nodes within a rectangle using spatial grid
   List<FlowNode> queryInRect(Rect rect) {
     final result = <FlowNode>[];
-
-    // Get all grid cells that intersect with the rectangle
     final cells = _getCellsInRect(rect);
 
     for (final cell in cells) {
@@ -113,25 +106,16 @@ class NodeIndex {
   }
 
   /// Add a node to the index
-  NodeIndex addNode(
-    FlowNode node, {
-    Iterable<String> connectedTo = const [],
-  }) {
+  NodeIndex addNode(FlowNode node, {Iterable<String> connectedTo = const []}) {
     final newNodeMap = Map<String, FlowNode>.from(_nodes);
     final newConnectionMap = _deepCopyConnections();
     final newSpatialGrid = _deepCopySpatialGrid();
 
-    // Add node
     newNodeMap[node.id] = node;
-
-    // Add to spatial grid
     final cellKey = _cellKey(node.position, _cellSize);
     newSpatialGrid.putIfAbsent(cellKey, () => {}).add(node.id);
 
-    // Initialize connections for new node
     newConnectionMap[node.id] = Set<String>.from(connectedTo);
-
-    // Ensure bidirectional connections
     for (final neighborId in connectedTo) {
       newConnectionMap.putIfAbsent(neighborId, () => {}).add(node.id);
     }
@@ -152,10 +136,8 @@ class NodeIndex {
     final newConnectionMap = _deepCopyConnections();
     final newSpatialGrid = _deepCopySpatialGrid();
 
-    // Remove from nodes
     final removedNode = newNodeMap.remove(nodeId);
 
-    // Remove from spatial grid
     if (removedNode != null) {
       final cellKey = _cellKey(removedNode.position, _cellSize);
       newSpatialGrid[cellKey]?.remove(nodeId);
@@ -164,7 +146,6 @@ class NodeIndex {
       }
     }
 
-    // Remove connections
     final neighbors = newConnectionMap.remove(nodeId) ?? {};
     for (final neighborId in neighbors) {
       newConnectionMap[neighborId]?.remove(nodeId);
@@ -185,38 +166,33 @@ class NodeIndex {
     final newNodeMap = Map<String, FlowNode>.from(_nodes);
     final newSpatialGrid = _deepCopySpatialGrid();
 
-    // Update node position
     final oldNode = newNodeMap[nodeId]!;
     final updatedNode = oldNode.copyWith(position: newPosition);
     newNodeMap[nodeId] = updatedNode;
 
-    // Update spatial grid
     final oldCellKey = _cellKey(oldNode.position, _cellSize);
     final newCellKey = _cellKey(newPosition, _cellSize);
 
     if (oldCellKey != newCellKey) {
-      // Remove from old cell
       newSpatialGrid[oldCellKey]?.remove(nodeId);
       if (newSpatialGrid[oldCellKey]?.isEmpty ?? false) {
         newSpatialGrid.remove(oldCellKey);
       }
-
-      // Add to new cell
       newSpatialGrid.putIfAbsent(newCellKey, () => {}).add(nodeId);
     }
 
     return NodeIndex._(
       nodes: newNodeMap,
-      connections: _connections, // Connections don't change
+      connections: _connections,
       spatialGrid: newSpatialGrid,
       cellSize: _cellSize,
     );
   }
 
-  /// Get all grid cells that intersect with the given rectangle
+  // Helpers
+
   Set<CellKey> _getCellsInRect(Rect rect) {
     final cells = <CellKey>{};
-
     final minX = rect.left ~/ _cellSize;
     final maxX = rect.right ~/ _cellSize;
     final minY = rect.top ~/ _cellSize;
@@ -231,7 +207,6 @@ class NodeIndex {
     return cells;
   }
 
-  /// Deep copy of connections map
   Map<String, Set<String>> _deepCopyConnections() {
     final copy = <String, Set<String>>{};
     for (final entry in _connections.entries) {
@@ -240,7 +215,6 @@ class NodeIndex {
     return copy;
   }
 
-  /// Deep copy of spatial grid
   Map<CellKey, Set<String>> _deepCopySpatialGrid() {
     final copy = <CellKey, Set<String>>{};
     for (final entry in _spatialGrid.entries) {
@@ -249,19 +223,16 @@ class NodeIndex {
     return copy;
   }
 
-  /// Calculate cell key for a position
   static CellKey _cellKey(Offset pos, double cellSize) {
     final cx = (pos.dx / cellSize).floor();
     final cy = (pos.dy / cellSize).floor();
     return '$cx:$cy';
   }
 
-  /// Get statistics for debugging
   Map<String, dynamic> get stats {
     final totalNodes = _nodes.length;
-    final totalConnections = _connections.values
-            .fold(0, (sum, connections) => sum + connections.length) ~/
-        2;
+    final totalConnections =
+        _connections.values.fold(0, (sum, c) => sum + c.length) ~/ 2;
     final gridCells = _spatialGrid.length;
     final avgNodesPerCell = totalNodes > 0 ? totalNodes / gridCells : 0;
 

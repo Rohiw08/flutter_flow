@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/widgets/control_button.dart';
-import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/components/controller_theme.dart';
 import 'package:flutter_workflow/src/theme/theme_resolver/controller_button_inherited_theme.dart';
 import 'package:flutter_workflow/src/theme/theme_resolver/controller_theme_resolver.dart';
 
@@ -15,7 +15,7 @@ class FlowCanvasControls extends StatelessWidget {
   final double? spacing; // Added spacing parameter
 
   // THEME OVERRIDES
-  final FlowCanvasControlTheme? controlsTheme;
+  final FlowCanvasControlsStyle? controlsTheme;
 
   const FlowCanvasControls({
     super.key,
@@ -32,7 +32,7 @@ class FlowCanvasControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Resolve the final theme
-    final FlowCanvasControlTheme theme = resolveControlTheme(
+    final FlowCanvasControlsStyle theme = resolveControlTheme(
       context,
       controlsTheme,
     );
@@ -53,7 +53,7 @@ class FlowCanvasControls extends StatelessWidget {
   }
 
   List<Widget> _buildButtons(
-      BuildContext context, FlowCanvasControlTheme theme) {
+      BuildContext context, FlowCanvasControlsStyle theme) {
     return [
       if (showZoom) ...[
         ControlButton(

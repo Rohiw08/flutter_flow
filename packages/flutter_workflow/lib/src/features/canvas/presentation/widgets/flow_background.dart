@@ -5,7 +5,7 @@ import 'package:flutter_workflow/src/theme/components/background_theme.dart';
 import 'package:flutter_workflow/src/theme/theme_resolver/background_theme_resolver.dart';
 
 class FlowBackground extends StatefulWidget {
-  final FlowCanvasBackgroundTheme? backgroundTheme;
+  final FlowCanvasBackgroundStyle? backgroundTheme;
 
   const FlowBackground({
     super.key,

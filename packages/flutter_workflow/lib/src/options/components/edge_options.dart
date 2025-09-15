@@ -1,3 +1,9 @@
+import 'package:flutter/widgets.dart' show BuildContext;
+import 'package:flutter_workflow/flutter_workflow.dart';
+import 'package:flutter_workflow/src/options/options_extensions.dart';
+import 'package:flutter/foundation.dart';
+
+@immutable
 class EdgeOptions {
   final String? type;
   final bool animated;
@@ -66,4 +72,40 @@ class EdgeOptions {
         focusable.hashCode ^
         elevateEdgesOnSelect.hashCode;
   }
+}
+
+extension ResolvedEdgeOptions on FlowEdge {
+  bool isSelectable(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return selectable ?? globalOptions.selectable;
+  }
+
+  bool isDeletable(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return deletable ?? globalOptions.deletable;
+  }
+
+  bool isAnimated(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return animated ?? globalOptions.animated;
+  }
+
+  bool isHidden(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return hidden ?? globalOptions.hidden;
+  }
+
+  bool isReconnectable(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return reconnectable ?? globalOptions.reconnectable;
+  }
+
+  bool elevateEdgesOnSelectResolved(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.edgeOptions;
+    return elevateEdgeOnSelected ?? globalOptions.elevateEdgesOnSelect;
+  }
+
+  // Unified name to mirror node options helper
+  bool elevateOnSelect(BuildContext context) =>
+      elevateEdgesOnSelectResolved(context);
 }

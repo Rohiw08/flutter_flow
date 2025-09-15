@@ -26,7 +26,7 @@ mixin _$FlowEdge {
   BoxDecoration? get labelDecoration;
   EdgeMarkerStyle? get startMarkerStyle;
   EdgeMarkerStyle? get endMarkerStyle;
-  EdgeStyle? get style;
+  FlowEdgeStyle? get style;
   dynamic get data;
   bool? get animated;
   bool? get hidden;
@@ -136,7 +136,7 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       BoxDecoration? labelDecoration,
       EdgeMarkerStyle? startMarkerStyle,
       EdgeMarkerStyle? endMarkerStyle,
-      EdgeStyle? style,
+      FlowEdgeStyle? style,
       dynamic data,
       bool? animated,
       bool? hidden,
@@ -233,7 +233,7 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
       style: freezed == style
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
-              as EdgeStyle?,
+              as FlowEdgeStyle?,
       data: freezed == data
           ? _self.data
           : data // ignore: cast_nullable_to_non_nullable
@@ -376,7 +376,7 @@ extension FlowEdgePatterns on FlowEdge {
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style,
+            FlowEdgeStyle? style,
             dynamic data,
             bool? animated,
             bool? hidden,
@@ -446,7 +446,7 @@ extension FlowEdgePatterns on FlowEdge {
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style,
+            FlowEdgeStyle? style,
             dynamic data,
             bool? animated,
             bool? hidden,
@@ -514,7 +514,7 @@ extension FlowEdgePatterns on FlowEdge {
             BoxDecoration? labelDecoration,
             EdgeMarkerStyle? startMarkerStyle,
             EdgeMarkerStyle? endMarkerStyle,
-            EdgeStyle? style,
+            FlowEdgeStyle? style,
             dynamic data,
             bool? animated,
             bool? hidden,
@@ -613,7 +613,7 @@ class _FlowEdge extends FlowEdge {
   @override
   final EdgeMarkerStyle? endMarkerStyle;
   @override
-  final EdgeStyle? style;
+  final FlowEdgeStyle? style;
   @override
   @JsonKey()
   final dynamic data;
@@ -735,7 +735,7 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       BoxDecoration? labelDecoration,
       EdgeMarkerStyle? startMarkerStyle,
       EdgeMarkerStyle? endMarkerStyle,
-      EdgeStyle? style,
+      FlowEdgeStyle? style,
       dynamic data,
       bool? animated,
       bool? hidden,
@@ -832,7 +832,7 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
       style: freezed == style
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
-              as EdgeStyle?,
+              as FlowEdgeStyle?,
       data: freezed == data
           ? _self.data
           : data // ignore: cast_nullable_to_non_nullable

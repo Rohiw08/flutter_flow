@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
-import 'package:flutter_workflow/src/theme/theme.dart';
+import 'package:flutter_workflow/src/theme/flow_theme.dart';
 
 /// A collection of well-designed, predefined themes for FlowCanvas.
 class FlowCanvasThemes {

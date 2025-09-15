@@ -1,7 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
-class EdgeMarkerStyle {
+@immutable
+class FlowEdgeMarkerStyle {
   final EdgeMarkerType type;
   final Color? color;
   final double width;
@@ -10,7 +11,7 @@ class EdgeMarkerStyle {
   final String orient;
   final double strokeWidth;
 
-  const EdgeMarkerStyle({
+  const FlowEdgeMarkerStyle({
     this.type = EdgeMarkerType.arrow,
     this.color,
     this.width = 12.0,
@@ -20,7 +21,7 @@ class EdgeMarkerStyle {
     this.strokeWidth = 1.0,
   });
 
-  EdgeMarkerStyle copyWith({
+  FlowEdgeMarkerStyle copyWith({
     EdgeMarkerType? type,
     Color? color,
     double? width,
@@ -29,7 +30,7 @@ class EdgeMarkerStyle {
     String? orient,
     double? strokeWidth,
   }) {
-    return EdgeMarkerStyle(
+    return FlowEdgeMarkerStyle(
       type: type ?? this.type,
       color: color ?? this.color,
       width: width ?? this.width,
@@ -39,4 +40,43 @@ class EdgeMarkerStyle {
       strokeWidth: strokeWidth ?? this.strokeWidth,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is FlowEdgeMarkerStyle &&
+        other.type == type &&
+        other.color == color &&
+        other.width == width &&
+        other.height == height &&
+        other.markerUnits == markerUnits &&
+        other.orient == orient &&
+        other.strokeWidth == strokeWidth;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        type,
+        color,
+        width,
+        height,
+        markerUnits,
+        orient,
+        strokeWidth,
+      );
+
+  FlowEdgeMarkerStyle lerp(FlowEdgeMarkerStyle other, double t) {
+    return FlowEdgeMarkerStyle(
+      type: t < 0.5 ? type : other.type,
+      color: Color.lerp(color, other.color, t) ?? color,
+      width: width + (other.width - width) * t,
+      height: height + (other.height - height) * t,
+      markerUnits: t < 0.5 ? markerUnits : other.markerUnits,
+      orient: t < 0.5 ? orient : other.orient,
+      strokeWidth: strokeWidth + (other.strokeWidth - strokeWidth) * t,
+    );
+  }
 }
+
+// Backward compatibility until downstream references migrate
+typedef EdgeMarkerStyle = FlowEdgeMarkerStyle;

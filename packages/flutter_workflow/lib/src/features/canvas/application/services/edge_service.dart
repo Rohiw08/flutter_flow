@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/application/services/edge_indexing_service.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
+
+import '../../domain/indexes/edge_index.dart';
 
 /// Provider for the stateless EdgeService.
 final edgeServiceProvider = Provider<EdgeService>((ref) {

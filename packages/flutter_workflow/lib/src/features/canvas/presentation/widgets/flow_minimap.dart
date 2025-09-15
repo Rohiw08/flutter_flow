@@ -21,7 +21,7 @@ class FlowMiniMap extends ConsumerWidget {
   final EdgeInsetsGeometry margin;
 
   // --- Theming & Overrides ---
-  final FlowCanvasMiniMapTheme? miniMapTheme;
+  final FlowCanvasMiniMapStyle? miniMapTheme;
 
   // --- Interactivity ---
   final bool pannable;
@@ -101,7 +101,7 @@ class FlowMiniMap extends ConsumerWidget {
   void _onTapUp(
     TapUpDetails details,
     List<FlowNode> nodes,
-    FlowCanvasMiniMapTheme theme,
+    FlowCanvasMiniMapStyle theme,
   ) {
     final transform = MiniMapPainter.calculateTransform(
       _getBounds(nodes),
@@ -118,7 +118,7 @@ class FlowMiniMap extends ConsumerWidget {
   void _onPanUpdate(
     DragUpdateDetails details,
     List<FlowNode> nodes,
-    FlowCanvasMiniMapTheme theme,
+    FlowCanvasMiniMapStyle theme,
   ) {
     final transform = MiniMapPainter.calculateTransform(
       _getBounds(nodes),

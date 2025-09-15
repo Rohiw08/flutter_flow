@@ -21,7 +21,7 @@ mixin _$FlowCanvasState {
   Map<String, EdgeRuntimeState> get edgeStates;
   Set<String> get selectedNodes;
   Set<String> get selectedEdges;
-  Map<String, BuiltSet<String>> get spatialHash; // Edge indexing
+  Map<String, Set<String>> get spatialHash; // Edge indexing
   EdgeIndex get edgeIndex;
   NodeIndex get nodeIndex; // Z-index management
   int get minZIndex;
@@ -124,7 +124,7 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       Map<String, EdgeRuntimeState> edgeStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
-      Map<String, BuiltSet<String>> spatialHash,
+      Map<String, Set<String>> spatialHash,
       EdgeIndex edgeIndex,
       NodeIndex nodeIndex,
       int minZIndex,
@@ -202,7 +202,7 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
       spatialHash: null == spatialHash
           ? _self.spatialHash
           : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, BuiltSet<String>>,
+              as Map<String, Set<String>>,
       edgeIndex: null == edgeIndex
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable
@@ -390,7 +390,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, EdgeRuntimeState> edgeStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, BuiltSet<String>> spatialHash,
+            Map<String, Set<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -454,7 +454,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, EdgeRuntimeState> edgeStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, BuiltSet<String>> spatialHash,
+            Map<String, Set<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -516,7 +516,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, EdgeRuntimeState> edgeStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, BuiltSet<String>> spatialHash,
+            Map<String, Set<String>> spatialHash,
             EdgeIndex edgeIndex,
             NodeIndex nodeIndex,
             int minZIndex,
@@ -568,7 +568,7 @@ class _FlowCanvasState extends FlowCanvasState {
       final Map<String, EdgeRuntimeState> edgeStates = const {},
       final Set<String> selectedNodes = const {},
       final Set<String> selectedEdges = const {},
-      final Map<String, BuiltSet<String>> spatialHash = const {},
+      final Map<String, Set<String>> spatialHash = const {},
       required this.edgeIndex,
       required this.nodeIndex,
       this.minZIndex = 0,
@@ -645,10 +645,10 @@ class _FlowCanvasState extends FlowCanvasState {
     return EqualUnmodifiableSetView(_selectedEdges);
   }
 
-  final Map<String, BuiltSet<String>> _spatialHash;
+  final Map<String, Set<String>> _spatialHash;
   @override
   @JsonKey()
-  Map<String, BuiltSet<String>> get spatialHash {
+  Map<String, Set<String>> get spatialHash {
     if (_spatialHash is EqualUnmodifiableMapView) return _spatialHash;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_spatialHash);
@@ -778,7 +778,7 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       Map<String, EdgeRuntimeState> edgeStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
-      Map<String, BuiltSet<String>> spatialHash,
+      Map<String, Set<String>> spatialHash,
       EdgeIndex edgeIndex,
       NodeIndex nodeIndex,
       int minZIndex,
@@ -859,7 +859,7 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
       spatialHash: null == spatialHash
           ? _self._spatialHash
           : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, BuiltSet<String>>,
+              as Map<String, Set<String>>,
       edgeIndex: null == edgeIndex
           ? _self.edgeIndex
           : edgeIndex // ignore: cast_nullable_to_non_nullable

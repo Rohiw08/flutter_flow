@@ -1,6 +1,5 @@
-import 'package:built_collection/built_collection.dart';
-import 'package:flutter_workflow/src/features/canvas/application/services/edge_indexing_service.dart';
-import 'package:flutter_workflow/src/features/canvas/application/services/node_indexing_service.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/indexes/edge_index.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/indexes/node_index.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
@@ -26,7 +25,7 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default({}) Map<String, EdgeRuntimeState> edgeStates,
     @Default({}) Set<String> selectedNodes,
     @Default({}) Set<String> selectedEdges,
-    @Default({}) Map<String, BuiltSet<String>> spatialHash,
+    @Default({}) Map<String, Set<String>> spatialHash,
 
     // Edge indexing
     required EdgeIndex edgeIndex,

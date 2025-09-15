@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:ui';
 
-class FlowCanvasNodeTheme {
+@immutable
+class FlowNodeStyle {
   final Color defaultBackgroundColor;
   final Color defaultBorderColor;
   final Color selectedBackgroundColor;
@@ -27,7 +30,7 @@ class FlowCanvasNodeTheme {
   final double? maxWidth;
   final double? maxHeight;
 
-  const FlowCanvasNodeTheme({
+  const FlowNodeStyle({
     required this.defaultBackgroundColor,
     required this.defaultBorderColor,
     required this.selectedBackgroundColor,
@@ -53,8 +56,8 @@ class FlowCanvasNodeTheme {
     this.maxHeight,
   });
 
-  factory FlowCanvasNodeTheme.light() {
-    return FlowCanvasNodeTheme(
+  factory FlowNodeStyle.light() {
+    return FlowNodeStyle(
       defaultBackgroundColor: Colors.white,
       defaultBorderColor: const Color(0xFFE0E0E0),
       selectedBackgroundColor: const Color(0xFFF0F8FF),
@@ -87,8 +90,8 @@ class FlowCanvasNodeTheme {
     );
   }
 
-  factory FlowCanvasNodeTheme.dark() {
-    return FlowCanvasNodeTheme(
+  factory FlowNodeStyle.dark() {
+    return FlowNodeStyle(
       defaultBackgroundColor: const Color(0xFF2D2D2D),
       defaultBorderColor: const Color(0xFF404040),
       selectedBackgroundColor: const Color(0xFF1E3A5F),
@@ -165,7 +168,7 @@ class FlowCanvasNodeTheme {
     );
   }
 
-  FlowCanvasNodeTheme copyWith({
+  FlowNodeStyle copyWith({
     Color? defaultBackgroundColor,
     Color? defaultBorderColor,
     Color? selectedBackgroundColor,
@@ -190,7 +193,7 @@ class FlowCanvasNodeTheme {
     double? maxWidth,
     double? maxHeight,
   }) {
-    return FlowCanvasNodeTheme(
+    return FlowNodeStyle(
       defaultBackgroundColor:
           defaultBackgroundColor ?? this.defaultBackgroundColor,
       defaultBorderColor: defaultBorderColor ?? this.defaultBorderColor,
@@ -223,19 +226,30 @@ class FlowCanvasNodeTheme {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is FlowCanvasNodeTheme &&
+    return other is FlowNodeStyle &&
         other.defaultBackgroundColor == defaultBackgroundColor &&
         other.defaultBorderColor == defaultBorderColor &&
         other.selectedBackgroundColor == selectedBackgroundColor &&
         other.selectedBorderColor == selectedBorderColor &&
         other.errorBackgroundColor == errorBackgroundColor &&
         other.errorBorderColor == errorBorderColor &&
-        other.hoverBackgroundColor == hoverBackgroundColor &&
-        other.hoverBorderColor == hoverBorderColor &&
         other.defaultBorderWidth == defaultBorderWidth &&
         other.selectedBorderWidth == selectedBorderWidth &&
         other.borderRadius == borderRadius &&
-        other.defaultTextStyle == defaultTextStyle;
+        listEquals(other.shadows, shadows) &&
+        other.defaultTextStyle == defaultTextStyle &&
+        other.hoverBackgroundColor == hoverBackgroundColor &&
+        other.hoverBorderColor == hoverBorderColor &&
+        other.disabledBackgroundColor == disabledBackgroundColor &&
+        other.disabledBorderColor == disabledBorderColor &&
+        other.hoverBorderWidth == hoverBorderWidth &&
+        other.animationDuration == animationDuration &&
+        other.animationCurve == animationCurve &&
+        other.defaultPadding == defaultPadding &&
+        other.minWidth == minWidth &&
+        other.minHeight == minHeight &&
+        other.maxWidth == maxWidth &&
+        other.maxHeight == maxHeight;
   }
 
   @override
@@ -247,17 +261,80 @@ class FlowCanvasNodeTheme {
       selectedBorderColor,
       errorBackgroundColor,
       errorBorderColor,
-      hoverBackgroundColor,
-      hoverBorderColor,
       defaultBorderWidth,
       selectedBorderWidth,
       borderRadius,
+      Object.hashAll(shadows),
       defaultTextStyle,
+      hoverBackgroundColor,
+      hoverBorderColor,
+      disabledBackgroundColor,
+      disabledBorderColor,
+      hoverBorderWidth,
+      animationDuration,
+      animationCurve,
+      defaultPadding,
+      Object.hash(minWidth, minHeight, maxWidth, maxHeight),
+    );
+  }
+
+  FlowNodeStyle lerp(FlowNodeStyle other, double t) {
+    return FlowNodeStyle(
+      defaultBackgroundColor:
+          Color.lerp(defaultBackgroundColor, other.defaultBackgroundColor, t) ??
+              defaultBackgroundColor,
+      defaultBorderColor:
+          Color.lerp(defaultBorderColor, other.defaultBorderColor, t) ??
+              defaultBorderColor,
+      selectedBackgroundColor: Color.lerp(
+              selectedBackgroundColor, other.selectedBackgroundColor, t) ??
+          selectedBackgroundColor,
+      selectedBorderColor:
+          Color.lerp(selectedBorderColor, other.selectedBorderColor, t) ??
+              selectedBorderColor,
+      errorBackgroundColor:
+          Color.lerp(errorBackgroundColor, other.errorBackgroundColor, t) ??
+              errorBackgroundColor,
+      errorBorderColor:
+          Color.lerp(errorBorderColor, other.errorBorderColor, t) ??
+              errorBorderColor,
+      defaultBorderWidth:
+          lerpDouble(defaultBorderWidth, other.defaultBorderWidth, t)!,
+      selectedBorderWidth:
+          lerpDouble(selectedBorderWidth, other.selectedBorderWidth, t)!,
+      borderRadius: lerpDouble(borderRadius, other.borderRadius, t)!,
+      shadows: t < 0.5 ? shadows : other.shadows,
+      defaultTextStyle:
+          TextStyle.lerp(defaultTextStyle, other.defaultTextStyle, t) ??
+              defaultTextStyle,
+      hoverBackgroundColor:
+          Color.lerp(hoverBackgroundColor, other.hoverBackgroundColor, t) ??
+              hoverBackgroundColor,
+      hoverBorderColor:
+          Color.lerp(hoverBorderColor, other.hoverBorderColor, t) ??
+              hoverBorderColor,
+      disabledBackgroundColor: Color.lerp(
+              disabledBackgroundColor, other.disabledBackgroundColor, t) ??
+          disabledBackgroundColor,
+      disabledBorderColor:
+          Color.lerp(disabledBorderColor, other.disabledBorderColor, t) ??
+              disabledBorderColor,
+      hoverBorderWidth: lerpDouble(hoverBorderWidth, other.hoverBorderWidth, t),
+      animationDuration: t < 0.5 ? animationDuration : other.animationDuration,
+      animationCurve: t < 0.5 ? animationCurve : other.animationCurve,
+      defaultPadding:
+          EdgeInsetsGeometry.lerp(defaultPadding, other.defaultPadding, t) ??
+              defaultPadding,
+      minWidth: lerpDouble(minWidth, other.minWidth, t),
+      minHeight: lerpDouble(minHeight, other.minHeight, t),
+      maxWidth: lerpDouble(maxWidth, other.maxWidth, t),
+      maxHeight: lerpDouble(maxHeight, other.maxHeight, t),
     );
   }
 }
 
 /// Helper class for node styling
+@immutable
 class NodeStyleData {
   final Color backgroundColor;
   final Color borderColor;

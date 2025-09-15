@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:flutter_workflow/src/theme/components/background_theme.dart';
 import 'package:flutter_workflow/src/theme/components/connection_theme.dart';
-import 'package:flutter_workflow/src/theme/components/control_theme.dart';
+import 'package:flutter_workflow/src/theme/components/controller_theme.dart';
 import 'package:flutter_workflow/src/theme/components/edge_label_theme.dart';
 import 'package:flutter_workflow/src/theme/components/edge_theme.dart';
 import 'package:flutter_workflow/src/theme/components/handle_theme.dart';
@@ -13,13 +13,13 @@ import 'package:flutter_workflow/src/theme/components/selection_theme.dart';
 /// The core theme for the Flow Canvas.
 @immutable
 class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
-  final FlowCanvasBackgroundTheme background;
-  final FlowCanvasNodeTheme node;
-  final EdgeStyle edge;
-  final FlowCanvasHandleTheme handle;
-  final FlowCanvasSelectionTheme selection;
-  final FlowCanvasControlTheme controls;
-  final FlowCanvasMiniMapTheme miniMap;
+  final FlowBackgroundStyle background;
+  final FlowNodeStyle node;
+  final FlowEdgeStyle edge;
+  final FlowHandleStyle handle;
+  final FlowSelectionStyle selection;
+  final FlowCanvasControlsStyle controls;
+  final FlowMinimapStyle minimap;
   final FlowConnectionStyle connection;
 
   const FlowCanvasTheme({
@@ -29,20 +29,20 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     required this.handle,
     required this.selection,
     required this.controls,
-    required this.miniMap,
+    required this.minimap,
     required this.connection,
   });
 
   /// Creates a light theme.
   factory FlowCanvasTheme.light() {
     return FlowCanvasTheme(
-      background: FlowCanvasBackgroundTheme.light(),
-      node: FlowCanvasNodeTheme.light(),
-      edge: EdgeStyle.light(),
-      handle: FlowCanvasHandleTheme.light(),
-      selection: FlowCanvasSelectionTheme.light(),
-      controls: FlowCanvasControlTheme.light(),
-      miniMap: FlowCanvasMiniMapTheme.light(),
+      background: FlowBackgroundStyle.light(),
+      node: FlowNodeStyle.light(),
+      edge: FlowEdgeStyle.light(),
+      handle: FlowHandleStyle.light(),
+      selection: FlowSelectionStyle.light(),
+      controls: FlowCanvasControlsStyle.light(),
+      minimap: FlowMinimapStyle.light(),
       connection: FlowConnectionStyle.light(),
     );
   }
@@ -50,13 +50,13 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   /// Creates a dark theme.
   factory FlowCanvasTheme.dark() {
     return FlowCanvasTheme(
-      background: FlowCanvasBackgroundTheme.dark(),
-      node: FlowCanvasNodeTheme.dark(),
-      edge: EdgeStyle.dark(),
-      handle: FlowCanvasHandleTheme.dark(),
-      selection: FlowCanvasSelectionTheme.dark(),
-      controls: FlowCanvasControlTheme.dark(),
-      miniMap: FlowCanvasMiniMapTheme.dark(),
+      background: FlowBackgroundStyle.dark(),
+      node: FlowNodeStyle.dark(),
+      edge: FlowEdgeStyle.dark(),
+      handle: FlowHandleStyle.dark(),
+      selection: FlowSelectionStyle.dark(),
+      controls: FlowCanvasControlsStyle.dark(),
+      minimap: FlowMinimapStyle.dark(),
       connection: FlowConnectionStyle.dark(),
     );
   }
@@ -64,13 +64,13 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   /// Creates a copy of this theme with the given fields replaced by the new values.
   @override
   FlowCanvasTheme copyWith({
-    FlowCanvasBackgroundTheme? background,
-    FlowCanvasNodeTheme? node,
-    EdgeStyle? edge,
-    FlowCanvasHandleTheme? handle,
-    FlowCanvasSelectionTheme? selection,
-    FlowCanvasControlTheme? controls,
-    FlowCanvasMiniMapTheme? miniMap,
+    FlowBackgroundStyle? background,
+    FlowNodeStyle? node,
+    FlowEdgeStyle? edge,
+    FlowHandleStyle? handle,
+    FlowSelectionStyle? selection,
+    FlowCanvasControlsStyle? controls,
+    FlowMinimapStyle? minimap,
     FlowConnectionStyle? connection,
   }) {
     return FlowCanvasTheme(
@@ -80,7 +80,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       handle: handle ?? this.handle,
       selection: selection ?? this.selection,
       controls: controls ?? this.controls,
-      miniMap: miniMap ?? this.miniMap,
+      minimap: minimap ?? this.minimap,
       connection: connection ?? this.connection,
     );
   }
@@ -89,13 +89,13 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     final isDark = colorScheme.brightness == Brightness.dark;
 
     return FlowCanvasTheme(
-      background: FlowCanvasBackgroundTheme(
+      background: FlowBackgroundStyle(
         backgroundColor: colorScheme.surface,
         variant: BackgroundVariant.dots,
         patternColor: colorScheme.outline.withAlpha(isDark ? 60 : 40),
         fadeOnZoom: true,
       ),
-      node: FlowCanvasNodeTheme(
+      node: FlowNodeStyle(
         defaultBackgroundColor: colorScheme.surfaceContainer,
         defaultBorderColor: colorScheme.outlineVariant,
         selectedBackgroundColor: colorScheme.primaryContainer,
@@ -112,11 +112,11 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
           ),
         ],
       ),
-      edge: EdgeStyle(
+      edge: FlowEdgeStyle(
         defaultColor: colorScheme.outline,
         selectedColor: colorScheme.primary,
         animatedColor: colorScheme.tertiary,
-        label: EdgeLabelTheme(
+        labelStyle: FlowEdgeLabelStyle(
           textStyle: TextStyle(
             color: colorScheme.onSurface,
             fontSize: 12,
@@ -125,7 +125,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
           borderColor: colorScheme.outlineVariant,
         ),
       ),
-      handle: FlowCanvasHandleTheme(
+      handle: FlowHandleStyle(
         idleColor: colorScheme.outline,
         hoverColor: colorScheme.primary,
         activeColor: colorScheme.primary,
@@ -133,11 +133,11 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         invalidTargetColor: colorScheme.error,
         borderColor: colorScheme.surface,
       ),
-      selection: FlowCanvasSelectionTheme(
+      selection: FlowSelectionStyle(
         fillColor: colorScheme.primary.withAlpha(39),
         borderColor: colorScheme.primary,
       ),
-      controls: FlowCanvasControlTheme(
+      controls: FlowCanvasControlsStyle(
         containerColor: colorScheme.surfaceContainer,
         buttonColor: colorScheme.surfaceContainerHigh,
         buttonHoverColor: colorScheme.surfaceContainerHighest,
@@ -155,7 +155,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
           ),
         ],
       ),
-      miniMap: FlowCanvasMiniMapTheme(
+      minimap: FlowMinimapStyle(
         backgroundColor: colorScheme.surfaceContainerLow,
         nodeColor: colorScheme.primary,
         nodeStrokeColor: colorScheme.primaryContainer,
@@ -174,10 +174,16 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   @override
   ThemeExtension<FlowCanvasTheme> lerp(
       covariant ThemeExtension<FlowCanvasTheme>? other, double t) {
-    // TODO: implement lerp
     if (other is! FlowCanvasTheme) return this;
-    // For now, just do a simple switch at t=0.5
-    // You can implement proper lerping later if needed
-    return t < 0.5 ? this : other;
+    return FlowCanvasTheme(
+      background: background.lerp(other.background, t),
+      node: node.lerp(other.node, t),
+      edge: edge.lerp(other.edge, t),
+      handle: handle.lerp(other.handle, t),
+      selection: selection.lerp(other.selection, t),
+      controls: controls.lerp(other.controls, t),
+      minimap: minimap.lerp(other.minimap, t),
+      connection: connection.lerp(other.connection, t),
+    );
   }
 }

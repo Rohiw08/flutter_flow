@@ -1,10 +1,11 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
+import 'package:flutter_workflow/src/theme/theme_extensions.dart';
+import 'package:flutter/foundation.dart';
 
-class FlowCanvasBackgroundTheme
-    extends ThemeExtension<FlowCanvasBackgroundTheme> {
+@immutable
+class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
   final Color backgroundColor;
   final BackgroundVariant variant;
   final Color patternColor;
@@ -18,7 +19,7 @@ class FlowCanvasBackgroundTheme
   final BlendMode? blendMode;
   final List<Color>? alternateColors;
 
-  const FlowCanvasBackgroundTheme({
+  const FlowBackgroundStyle({
     required this.backgroundColor,
     required this.variant,
     required this.patternColor,
@@ -33,8 +34,8 @@ class FlowCanvasBackgroundTheme
     this.alternateColors,
   });
 
-  factory FlowCanvasBackgroundTheme.light() {
-    return const FlowCanvasBackgroundTheme(
+  factory FlowBackgroundStyle.light() {
+    return const FlowBackgroundStyle(
       backgroundColor: Color(0xFFFAFAFA),
       variant: BackgroundVariant.dots,
       patternColor: Color.fromARGB(75, 0, 0, 0),
@@ -44,8 +45,8 @@ class FlowCanvasBackgroundTheme
     );
   }
 
-  factory FlowCanvasBackgroundTheme.dark() {
-    return const FlowCanvasBackgroundTheme(
+  factory FlowBackgroundStyle.dark() {
+    return const FlowBackgroundStyle(
       backgroundColor: Color(0xFF1A1A1A),
       variant: BackgroundVariant.dots,
       patternColor: Color(0xFF404040),
@@ -55,12 +56,12 @@ class FlowCanvasBackgroundTheme
     );
   }
 
-  factory FlowCanvasBackgroundTheme.animatedGradient({
+  factory FlowBackgroundStyle.animatedGradient({
     required List<Color> colors,
     BackgroundVariant variant = BackgroundVariant.none,
     double gap = 30.0,
   }) {
-    return FlowCanvasBackgroundTheme(
+    return FlowBackgroundStyle(
       backgroundColor: colors.first,
       variant: variant,
       patternColor: colors.length > 1 ? colors[1] : colors.first,
@@ -71,7 +72,7 @@ class FlowCanvasBackgroundTheme
   }
 
   @override
-  FlowCanvasBackgroundTheme copyWith({
+  FlowBackgroundStyle copyWith({
     Color? backgroundColor,
     BackgroundVariant? variant,
     Color? patternColor,
@@ -85,7 +86,7 @@ class FlowCanvasBackgroundTheme
     BlendMode? blendMode,
     List<Color>? alternateColors,
   }) {
-    return FlowCanvasBackgroundTheme(
+    return FlowBackgroundStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       variant: variant ?? this.variant,
       patternColor: patternColor ?? this.patternColor,
@@ -102,10 +103,10 @@ class FlowCanvasBackgroundTheme
   }
 
   @override
-  FlowCanvasBackgroundTheme lerp(
-      ThemeExtension<FlowCanvasBackgroundTheme>? other, double t) {
-    if (other is! FlowCanvasBackgroundTheme) return this;
-    return FlowCanvasBackgroundTheme(
+  FlowBackgroundStyle lerp(
+      ThemeExtension<FlowBackgroundStyle>? other, double t) {
+    if (other is! FlowBackgroundStyle) return this;
+    return FlowBackgroundStyle(
       backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
       variant: t < 0.5 ? variant : other.variant, // Discrete switch
       patternColor: Color.lerp(patternColor, other.patternColor, t)!,
@@ -122,4 +123,75 @@ class FlowCanvasBackgroundTheme
           t < 0.5 ? alternateColors : other.alternateColors, // Simplified
     );
   }
+
+  FlowBackgroundStyle resolveBackgroundTheme(
+    BuildContext context,
+    FlowBackgroundStyle? backgroundTheme, {
+    // Local property overrides
+    Color? backgroundColor,
+    BackgroundVariant? pattern,
+    Color? patternColor,
+    double? gap,
+    double? lineWidth,
+    double? dotRadius,
+    double? crossSize,
+    bool? fadeOnZoom,
+    Gradient? gradient,
+    Offset? patternOffset,
+    BlendMode? blendMode,
+    List<Color>? alternateColors,
+  }) {
+    // Start with the theme object if provided, otherwise fall back to the context theme.
+    final base = backgroundTheme ?? context.flowCanvasTheme.background;
+
+    // Apply all local overrides on top of the base theme.
+    return base.copyWith(
+      backgroundColor: backgroundColor,
+      variant: pattern,
+      patternColor: patternColor,
+      gap: gap,
+      lineWidth: lineWidth,
+      dotRadius: dotRadius,
+      crossSize: crossSize,
+      fadeOnZoom: fadeOnZoom,
+      gradient: gradient,
+      patternOffset: patternOffset,
+      blendMode: blendMode,
+      alternateColors: alternateColors,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is FlowBackgroundStyle &&
+        other.backgroundColor == backgroundColor &&
+        other.variant == variant &&
+        other.patternColor == patternColor &&
+        other.gap == gap &&
+        other.lineWidth == lineWidth &&
+        other.dotRadius == dotRadius &&
+        other.crossSize == crossSize &&
+        other.fadeOnZoom == fadeOnZoom &&
+        other.gradient == gradient &&
+        other.patternOffset == patternOffset &&
+        other.blendMode == blendMode &&
+        listEquals(other.alternateColors, alternateColors);
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        backgroundColor,
+        variant,
+        patternColor,
+        gap,
+        lineWidth,
+        dotRadius,
+        crossSize,
+        fadeOnZoom,
+        gradient,
+        patternOffset,
+        blendMode,
+        alternateColors == null ? null : Object.hashAll(alternateColors!),
+      );
 }

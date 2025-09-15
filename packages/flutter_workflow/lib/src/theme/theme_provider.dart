@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/theme.dart' show FlowCanvasTheme;
+import 'package:flutter_workflow/src/theme/flow_theme.dart'
+    show FlowCanvasTheme;
 
 class FlowCanvasThemeProvider extends StatelessWidget {
   final FlowCanvasTheme? theme;

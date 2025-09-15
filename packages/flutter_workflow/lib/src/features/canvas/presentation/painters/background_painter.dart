@@ -4,7 +4,7 @@ import 'package:flutter_workflow/src/theme/components/background_theme.dart';
 
 class BackgroundPainter extends CustomPainter {
   final ui.FragmentProgram program;
-  final FlowCanvasBackgroundTheme theme;
+  final FlowBackgroundStyle theme;
   late final ui.FragmentShader shader;
 
   BackgroundPainter({

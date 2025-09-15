@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_workflow/src/theme/theme_extensions.dart';
 
-class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
+@immutable
+class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   final Color? backgroundColor;
   final Color? nodeColor;
   final Color? nodeStrokeColor;
@@ -26,7 +28,7 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
   final double? viewportInnerGlowWidthMultiplier;
   final Color? viewportInnerColor; // NEW: Inner viewport fill color
 
-  const FlowCanvasMiniMapTheme({
+  const FlowMinimapStyle({
     this.backgroundColor,
     this.nodeColor,
     this.nodeStrokeColor,
@@ -50,8 +52,8 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
   });
 
   /// Light preset
-  factory FlowCanvasMiniMapTheme.light() {
-    return const FlowCanvasMiniMapTheme(
+  factory FlowMinimapStyle.light() {
+    return const FlowMinimapStyle(
       backgroundColor: Colors.white,
       nodeColor: Color(0xFF2196F3),
       nodeStrokeColor: Color(0xFF1976D2),
@@ -72,8 +74,8 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
   }
 
   /// Dark preset
-  factory FlowCanvasMiniMapTheme.dark() {
-    return const FlowCanvasMiniMapTheme(
+  factory FlowMinimapStyle.dark() {
+    return const FlowMinimapStyle(
       backgroundColor: Color(0xFF1E1E1E),
       nodeColor: Color(0xFF90CAF9),
       nodeStrokeColor: Color(0xFF64B5F6),
@@ -94,7 +96,7 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
   }
 
   @override
-  FlowCanvasMiniMapTheme copyWith({
+  FlowMinimapStyle copyWith({
     Color? backgroundColor,
     Color? nodeColor,
     Color? nodeStrokeColor,
@@ -116,7 +118,7 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
     double? viewportInnerGlowBlur,
     Color? viewportInnerColor, // NEW
   }) {
-    return FlowCanvasMiniMapTheme(
+    return FlowMinimapStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       nodeColor: nodeColor ?? this.nodeColor,
       nodeStrokeColor: nodeStrokeColor ?? this.nodeStrokeColor,
@@ -145,11 +147,10 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
   }
 
   @override
-  FlowCanvasMiniMapTheme lerp(
-      ThemeExtension<FlowCanvasMiniMapTheme>? other, double t) {
-    if (other is! FlowCanvasMiniMapTheme) return this;
+  FlowMinimapStyle lerp(ThemeExtension<FlowMinimapStyle>? other, double t) {
+    if (other is! FlowMinimapStyle) return this;
 
-    return FlowCanvasMiniMapTheme(
+    return FlowMinimapStyle(
       backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
       nodeColor: Color.lerp(nodeColor, other.nodeColor, t)!,
       nodeStrokeColor: Color.lerp(nodeStrokeColor, other.nodeStrokeColor, t)!,
@@ -191,10 +192,63 @@ class FlowCanvasMiniMapTheme extends ThemeExtension<FlowCanvasMiniMapTheme> {
     return List.generate(a.length, (i) => BoxShadow.lerp(a[i], b[i], t)!);
   }
 
+  FlowMinimapStyle resolveMiniMapTheme(
+    BuildContext context,
+    FlowMinimapStyle? theme, {
+    // Local property overrides
+    Color? backgroundColor,
+    Color? nodeColor,
+    Color? nodeStrokeColor,
+    double? nodeBorderRadius,
+    Color? selectedNodeColor,
+    Color? maskColor,
+    Color? maskStrokeColor,
+    double? nodeStrokeWidth,
+    double? maskStrokeWidth,
+    double? borderRadius,
+    List<BoxShadow>? shadows,
+    double? padding,
+    double? viewportBorderRadius,
+    Color? selectedGlowColor,
+    double? selectedGlowBlur,
+    double? selectedGlowWidthMultiplier,
+    Color? viewportInnerGlowColor,
+    double? viewportInnerGlowWidthMultiplier,
+    double? viewportInnerGlowBlur,
+    Color? viewportInnerColor,
+  }) {
+    // Start with the theme object if provided, otherwise fall back to the context theme.
+    final base = theme ?? context.flowCanvasTheme.minimap;
+
+    // Apply all local overrides on top of the base theme.
+    return base.copyWith(
+      backgroundColor: backgroundColor,
+      nodeColor: nodeColor,
+      nodeStrokeColor: nodeStrokeColor,
+      nodeBorderRadius: nodeBorderRadius,
+      selectedNodeColor: selectedNodeColor,
+      maskColor: maskColor,
+      maskStrokeColor: maskStrokeColor,
+      nodeStrokeWidth: nodeStrokeWidth,
+      maskStrokeWidth: maskStrokeWidth,
+      borderRadius: borderRadius,
+      shadows: shadows,
+      padding: padding,
+      viewportBorderRadius: viewportBorderRadius,
+      selectedGlowColor: selectedGlowColor,
+      selectedGlowBlur: selectedGlowBlur,
+      selectedGlowWidthMultiplier: selectedGlowWidthMultiplier,
+      viewportInnerGlowColor: viewportInnerGlowColor,
+      viewportInnerGlowWidthMultiplier: viewportInnerGlowWidthMultiplier,
+      viewportInnerGlowBlur: viewportInnerGlowBlur,
+      viewportInnerColor: viewportInnerColor,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        other is FlowCanvasMiniMapTheme &&
+        other is FlowMinimapStyle &&
             runtimeType == other.runtimeType &&
             backgroundColor == other.backgroundColor &&
             nodeColor == other.nodeColor &&

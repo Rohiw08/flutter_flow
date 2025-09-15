@@ -20,7 +20,7 @@ class MiniMapTransform {
 class MiniMapPainter extends CustomPainter {
   final Map<String, FlowNode> nodes;
   final Rect viewport;
-  final FlowCanvasMiniMapTheme theme;
+  final FlowCanvasMiniMapStyle theme;
 
   // Pre-built Paint objects for performance.
   final Paint _backgroundPaint;
@@ -96,7 +96,7 @@ class MiniMapPainter extends CustomPainter {
   // --- STATIC UTILITY METHODS ---
 
   static MiniMapTransform calculateTransform(
-      Rect contentBounds, Size minimapSize, FlowCanvasMiniMapTheme theme) {
+      Rect contentBounds, Size minimapSize, FlowCanvasMiniMapStyle theme) {
     if (contentBounds.isEmpty || minimapSize.isEmpty) {
       return const MiniMapTransform(
           scale: 0, offsetX: 0, offsetY: 0, contentBounds: Rect.zero);

@@ -158,7 +158,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
         facade: facade,
         overlays: [
           FlowBackground(
-            backgroundTheme: FlowCanvasBackgroundTheme.light(),
+            backgroundTheme: FlowCanvasBackgroundStyle.light(),
           ),
           FlowMiniMap(facade: facade),
           Padding(

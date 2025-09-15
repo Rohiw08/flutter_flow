@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/models/coordinate_extent.dart';
 import 'package:flutter_workflow/src/options/components/fitview_options.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
+import 'package:flutter_workflow/src/options/options_extensions.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
+import 'package:flutter/foundation.dart';
 
 /// Configuration options for the viewport behavior
+@immutable
 class ViewportOptions {
   final FlowViewport? defaultViewport;
   final FlowViewport? viewport;
@@ -110,6 +114,101 @@ class ViewportOptions {
       zoomOnScroll: zoomOnScroll ?? this.zoomOnScroll,
       zoomOnPinch: zoomOnPinch ?? this.zoomOnPinch,
       zoomOnDoubleClick: zoomOnDoubleClick ?? this.zoomOnDoubleClick,
+    );
+  }
+
+  static ViewportOptions resolve(
+    BuildContext context,
+    ViewportOptions? localOptions, {
+    // Local property overrides for one-time use
+    FlowViewport? defaultViewport,
+    FlowViewport? viewport,
+    bool? fitView,
+    FitViewOptions? fitViewOptions,
+    double? minZoom,
+    double? maxZoom,
+    bool? snapToGrid,
+    SnapGrid? snapGrid,
+    bool? onlyRenderVisibleElements,
+    CoordinateExtent? translateExtent,
+    CoordinateExtent? nodeExtent,
+    bool? preventScrolling,
+    bool? autoPanOnConnect,
+    bool? autoPanOnNodeDrag,
+    double? autoPanSpeed,
+    bool? panOnDrag,
+    bool? selectionOnDrag,
+    SelectionMode? selectionMode,
+    bool? panOnScroll,
+    double? panOnScrollSpeed,
+    PanOnScrollMode? panOnScrollMode,
+    bool? zoomOnScroll,
+    bool? zoomOnPinch,
+    bool? zoomOnDoubleClick,
+  }) {
+    // Start with the local options object if provided, otherwise fall back to the global options.
+    final base = localOptions ?? context.flowCanvasOptions.viewportOptions;
+
+    // Apply all local property overrides on top of the base.
+    return base.copyWith(
+      defaultViewport: defaultViewport,
+      viewport: viewport,
+      fitView: fitView,
+      fitViewOptions: fitViewOptions,
+      minZoom: minZoom,
+      maxZoom: maxZoom,
+      snapToGrid: snapToGrid,
+      snapGrid: snapGrid,
+      onlyRenderVisibleElements: onlyRenderVisibleElements,
+      translateExtent: translateExtent,
+      nodeExtent: nodeExtent,
+      preventScrolling: preventScrolling,
+      autoPanOnConnect: autoPanOnConnect,
+      autoPanOnNodeDrag: autoPanOnNodeDrag,
+      autoPanSpeed: autoPanSpeed,
+      panOnDrag: panOnDrag,
+      selectionOnDrag: selectionOnDrag,
+      selectionMode: selectionMode,
+      panOnScroll: panOnScroll,
+      panOnScrollSpeed: panOnScrollSpeed,
+      panOnScrollMode: panOnScrollMode,
+      zoomOnScroll: zoomOnScroll,
+      zoomOnPinch: zoomOnPinch,
+      zoomOnDoubleClick: zoomOnDoubleClick,
+    );
+  }
+
+  ViewportOptions lerp(ViewportOptions other, double t) {
+    return ViewportOptions(
+      // Discrete or nullable fields
+      defaultViewport: t < 0.5 ? defaultViewport : other.defaultViewport,
+      viewport: t < 0.5 ? viewport : other.viewport,
+      fitView: t < 0.5 ? fitView : other.fitView,
+      fitViewOptions: fitViewOptions, // keep discrete; runtime animates fit
+      snapToGrid: t < 0.5 ? snapToGrid : other.snapToGrid,
+      snapGrid: snapGrid, // discrete
+      onlyRenderVisibleElements:
+          t < 0.5 ? onlyRenderVisibleElements : other.onlyRenderVisibleElements,
+      translateExtent: translateExtent, // discrete
+      nodeExtent: nodeExtent, // discrete
+      preventScrolling: t < 0.5 ? preventScrolling : other.preventScrolling,
+      autoPanOnConnect: t < 0.5 ? autoPanOnConnect : other.autoPanOnConnect,
+      autoPanOnNodeDrag: t < 0.5 ? autoPanOnNodeDrag : other.autoPanOnNodeDrag,
+      panOnDrag: t < 0.5 ? panOnDrag : other.panOnDrag,
+      selectionOnDrag: t < 0.5 ? selectionOnDrag : other.selectionOnDrag,
+      selectionMode: t < 0.5 ? selectionMode : other.selectionMode,
+      panOnScroll: t < 0.5 ? panOnScroll : other.panOnScroll,
+      panOnScrollMode: t < 0.5 ? panOnScrollMode : other.panOnScrollMode,
+      zoomOnScroll: t < 0.5 ? zoomOnScroll : other.zoomOnScroll,
+      zoomOnPinch: t < 0.5 ? zoomOnPinch : other.zoomOnPinch,
+      zoomOnDoubleClick: t < 0.5 ? zoomOnDoubleClick : other.zoomOnDoubleClick,
+
+      // Interpolated numeric fields
+      minZoom: minZoom + (other.minZoom - minZoom) * t,
+      maxZoom: maxZoom + (other.maxZoom - maxZoom) * t,
+      autoPanSpeed: autoPanSpeed + (other.autoPanSpeed - autoPanSpeed) * t,
+      panOnScrollSpeed:
+          panOnScrollSpeed + (other.panOnScrollSpeed - panOnScrollSpeed) * t,
     );
   }
 

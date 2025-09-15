@@ -5,6 +5,8 @@ import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_fa
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:flutter_workflow/src/theme/components/handle_theme.dart';
 import 'package:flutter_workflow/src/theme/theme_extensions.dart';
+import 'package:flutter_workflow/src/options/options_extensions.dart';
+import 'package:flutter_workflow/src/options/components/node_options.dart';
 
 /// A callback function to validate a potential connection.
 typedef IsValidConnectionCallback = bool Function(String connection);
@@ -82,6 +84,10 @@ class _HandleState extends ConsumerState<Handle> {
           child: GestureDetector(
             onPanStart: (details) {
               if (widget.type == HandleType.target) return;
+              final flowOptions = context.flowCanvasOptions;
+              if (!flowOptions.enableConnectivity) return;
+              final node = widget.facade.state.nodes[widget.nodeId];
+              if (node != null && !node.isConnectable(context)) return;
               widget.facade.startConnection(
                 widget.nodeId,
                 widget.handleId,
@@ -129,7 +135,7 @@ class _HandleState extends ConsumerState<Handle> {
   }
 
   Color _getHandleColor(
-    FlowCanvasHandleTheme handleTheme,
+    FlowCanvasHandleStyle handleTheme,
     bool isMyConnectionSource,
     bool isTargeted,
   ) {

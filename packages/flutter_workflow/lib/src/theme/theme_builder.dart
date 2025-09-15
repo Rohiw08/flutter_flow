@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:flutter_workflow/src/theme/components/edge_label_theme.dart';
-import 'package:flutter_workflow/src/theme/theme.dart';
+import 'package:flutter_workflow/src/theme/flow_theme.dart';
 
 class FlowCanvasThemeBuilder {
   FlowCanvasTheme _theme;
@@ -89,7 +89,7 @@ class FlowCanvasThemeBuilder {
     double? defaultStrokeWidth,
     double? selectedStrokeWidth,
     double? arrowHeadSize,
-    EdgeLabelTheme? label,
+    FlowEdgeLabelStyle? label,
   }) {
     _theme = _theme.copyWith(
       edge: _theme.edge.copyWith(
@@ -99,7 +99,7 @@ class FlowCanvasThemeBuilder {
         defaultStrokeWidth: defaultStrokeWidth,
         selectedStrokeWidth: selectedStrokeWidth,
         arrowHeadSize: arrowHeadSize,
-        label: label,
+        labelStyle: label,
       ),
     );
     return this;
@@ -146,7 +146,7 @@ class FlowCanvasThemeBuilder {
       double? borderRadius,
       List<BoxShadow>? shadows}) {
     _theme = _theme.copyWith(
-      miniMap: _theme.miniMap.copyWith(
+      minimap: _theme.minimap.copyWith(
         backgroundColor: backgroundColor,
         nodeColor: nodeColor,
         nodeStrokeColor: nodeStrokeColor,

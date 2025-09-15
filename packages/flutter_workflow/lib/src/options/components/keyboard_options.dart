@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
-// It's good practice to define enums for actions rather than using strings.
-// Assuming you have an enum like this somewhere in your project:
 enum KeyboardAction {
   selectAll,
   deselectAll,
@@ -22,20 +21,12 @@ enum KeyboardAction {
 /// Configuration options for keyboard interactions in the flow canvas
 class KeyboardOptions {
   final bool enabled;
-  final bool enableMultiSelection;
-  final bool enableArrowKeyNavigation;
-  final bool enableZoomShortcuts;
-  final bool enableDuplication;
   final double arrowKeyMoveSpeed;
   final double zoomStep;
-  final Map<LogicalKeyboardKey, KeyboardAction> shortcuts;
+  final Map<ShortcutActivator, KeyboardAction> shortcuts;
 
   const KeyboardOptions._({
     this.enabled = true,
-    this.enableMultiSelection = true,
-    this.enableArrowKeyNavigation = true,
-    this.enableZoomShortcuts = true,
-    this.enableDuplication = true,
     this.arrowKeyMoveSpeed = 10.0,
     this.zoomStep = 0.1,
     required this.shortcuts,
@@ -44,74 +35,75 @@ class KeyboardOptions {
   // Factory constructor that creates the default shortcuts
   factory KeyboardOptions({
     bool enabled = true,
-    bool enableMultiSelection = true,
-    bool enableArrowKeyNavigation = true,
-    bool enableZoomShortcuts = true,
-    bool enableDuplication = true,
     double arrowKeyMoveSpeed = 10.0,
     double zoomStep = 0.1,
-    Map<LogicalKeyboardKey, KeyboardAction>? shortcuts,
+    Map<ShortcutActivator, KeyboardAction>? shortcuts,
   }) {
     return KeyboardOptions._(
       enabled: enabled,
-      enableMultiSelection: enableMultiSelection,
-      enableArrowKeyNavigation: enableArrowKeyNavigation,
-      enableZoomShortcuts: enableZoomShortcuts,
-      enableDuplication: enableDuplication,
       arrowKeyMoveSpeed: arrowKeyMoveSpeed,
       zoomStep: zoomStep,
       shortcuts: shortcuts ?? _getDefaultShortcuts(),
     );
   }
 
-  // Helper method to create default shortcuts
-  static Map<LogicalKeyboardKey, KeyboardAction> _getDefaultShortcuts() {
+  // Helper method to create default, platform-aware shortcuts
+  static Map<ShortcutActivator, KeyboardAction> _getDefaultShortcuts() {
+    final isMac = defaultTargetPlatform == TargetPlatform.macOS;
+
     return {
       // Selection
-      LogicalKeyboardKey.keyA: KeyboardAction.selectAll,
-      LogicalKeyboardKey.escape: KeyboardAction.deselectAll,
+      SingleActivator(LogicalKeyboardKey.keyA, control: !isMac, meta: isMac):
+          KeyboardAction.selectAll,
+      const SingleActivator(LogicalKeyboardKey.escape):
+          KeyboardAction.deselectAll,
 
       // Deletion
-      LogicalKeyboardKey.delete: KeyboardAction.deleteSelection,
-      LogicalKeyboardKey.backspace: KeyboardAction.deleteSelection,
+      const SingleActivator(LogicalKeyboardKey.delete):
+          KeyboardAction.deleteSelection,
+      const SingleActivator(LogicalKeyboardKey.backspace):
+          KeyboardAction.deleteSelection,
 
       // Navigation
-      LogicalKeyboardKey.arrowUp: KeyboardAction.moveUp,
-      LogicalKeyboardKey.arrowDown: KeyboardAction.moveDown,
-      LogicalKeyboardKey.arrowLeft: KeyboardAction.moveLeft,
-      LogicalKeyboardKey.arrowRight: KeyboardAction.moveRight,
+      const SingleActivator(LogicalKeyboardKey.arrowUp): KeyboardAction.moveUp,
+      const SingleActivator(LogicalKeyboardKey.arrowDown):
+          KeyboardAction.moveDown,
+      const SingleActivator(LogicalKeyboardKey.arrowLeft):
+          KeyboardAction.moveLeft,
+      const SingleActivator(LogicalKeyboardKey.arrowRight):
+          KeyboardAction.moveRight,
 
       // Zoom
-      LogicalKeyboardKey.equal: KeyboardAction.zoomIn,
-      LogicalKeyboardKey.minus: KeyboardAction.zoomOut,
-      LogicalKeyboardKey.digit0: KeyboardAction.resetZoom,
+      SingleActivator(LogicalKeyboardKey.equal, control: !isMac, meta: isMac):
+          KeyboardAction.zoomIn,
+      SingleActivator(LogicalKeyboardKey.minus, control: !isMac, meta: isMac):
+          KeyboardAction.zoomOut,
+      SingleActivator(LogicalKeyboardKey.digit0, control: !isMac, meta: isMac):
+          KeyboardAction.resetZoom,
 
       // Duplication
-      LogicalKeyboardKey.keyD: KeyboardAction.duplicateSelection,
+      SingleActivator(LogicalKeyboardKey.keyD, control: !isMac, meta: isMac):
+          KeyboardAction.duplicateSelection,
 
       // Undo/Redo
-      LogicalKeyboardKey.keyZ: KeyboardAction.undo,
-      LogicalKeyboardKey.keyY: KeyboardAction.redo,
+      SingleActivator(LogicalKeyboardKey.keyZ, control: !isMac, meta: isMac):
+          KeyboardAction.undo,
+      SingleActivator(LogicalKeyboardKey.keyZ,
+          control: !isMac, meta: isMac, shift: true): KeyboardAction.redo,
+      // Common alternative for redo
+      SingleActivator(LogicalKeyboardKey.keyY, control: !isMac, meta: isMac):
+          KeyboardAction.redo,
     };
   }
 
   KeyboardOptions copyWith({
     bool? enabled,
-    bool? enableMultiSelection,
-    bool? enableArrowKeyNavigation,
-    bool? enableZoomShortcuts,
-    bool? enableDuplication,
     double? arrowKeyMoveSpeed,
     double? zoomStep,
-    Map<LogicalKeyboardKey, KeyboardAction>? shortcuts,
+    Map<ShortcutActivator, KeyboardAction>? shortcuts,
   }) {
     return KeyboardOptions._(
       enabled: enabled ?? this.enabled,
-      enableMultiSelection: enableMultiSelection ?? this.enableMultiSelection,
-      enableArrowKeyNavigation:
-          enableArrowKeyNavigation ?? this.enableArrowKeyNavigation,
-      enableZoomShortcuts: enableZoomShortcuts ?? this.enableZoomShortcuts,
-      enableDuplication: enableDuplication ?? this.enableDuplication,
       arrowKeyMoveSpeed: arrowKeyMoveSpeed ?? this.arrowKeyMoveSpeed,
       zoomStep: zoomStep ?? this.zoomStep,
       shortcuts: shortcuts ?? this.shortcuts,
@@ -123,10 +115,6 @@ class KeyboardOptions {
     if (identical(this, other)) return true;
 
     return other.enabled == enabled &&
-        other.enableMultiSelection == enableMultiSelection &&
-        other.enableArrowKeyNavigation == enableArrowKeyNavigation &&
-        other.enableZoomShortcuts == enableZoomShortcuts &&
-        other.enableDuplication == enableDuplication &&
         other.arrowKeyMoveSpeed == arrowKeyMoveSpeed &&
         other.zoomStep == zoomStep &&
         mapEquals(other.shortcuts, shortcuts);
@@ -136,10 +124,6 @@ class KeyboardOptions {
   int get hashCode {
     return Object.hash(
       enabled,
-      enableMultiSelection,
-      enableArrowKeyNavigation,
-      enableZoomShortcuts,
-      enableDuplication,
       arrowKeyMoveSpeed,
       zoomStep,
       shortcuts,
