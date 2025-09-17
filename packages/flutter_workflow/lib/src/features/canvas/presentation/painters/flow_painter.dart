@@ -3,7 +3,9 @@ import 'package:flutter_workflow/src/features/canvas/domain/state/connection_sta
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/edge_path_creator.dart';
-import 'package:flutter_workflow/src/theme/flow_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/flow_theme.dart';
+
+import '../../domain/models/connection.dart';
 
 /// Abstract base class for all custom edge painters.
 /// Extend this class to create your own custom edge rendering logic.
@@ -24,7 +26,7 @@ abstract class EdgePainter {
 class FlowPainter extends CustomPainter {
   final Map<String, FlowNode> nodes;
   final Map<String, FlowEdge> edges;
-  final FlowConnectionState? connection;
+  final FlowConnection? connection;
   final Rect? selectionRect;
   final FlowCanvasTheme theme;
   final double zoom;
@@ -81,7 +83,7 @@ class FlowPainter extends CustomPainter {
       if (sourceNode == null || targetNode == null) continue;
 
       final sourceHandle = sourceNode.handles[edge.value.sourceHandleId];
-      final targetHandle = sourceNode.handles[edge.value.targetHandleId];
+      final targetHandle = targetNode.handles[edge.value.targetHandleId];
 
       if (sourceHandle == null || targetHandle == null) continue;
 

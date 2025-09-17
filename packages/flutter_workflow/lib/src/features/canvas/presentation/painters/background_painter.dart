@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/components/background_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/background_theme.dart';
 
 class BackgroundPainter extends CustomPainter {
   final ui.FragmentProgram program;

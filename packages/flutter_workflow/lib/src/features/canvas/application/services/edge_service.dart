@@ -90,9 +90,7 @@ class EdgeService {
     if (edge == null) return state;
 
     // Your FlowEdge `data` property is dynamic, so we handle it safely.
-    final currentData = (edge.data is Map<String, dynamic>)
-        ? edge.data as Map<String, dynamic>
-        : <String, dynamic>{};
+    final currentData = edge.data;
 
     final updatedEdge = edge.copyWith(data: updater(currentData));
     final newEdges = Map<String, FlowEdge>.from(state.edges);

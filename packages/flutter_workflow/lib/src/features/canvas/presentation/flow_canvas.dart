@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart' show PointerScrollEvent;
 import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/node_registry.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/widgets/flow_background.dart';
-import 'package:flutter_workflow/src/theme/theme_export.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_export.dart';
 import 'painters/flow_painter.dart';
-import 'package:flutter_workflow/src/options/options_extensions.dart';
-import 'package:flutter_workflow/src/options/components/viewport_options.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/options_extensions.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/components/viewport_options.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/flow_options.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/components/node_options.dart';
 
 class FlowCanvas extends StatefulWidget {
   final NodeRegistry nodeRegistry;
@@ -39,12 +42,20 @@ class _FlowCanvasState extends State<FlowCanvas> {
   late final FlowCanvasFacade facade;
   bool _shouldDisposeLocalFacade = false;
 
+  // Cache overlays split once to avoid recomputation during builds
+  late final List<Widget> _backgroundOverlays;
+  late final List<Widget> _uiOverlays;
+
   @override
   void initState() {
     super.initState();
 
     facade = widget.facade;
     _shouldDisposeLocalFacade = false;
+
+    // Split overlays once
+    _backgroundOverlays = widget.overlays.whereType<FlowBackground>().toList();
+    _uiOverlays = widget.overlays.where((o) => o is! FlowBackground).toList();
 
     if (widget.fitView) {
       facade.fitView();
@@ -69,16 +80,15 @@ class _FlowCanvasState extends State<FlowCanvas> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted &&
-              constraints.hasBoundedWidth &&
-              constraints.hasBoundedHeight) {
+        // Only schedule when constraints are stable and mounted
+        if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
             final viewportSize =
                 Size(constraints.maxWidth, constraints.maxHeight);
-            // Report viewport size to the facade
             facade.setViewportSize(viewportSize);
-          }
-        });
+          });
+        }
 
         final enableBoxSelection =
             flowOptions.enableBoxSelection && viewportOptions.selectionOnDrag;
@@ -148,7 +158,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
                           height: 50000,
                           child: Container(
                             color:
-                                theme.background.backgroundColor.withAlpha(25),
+                                theme.background.backgroundColor!.withAlpha(25),
                             child: const Center(
                                 child: CircularProgressIndicator()),
                           ),
@@ -159,34 +169,28 @@ class _FlowCanvasState extends State<FlowCanvas> {
                           viewportOptions.onlyRenderVisibleElements);
 
                       return SizedBox(
-                          width: facade.state.canvasWidth,
-                          height: facade.state.canvasHeight,
+                          width: flowOptions.canvasWidth,
+                          height: flowOptions.canvasHeight,
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
                               // Background overlays (move with canvas)
-                              ...widget.overlays.whereType<FlowBackground>(),
+                              ..._backgroundOverlays,
 
-                              // Main canvas painting
-                              CustomPaint(
-                                size: Size.infinite,
-                                painter: FlowPainter(
-                                  nodes: facade.state.nodes,
-                                  edges: facade.state.edges,
-                                  connection: facade.state.connection,
-                                  selectionRect: facade.state.selectionRect,
-                                  theme: theme,
-                                  zoom: facade.state.zoom,
-                                ),
+                              // Main canvas painting isolated from node subtree
+                              RepaintBoundary(
+                                child: _FlowCanvasPaint(facade: facade),
                               ),
 
-                              // Render nodes
-                              ...nodesToRender.map((node) => _buildNodeWidget(
-                                  context,
-                                  node,
-                                  facade.canvasCentre,
-                                  flowOptions,
-                                  viewportOptions)),
+                              // Render nodes (each wrapped in its own RepaintBoundary)
+                              ...nodesToRender.map((node) => RepaintBoundary(
+                                  child: _buildNodeWidget(
+                                      context,
+                                      node,
+                                      Offset(flowOptions.canvasWidth / 2,
+                                          flowOptions.canvasHeight / 2),
+                                      flowOptions,
+                                      viewportOptions))),
                             ],
                           ));
                     },
@@ -196,7 +200,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
             ),
 
             // UI overlays (don't move with canvas)
-            ...widget.overlays.where((overlay) => overlay is! FlowBackground),
+            ..._uiOverlays,
           ],
         );
       },
@@ -266,5 +270,35 @@ class _FlowCanvasState extends State<FlowCanvas> {
     if (localPosition.dy > size.height - edge) pan += const Offset(0, 1);
     if (pan == Offset.zero) return;
     facade.pan(pan * options.autoPanSpeed);
+  }
+}
+
+/// Isolated paint subtree that rebuilds with stream but does not force node widgets to repaint
+class _FlowCanvasPaint extends StatelessWidget {
+  const _FlowCanvasPaint({required this.facade});
+
+  final FlowCanvasFacade facade;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlowCanvasThemeProvider.of(context);
+    return StreamBuilder<FlowCanvasState>(
+      stream: facade.fullCanvasStream,
+      initialData: facade.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? facade.state;
+        return CustomPaint(
+          size: Size.infinite,
+          painter: FlowPainter(
+            nodes: state.nodes,
+            edges: state.edges,
+            connection: state.connection,
+            selectionRect: state.selectionRect,
+            theme: theme,
+            zoom: state.viewport.zoom,
+          ),
+        );
+      },
+    );
   }
 }

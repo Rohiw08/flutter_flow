@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/components/controller_theme.dart';
-import 'package:flutter_workflow/src/theme/theme_resolver/controller_button_inherited_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/controller_theme.dart';
+import '../theme/components/controller_button_theme.dart';
 
 class ControlButton extends StatefulWidget {
   final IconData icon;

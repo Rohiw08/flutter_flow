@@ -24,8 +24,8 @@ mixin _$FlowConnection {
   String? get toHandleId;
   int get zIndex;
   FlowConnectionStyle? get connectionStyle;
-  EdgeMarkerStyle? get startMarker;
-  EdgeMarkerStyle? get endMarker;
+  FlowEdgeMarkerStyle? get startMarker;
+  FlowEdgeMarkerStyle? get endMarker;
 
   /// Create a copy of FlowConnection
   /// with the given fields replaced by the non-null parameter values.
@@ -102,8 +102,8 @@ abstract mixin class $FlowConnectionCopyWith<$Res> {
       String? toHandleId,
       int zIndex,
       FlowConnectionStyle? connectionStyle,
-      EdgeMarkerStyle? startMarker,
-      EdgeMarkerStyle? endMarker});
+      FlowEdgeMarkerStyle? startMarker,
+      FlowEdgeMarkerStyle? endMarker});
 }
 
 /// @nodoc
@@ -176,11 +176,11 @@ class _$FlowConnectionCopyWithImpl<$Res>
       startMarker: freezed == startMarker
           ? _self.startMarker
           : startMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       endMarker: freezed == endMarker
           ? _self.endMarker
           : endMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
     ));
   }
 }
@@ -289,8 +289,8 @@ extension FlowConnectionPatterns on FlowConnection {
             String? toHandleId,
             int zIndex,
             FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker)?
+            FlowEdgeMarkerStyle? startMarker,
+            FlowEdgeMarkerStyle? endMarker)?
         $default, {
     required TResult orElse(),
   }) {
@@ -341,8 +341,8 @@ extension FlowConnectionPatterns on FlowConnection {
             String? toHandleId,
             int zIndex,
             FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker)
+            FlowEdgeMarkerStyle? startMarker,
+            FlowEdgeMarkerStyle? endMarker)
         $default,
   ) {
     final _that = this;
@@ -391,8 +391,8 @@ extension FlowConnectionPatterns on FlowConnection {
             String? toHandleId,
             int zIndex,
             FlowConnectionStyle? connectionStyle,
-            EdgeMarkerStyle? startMarker,
-            EdgeMarkerStyle? endMarker)?
+            FlowEdgeMarkerStyle? startMarker,
+            FlowEdgeMarkerStyle? endMarker)?
         $default,
   ) {
     final _that = this;
@@ -457,9 +457,9 @@ class _FlowConnection extends FlowConnection {
   @override
   final FlowConnectionStyle? connectionStyle;
   @override
-  final EdgeMarkerStyle? startMarker;
+  final FlowEdgeMarkerStyle? startMarker;
   @override
-  final EdgeMarkerStyle? endMarker;
+  final FlowEdgeMarkerStyle? endMarker;
 
   /// Create a copy of FlowConnection
   /// with the given fields replaced by the non-null parameter values.
@@ -538,8 +538,8 @@ abstract mixin class _$FlowConnectionCopyWith<$Res>
       String? toHandleId,
       int zIndex,
       FlowConnectionStyle? connectionStyle,
-      EdgeMarkerStyle? startMarker,
-      EdgeMarkerStyle? endMarker});
+      FlowEdgeMarkerStyle? startMarker,
+      FlowEdgeMarkerStyle? endMarker});
 }
 
 /// @nodoc
@@ -612,11 +612,11 @@ class __$FlowConnectionCopyWithImpl<$Res>
       startMarker: freezed == startMarker
           ? _self.startMarker
           : startMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       endMarker: freezed == endMarker
           ? _self.endMarker
           : endMarker // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
     ));
   }
 }

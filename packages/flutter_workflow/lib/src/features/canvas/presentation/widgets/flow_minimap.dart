@@ -3,27 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/painters/minimap_painter.dart';
-import 'package:flutter_workflow/src/theme/components/minimap_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/minimap_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/theme/theme_resolver/minimap_theme_resolver.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_resolver/minimap_theme_resolver.dart';
 
 /// A function that returns a color for a given node in the minimap.
 typedef MiniMapNodeColorFunc = Color? Function(FlowNode node);
 
 /// A highly customizable and performant minimap widget for the FlowCanvas.
-class FlowMiniMap extends ConsumerWidget {
+class FlowMiniMap extends ConsumerStatefulWidget {
   final FlowCanvasFacade facade;
-
-  // --- Sizing and Positioning ---
   final double width;
   final double height;
   final Alignment position;
   final EdgeInsetsGeometry margin;
-
-  // --- Theming & Overrides ---
-  final FlowCanvasMiniMapStyle? miniMapTheme;
-
-  // --- Interactivity ---
+  final FlowMinimapStyle? miniMapTheme;
   final bool pannable;
   final bool zoomable;
 
@@ -33,23 +27,44 @@ class FlowMiniMap extends ConsumerWidget {
     this.width = 200,
     this.height = 150,
     this.position = Alignment.bottomRight,
-    this.margin = const EdgeInsetsGeometry.all(20),
+    this.margin = const EdgeInsets.all(20),
     this.miniMapTheme,
     this.pannable = true,
     this.zoomable = true,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = resolveMiniMapTheme(context, miniMapTheme);
+  ConsumerState<FlowMiniMap> createState() => _FlowMiniMapState();
+}
+
+class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
+  late FlowMinimapStyle _resolvedTheme;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolvedTheme = resolveMiniMapTheme(context, widget.miniMapTheme);
+  }
+
+  @override
+  void didUpdateWidget(covariant FlowMiniMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.miniMapTheme != widget.miniMapTheme) {
+      _resolvedTheme = resolveMiniMapTheme(context, widget.miniMapTheme);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = _resolvedTheme;
 
     return Align(
-      alignment: position,
+      alignment: widget.position,
       child: Container(
-        margin: margin,
+        margin: widget.margin,
         child: Container(
-          width: width,
-          height: height,
+          width: widget.width,
+          height: widget.height,
           decoration: BoxDecoration(
             color: theme.backgroundColor,
             borderRadius: BorderRadius.circular(theme.borderRadius!),
@@ -61,23 +76,25 @@ class FlowMiniMap extends ConsumerWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(theme.borderRadius!),
-            child: StreamBuilder<List<Object>>(
-              stream: facade.nodesAndViewportStream.cast<List<Object>>(),
+            child: StreamBuilder<({List<FlowNode> nodes, Rect? viewport})>(
+              stream: widget.facade.nodesAndViewportStream,
               builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                final data = snapshot.data;
+                if (data == null) {
                   return const SizedBox.shrink();
                 }
-                final nodes = snapshot.data![0] as Map<String, FlowNode>;
-                final viewport = snapshot.data![1] as Rect;
+                final nodes = data.nodes;
+                final viewport = data.viewport ?? Rect.zero;
 
                 return Listener(
-                  onPointerSignal:
-                      zoomable ? (event) => _onPointerSignal(event) : null,
+                  onPointerSignal: widget.zoomable
+                      ? (event) => _onPointerSignal(event)
+                      : null,
                   child: GestureDetector(
-                    onTapUp: pannable
+                    onTapUp: widget.pannable
                         ? (details) => _onTapUp(details, nodes, theme)
                         : null,
-                    onPanUpdate: pannable
+                    onPanUpdate: widget.pannable
                         ? (details) => _onPanUpdate(details, nodes, theme)
                         : null,
                     child: CustomPaint(
@@ -86,7 +103,7 @@ class FlowMiniMap extends ConsumerWidget {
                         viewport: viewport,
                         theme: theme,
                       ),
-                      size: Size(width, height),
+                      size: Size(widget.width, widget.height),
                     ),
                   ),
                 );
@@ -101,40 +118,40 @@ class FlowMiniMap extends ConsumerWidget {
   void _onTapUp(
     TapUpDetails details,
     List<FlowNode> nodes,
-    FlowCanvasMiniMapStyle theme,
+    FlowMinimapStyle theme,
   ) {
     final transform = MiniMapPainter.calculateTransform(
       _getBounds(nodes),
-      Size(width, height),
+      Size(widget.width, widget.height),
       theme,
     );
     if (transform.scale <= 0) return;
 
     final canvasPosition =
         MiniMapPainter.fromMiniMapToCanvas(details.localPosition, transform);
-    facade.centerOnPosition(canvasPosition);
+    widget.facade.centerOnPosition(canvasPosition);
   }
 
   void _onPanUpdate(
     DragUpdateDetails details,
     List<FlowNode> nodes,
-    FlowCanvasMiniMapStyle theme,
+    FlowMinimapStyle theme,
   ) {
     final transform = MiniMapPainter.calculateTransform(
       _getBounds(nodes),
-      Size(width, height),
+      Size(widget.width, widget.height),
       theme,
     );
     if (transform.scale <= 0) return;
 
     final canvasDelta = details.delta / transform.scale;
-    facade.pan(canvasDelta);
+    widget.facade.pan(canvasDelta);
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
     if (event is PointerScrollEvent) {
       final zoomDelta = -event.scrollDelta.dy * 0.001;
-      facade.zoom(zoomDelta);
+      widget.facade.zoom(zoomDelta);
     }
   }
 

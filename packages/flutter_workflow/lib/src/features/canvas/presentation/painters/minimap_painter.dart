@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
-import 'package:flutter_workflow/src/theme/components/minimap_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/minimap_theme.dart';
 
 /// Holds the calculated transformation values for rendering the minimap.
 class MiniMapTransform {
@@ -18,14 +18,13 @@ class MiniMapTransform {
 
 /// A highly optimized painter for the canvas minimap.
 class MiniMapPainter extends CustomPainter {
-  final Map<String, FlowNode> nodes;
+  final List<FlowNode> nodes;
   final Rect viewport;
-  final FlowCanvasMiniMapStyle theme;
+  final FlowMinimapStyle theme;
 
   // Pre-built Paint objects for performance.
   final Paint _backgroundPaint;
   final Paint _nodePaint;
-  final Paint _selectedNodePaint;
   final Paint _maskPaint;
   final Paint _viewportStrokePaint;
 
@@ -33,13 +32,14 @@ class MiniMapPainter extends CustomPainter {
     required this.nodes,
     required this.viewport,
     required this.theme,
-  })  : _backgroundPaint = Paint()..color = theme.backgroundColor,
-        _nodePaint = Paint()..color = theme.nodeColor,
-        _selectedNodePaint = Paint()..color = theme.selectedNodeColor,
-        _maskPaint = Paint()..color = theme.maskColor,
+  })  : _backgroundPaint = Paint()
+          ..color = (theme.backgroundColor ?? Colors.transparent),
+        _nodePaint = Paint()..color = (theme.nodeColor ?? Colors.blue),
+        _maskPaint = Paint()
+          ..color = (theme.maskColor ?? const Color(0x66000000)),
         _viewportStrokePaint = Paint()
-          ..color = theme.maskStrokeColor
-          ..strokeWidth = theme.maskStrokeWidth
+          ..color = (theme.maskStrokeColor ?? Colors.white)
+          ..strokeWidth = (theme.maskStrokeWidth ?? 1.0)
           ..style = PaintingStyle.stroke;
 
   @override
@@ -60,19 +60,13 @@ class MiniMapPainter extends CustomPainter {
   }
 
   void _drawNodes(Canvas canvas, MiniMapTransform transform) {
-    final regularNodesPath = Path();
-    final selectedNodesPath = Path();
+    final nodesPath = Path();
 
-    for (MapEntry<String, FlowNode> node in nodes.entries) {
-      final nodeRect = fromCanvasToMiniMap(node.value.rect, transform);
-      if (node.value.isSelected) {
-        selectedNodesPath.addRect(nodeRect);
-      } else {
-        regularNodesPath.addRect(nodeRect);
-      }
+    for (final node in nodes) {
+      final nodeRect = fromCanvasToMiniMap(node.rect, transform);
+      nodesPath.addRect(nodeRect);
     }
-    canvas.drawPath(regularNodesPath, _nodePaint);
-    canvas.drawPath(selectedNodesPath, _selectedNodePaint);
+    canvas.drawPath(nodesPath, _nodePaint);
   }
 
   void _drawViewport(Canvas canvas, Size size, MiniMapTransform transform) {
@@ -86,9 +80,9 @@ class MiniMapPainter extends CustomPainter {
     canvas.drawRect(viewportInMiniMap, _viewportStrokePaint);
   }
 
-  Rect _getBounds(Map<String, FlowNode> nodes) {
+  Rect _getBounds(List<FlowNode> nodes) {
     if (nodes.isEmpty) return Rect.zero;
-    return nodes.values
+    return nodes
         .map((node) => node.rect)
         .reduce((a, b) => a.expandToInclude(b));
   }
@@ -96,20 +90,21 @@ class MiniMapPainter extends CustomPainter {
   // --- STATIC UTILITY METHODS ---
 
   static MiniMapTransform calculateTransform(
-      Rect contentBounds, Size minimapSize, FlowCanvasMiniMapStyle theme) {
+      Rect contentBounds, Size minimapSize, FlowMinimapStyle theme) {
     if (contentBounds.isEmpty || minimapSize.isEmpty) {
-      return const MiniMapTransform(
-          scale: 0, offsetX: 0, offsetY: 0, contentBounds: Rect.zero);
+      return MiniMapTransform(
+          scale: 0, offset: Offset.zero, contentBounds: Rect.zero);
     }
-    final paddedWidth = minimapSize.width - (theme.padding * 2);
-    final paddedHeight = minimapSize.height - (theme.padding * 2);
+    final padding = theme.padding ?? 10.0;
+    final paddedWidth = minimapSize.width - (padding * 2);
+    final paddedHeight = minimapSize.height - (padding * 2);
 
     if (contentBounds.width <= 0 ||
         contentBounds.height <= 0 ||
         paddedWidth <= 0 ||
         paddedHeight <= 0) {
       return MiniMapTransform(
-          scale: 0, offsetX: 0, offsetY: 0, contentBounds: contentBounds);
+          scale: 0, offset: Offset.zero, contentBounds: contentBounds);
     }
     final scaleX = paddedWidth / contentBounds.width;
     final scaleY = paddedHeight / contentBounds.height;
@@ -125,8 +120,7 @@ class MiniMapPainter extends CustomPainter {
 
     return MiniMapTransform(
         scale: scale,
-        offsetX: offsetX,
-        offsetY: offsetY,
+        offset: Offset(offsetX, offsetY),
         contentBounds: contentBounds);
   }
 
@@ -134,15 +128,15 @@ class MiniMapPainter extends CustomPainter {
       Offset miniMapPosition, MiniMapTransform transform) {
     if (transform.scale == 0) return Offset.zero;
     return Offset(
-      (miniMapPosition.dx - transform.offsetX) / transform.scale,
-      (miniMapPosition.dy - transform.offsetY) / transform.scale,
+      (miniMapPosition.dx - transform.offset.dx) / transform.scale,
+      (miniMapPosition.dy - transform.offset.dy) / transform.scale,
     );
   }
 
   static Rect fromCanvasToMiniMap(Rect canvasRect, MiniMapTransform transform) {
     return Rect.fromLTWH(
-      canvasRect.left * transform.scale + transform.offsetX,
-      canvasRect.top * transform.scale + transform.offsetY,
+      canvasRect.left * transform.scale + transform.offset.dx,
+      canvasRect.top * transform.scale + transform.offset.dy,
       canvasRect.width * transform.scale,
       canvasRect.height * transform.scale,
     );

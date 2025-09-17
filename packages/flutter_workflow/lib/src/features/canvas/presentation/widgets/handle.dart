@@ -1,45 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
-import 'package:flutter_workflow/src/theme/components/handle_theme.dart';
-import 'package:flutter_workflow/src/theme/theme_extensions.dart';
-import 'package:flutter_workflow/src/options/options_extensions.dart';
-import 'package:flutter_workflow/src/options/components/node_options.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/handle_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/options_extensions.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 
 /// A callback function to validate a potential connection.
 typedef IsValidConnectionCallback = bool Function(String connection);
 
 class Handle extends ConsumerStatefulWidget {
-  final FlowCanvasFacade facade;
   final String nodeId;
   final String handleId;
   final HandlePosition? position;
   final HandleType type;
   final Widget? child;
 
-  // --- Style Overrides (Tier 1 Theming) ---
-  final double? size;
-  final Color? color;
-  final Color? borderColor;
-  final double? borderWidth;
+  // Theming override
+  final FlowHandleStyle? handleStyle;
+
+  // Connection wiring (disassociated from facade)
+  final Stream<FlowConnection?> connectionStream;
+  final void Function(String nodeId, String handleId, Offset globalPos)
+      onStartConnection;
+  final VoidCallback onEndConnection;
 
   // A callback to determine if a connection to this handle is valid.
   final IsValidConnectionCallback? onValidateConnection;
 
   const Handle({
     super.key,
-    required this.facade,
     required this.nodeId,
     required this.handleId,
+    required this.connectionStream,
+    required this.onStartConnection,
+    required this.onEndConnection,
     this.position,
-    this.type = HandleType.source,
+    this.type = HandleType.both,
     this.child,
-    this.size,
-    this.color,
-    this.borderColor,
-    this.borderWidth,
+    this.handleStyle,
     this.onValidateConnection,
   });
 
@@ -54,26 +52,26 @@ class _HandleState extends ConsumerState<Handle> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.flowCanvasTheme;
-    final handleTheme = theme.handle;
+    final theme =
+        const FlowHandleStyle().resolveHandleTheme(context, widget.handleStyle);
 
-    // Resolve final styles using the three-tier system.
-    final double finalSize = widget.size ?? handleTheme.size;
-    final Color finalBorderColor =
-        widget.borderColor ?? handleTheme.borderColor;
-    final double finalBorderWidth =
-        widget.borderWidth ?? handleTheme.borderWidth;
+    final double finalSize = theme.size ?? 10.0;
+    final Color finalBorderColor = theme.borderColor ?? Colors.white;
+    final double finalBorderWidth = theme.borderWidth ?? 1.5;
 
-    return StreamBuilder<FlowConnectionState?>(
-      stream: widget.facade.connectionStream,
+    return StreamBuilder<FlowConnection?>(
+      stream: widget.connectionStream,
       builder: (context, snapshot) {
         final connection = snapshot.data;
         final isMyConnectionSource = connection?.fromNodeId == widget.nodeId &&
             connection?.fromHandleId == widget.handleId;
-        final isTargeted = connection?.hoveredTargetKey == handleKey;
+        final isTargeted = connection?.toNodeId == widget.nodeId &&
+            connection?.toHandleId == widget.handleId;
 
-        final Color finalColor = widget.color ??
-            _getHandleColor(handleTheme, isMyConnectionSource, isTargeted);
+        final bool? isValid = _evaluateValidity(connection);
+
+        final Color finalColor =
+            _getHandleColor(theme, isMyConnectionSource, isTargeted, isValid);
         final scale =
             (_isHovered || isMyConnectionSource || isTargeted) ? 1.4 : 1.0;
 
@@ -86,9 +84,7 @@ class _HandleState extends ConsumerState<Handle> {
               if (widget.type == HandleType.target) return;
               final flowOptions = context.flowCanvasOptions;
               if (!flowOptions.enableConnectivity) return;
-              final node = widget.facade.state.nodes[widget.nodeId];
-              if (node != null && !node.isConnectable(context)) return;
-              widget.facade.startConnection(
+              widget.onStartConnection(
                 widget.nodeId,
                 widget.handleId,
                 details.globalPosition,
@@ -96,7 +92,7 @@ class _HandleState extends ConsumerState<Handle> {
             },
             onPanEnd: (details) {
               if (widget.type == HandleType.target) return;
-              widget.facade.endConnection();
+              widget.onEndConnection();
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -134,22 +130,50 @@ class _HandleState extends ConsumerState<Handle> {
     );
   }
 
+  // Returns true/false when both ends are known, otherwise null (unknown)
+  bool? _evaluateValidity(FlowConnection? connection) {
+    if (widget.onValidateConnection == null || connection == null) {
+      return null; // No validation or no active connection yet
+    }
+    final from = '${connection.fromNodeId}/${connection.fromHandleId}';
+    final to = '${connection.toNodeId}/${connection.toHandleId}';
+    // Only validate if both ends are non-null
+    if (connection.fromNodeId == null ||
+        connection.fromHandleId == null ||
+        connection.toNodeId == null ||
+        connection.toHandleId == null) {
+      return null;
+    }
+    final descriptor = '$from->$to';
+    return widget.onValidateConnection!(descriptor);
+  }
+
   Color _getHandleColor(
-    FlowCanvasHandleStyle handleTheme,
+    FlowHandleStyle handleTheme,
     bool isMyConnectionSource,
     bool isTargeted,
+    bool? isValid,
   ) {
     if (isMyConnectionSource) {
-      return handleTheme.activeColor;
+      return handleTheme.activeColor ?? handleTheme.idleColor ?? Colors.blue;
     }
     if (isTargeted) {
-      // TODO: Implement connection validation logic via facade
-      return handleTheme.validTargetColor;
+      // Use validation result if available when targeted
+      if (isValid == false) {
+        return handleTheme.invalidTargetColor ??
+            handleTheme.hoverColor ??
+            handleTheme.idleColor ??
+            Colors.redAccent;
+      }
+      return handleTheme.validTargetColor ??
+          handleTheme.hoverColor ??
+          handleTheme.idleColor ??
+          Colors.green;
     }
     if (_isHovered) {
-      return handleTheme.hoverColor;
+      return handleTheme.hoverColor ?? handleTheme.idleColor ?? Colors.blueGrey;
     }
-    return handleTheme.idleColor;
+    return handleTheme.idleColor ?? Colors.grey;
   }
 
   Alignment _getAlignment() {

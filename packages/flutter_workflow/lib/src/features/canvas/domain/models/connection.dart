@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/theme/theme_export.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_export.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter_workflow/src/theme/components/edge_marker_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
 
 part 'connection.freezed.dart';
 
@@ -20,7 +20,7 @@ abstract class FlowConnection with _$FlowConnection {
     String? toHandleId,
     @Default(0) int zIndex,
     FlowConnectionStyle? connectionStyle,
-    EdgeMarkerStyle? startMarker,
-    EdgeMarkerStyle? endMarker,
+    FlowEdgeMarkerStyle? startMarker,
+    FlowEdgeMarkerStyle? endMarker,
   }) = _FlowConnection;
 }

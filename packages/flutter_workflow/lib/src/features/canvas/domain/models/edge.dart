@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
-import 'package:flutter_workflow/src/theme/components/edge_marker_theme.dart';
-import 'package:flutter_workflow/src/theme/components/edge_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_theme.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'edge.freezed.dart';
@@ -24,8 +24,8 @@ abstract class FlowEdge with _$FlowEdge {
     @Default(10.0) double interactionWidth,
     Widget? label,
     BoxDecoration? labelDecoration,
-    EdgeMarkerStyle? startMarkerStyle,
-    EdgeMarkerStyle? endMarkerStyle,
+    FlowEdgeMarkerStyle? startMarkerStyle,
+    FlowEdgeMarkerStyle? endMarkerStyle,
     FlowEdgeStyle? style,
     @Default(<String, dynamic>{}) Map<String, dynamic> data,
     bool? animated,

@@ -1,11 +1,11 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/painters/background_painter.dart';
-import 'package:flutter_workflow/src/theme/components/background_theme.dart';
-import 'package:flutter_workflow/src/theme/theme_resolver/background_theme_resolver.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/background_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_resolver/background_theme_resolver.dart';
 
 class FlowBackground extends StatefulWidget {
-  final FlowCanvasBackgroundStyle? backgroundTheme;
+  final FlowBackgroundStyle? backgroundTheme;
 
   const FlowBackground({
     super.key,
@@ -19,11 +19,26 @@ class FlowBackground extends StatefulWidget {
 class _FlowBackgroundState extends State<FlowBackground> {
   ui.FragmentProgram? _program;
   bool _isShaderLoaded = false;
+  late FlowBackgroundStyle _resolvedTheme;
 
   @override
   void initState() {
     super.initState();
     _loadShader();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolvedTheme = resolveBackgroundTheme(context, widget.backgroundTheme);
+  }
+
+  @override
+  void didUpdateWidget(covariant FlowBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.backgroundTheme != widget.backgroundTheme) {
+      _resolvedTheme = resolveBackgroundTheme(context, widget.backgroundTheme);
+    }
   }
 
   Future<void> _loadShader() async {
@@ -50,7 +65,7 @@ class _FlowBackgroundState extends State<FlowBackground> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = resolveBackgroundTheme(context, widget.backgroundTheme);
+    final theme = _resolvedTheme;
 
     // Show fallback during shader loading
     if (!_isShaderLoaded) {

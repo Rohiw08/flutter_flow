@@ -24,10 +24,10 @@ mixin _$FlowEdge {
   double get interactionWidth;
   Widget? get label;
   BoxDecoration? get labelDecoration;
-  EdgeMarkerStyle? get startMarkerStyle;
-  EdgeMarkerStyle? get endMarkerStyle;
+  FlowEdgeMarkerStyle? get startMarkerStyle;
+  FlowEdgeMarkerStyle? get endMarkerStyle;
   FlowEdgeStyle? get style;
-  dynamic get data;
+  Map<String, dynamic> get data;
   bool? get animated;
   bool? get hidden;
   bool? get deletable;
@@ -134,10 +134,10 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       double interactionWidth,
       Widget? label,
       BoxDecoration? labelDecoration,
-      EdgeMarkerStyle? startMarkerStyle,
-      EdgeMarkerStyle? endMarkerStyle,
+      FlowEdgeMarkerStyle? startMarkerStyle,
+      FlowEdgeMarkerStyle? endMarkerStyle,
       FlowEdgeStyle? style,
-      dynamic data,
+      Map<String, dynamic> data,
       bool? animated,
       bool? hidden,
       bool? deletable,
@@ -172,7 +172,7 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
     Object? startMarkerStyle = freezed,
     Object? endMarkerStyle = freezed,
     Object? style = freezed,
-    Object? data = freezed,
+    Object? data = null,
     Object? animated = freezed,
     Object? hidden = freezed,
     Object? deletable = freezed,
@@ -225,19 +225,19 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
       startMarkerStyle: freezed == startMarkerStyle
           ? _self.startMarkerStyle
           : startMarkerStyle // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       endMarkerStyle: freezed == endMarkerStyle
           ? _self.endMarkerStyle
           : endMarkerStyle // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       style: freezed == style
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as FlowEdgeStyle?,
-      data: freezed == data
+      data: null == data
           ? _self.data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as Map<String, dynamic>,
       animated: freezed == animated
           ? _self.animated
           : animated // ignore: cast_nullable_to_non_nullable
@@ -374,10 +374,10 @@ extension FlowEdgePatterns on FlowEdge {
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
-            EdgeMarkerStyle? startMarkerStyle,
-            EdgeMarkerStyle? endMarkerStyle,
+            FlowEdgeMarkerStyle? startMarkerStyle,
+            FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
-            dynamic data,
+            Map<String, dynamic> data,
             bool? animated,
             bool? hidden,
             bool? deletable,
@@ -444,10 +444,10 @@ extension FlowEdgePatterns on FlowEdge {
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
-            EdgeMarkerStyle? startMarkerStyle,
-            EdgeMarkerStyle? endMarkerStyle,
+            FlowEdgeMarkerStyle? startMarkerStyle,
+            FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
-            dynamic data,
+            Map<String, dynamic> data,
             bool? animated,
             bool? hidden,
             bool? deletable,
@@ -512,10 +512,10 @@ extension FlowEdgePatterns on FlowEdge {
             double interactionWidth,
             Widget? label,
             BoxDecoration? labelDecoration,
-            EdgeMarkerStyle? startMarkerStyle,
-            EdgeMarkerStyle? endMarkerStyle,
+            FlowEdgeMarkerStyle? startMarkerStyle,
+            FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
-            dynamic data,
+            Map<String, dynamic> data,
             bool? animated,
             bool? hidden,
             bool? deletable,
@@ -573,7 +573,7 @@ class _FlowEdge extends FlowEdge {
       this.startMarkerStyle,
       this.endMarkerStyle,
       this.style,
-      this.data = const {},
+      final Map<String, dynamic> data = const <String, dynamic>{},
       this.animated,
       this.hidden,
       this.deletable,
@@ -583,6 +583,7 @@ class _FlowEdge extends FlowEdge {
       this.elevateEdgeOnSelected})
       : assert(sourceNodeId != targetNodeId,
             'Source and target cannot be the same node'),
+        _data = data,
         super._();
 
   @override
@@ -609,14 +610,20 @@ class _FlowEdge extends FlowEdge {
   @override
   final BoxDecoration? labelDecoration;
   @override
-  final EdgeMarkerStyle? startMarkerStyle;
+  final FlowEdgeMarkerStyle? startMarkerStyle;
   @override
-  final EdgeMarkerStyle? endMarkerStyle;
+  final FlowEdgeMarkerStyle? endMarkerStyle;
   @override
   final FlowEdgeStyle? style;
+  final Map<String, dynamic> _data;
   @override
   @JsonKey()
-  final dynamic data;
+  Map<String, dynamic> get data {
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_data);
+  }
+
   @override
   final bool? animated;
   @override
@@ -667,7 +674,7 @@ class _FlowEdge extends FlowEdge {
             (identical(other.endMarkerStyle, endMarkerStyle) ||
                 other.endMarkerStyle == endMarkerStyle) &&
             (identical(other.style, style) || other.style == style) &&
-            const DeepCollectionEquality().equals(other.data, data) &&
+            const DeepCollectionEquality().equals(other._data, _data) &&
             (identical(other.animated, animated) ||
                 other.animated == animated) &&
             (identical(other.hidden, hidden) || other.hidden == hidden) &&
@@ -699,7 +706,7 @@ class _FlowEdge extends FlowEdge {
         startMarkerStyle,
         endMarkerStyle,
         style,
-        const DeepCollectionEquality().hash(data),
+        const DeepCollectionEquality().hash(_data),
         animated,
         hidden,
         deletable,
@@ -733,10 +740,10 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       double interactionWidth,
       Widget? label,
       BoxDecoration? labelDecoration,
-      EdgeMarkerStyle? startMarkerStyle,
-      EdgeMarkerStyle? endMarkerStyle,
+      FlowEdgeMarkerStyle? startMarkerStyle,
+      FlowEdgeMarkerStyle? endMarkerStyle,
       FlowEdgeStyle? style,
-      dynamic data,
+      Map<String, dynamic> data,
       bool? animated,
       bool? hidden,
       bool? deletable,
@@ -771,7 +778,7 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
     Object? startMarkerStyle = freezed,
     Object? endMarkerStyle = freezed,
     Object? style = freezed,
-    Object? data = freezed,
+    Object? data = null,
     Object? animated = freezed,
     Object? hidden = freezed,
     Object? deletable = freezed,
@@ -824,19 +831,19 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
       startMarkerStyle: freezed == startMarkerStyle
           ? _self.startMarkerStyle
           : startMarkerStyle // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       endMarkerStyle: freezed == endMarkerStyle
           ? _self.endMarkerStyle
           : endMarkerStyle // ignore: cast_nullable_to_non_nullable
-              as EdgeMarkerStyle?,
+              as FlowEdgeMarkerStyle?,
       style: freezed == style
           ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as FlowEdgeStyle?,
-      data: freezed == data
-          ? _self.data
+      data: null == data
+          ? _self._data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as Map<String, dynamic>,
       animated: freezed == animated
           ? _self.animated
           : animated // ignore: cast_nullable_to_non_nullable

@@ -23,4 +23,4 @@ export 'src/shared/enums.dart';
 
 // --- THEMING ---
 // The public theme data, providers, and builders.
-export 'src/theme/theme_export.dart';
+export 'src/features/canvas/presentation/theme/theme_export.dart';
