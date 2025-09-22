@@ -1,4 +1,4 @@
-import '../../domain/state/flow_canvas_state.dart';
+import '../../domain/flow_canvas_state.dart';
 
 class EdgeQueryService {
   /// Get all edge IDs connected to a specific node

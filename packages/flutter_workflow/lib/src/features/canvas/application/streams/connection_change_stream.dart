@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../events/connection_chnage_event.dart';
+import '../events/connection_change_event.dart';
 
 class ConnectionStreams {
   final StreamController<ConnectionEvent> _connectionEventController =

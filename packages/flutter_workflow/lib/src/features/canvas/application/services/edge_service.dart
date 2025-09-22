@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 
 import '../../domain/indexes/edge_index.dart';

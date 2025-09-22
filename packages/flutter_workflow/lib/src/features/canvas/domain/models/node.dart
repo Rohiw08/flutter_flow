@@ -34,3 +34,49 @@ abstract class FlowNode with _$FlowNode {
   Rect get rect =>
       Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
 }
+
+// Add this extension at the end of the file
+extension FlowNodeFactory on FlowNode {
+  /// Factory method to create a FlowNode with common defaults
+  static FlowNode create({
+    required String id,
+    required Offset position,
+    required Size size,
+    required String type,
+    String? parentId,
+    List<NodeHandle> handles = const [],
+    Map<String, dynamic> data = const {},
+    int zIndex = 0,
+    bool? hidden,
+    bool? draggable,
+    bool? selectable,
+    bool? connectable,
+    bool? deletable,
+    bool? focusable,
+    bool? elevateNodeOnSelected,
+  }) {
+    // Convert handles list to map
+    final handlesMap = <String, NodeHandle>{};
+    for (final handle in handles) {
+      handlesMap[handle.id] = handle;
+    }
+
+    return FlowNode(
+      id: id,
+      type: type,
+      position: position,
+      size: size,
+      parentId: parentId,
+      handles: handlesMap,
+      data: data,
+      zIndex: zIndex,
+      hidden: hidden,
+      draggable: draggable,
+      selectable: selectable,
+      connectable: connectable,
+      deletable: deletable,
+      focusable: focusable,
+      elevateNodeOnSelected: elevateNodeOnSelected,
+    );
+  }
+}

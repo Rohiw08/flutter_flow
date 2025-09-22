@@ -1,27 +1,31 @@
 import 'dart:ui';
-
-import '../../../../../flutter_workflow.dart';
-import '../../domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 
 class NodeQueryService {
-  /// Query nodes in a rectangle using the NodeIndex
+  /// Query nodes in a rectangle using the NodeIndex.
   List<FlowNode> queryInRect(FlowCanvasState state, Rect rect) {
-    return state.nodeIndex.queryInRect(rect);
+    return state.nodeIndex.queryNodesInRect(rect);
   }
 
-  /// Query nodes near a point using the NodeIndex
+  /// Query nodes near a point using the NodeIndex.
   List<FlowNode> queryNearPoint(
       FlowCanvasState state, Offset point, double radius) {
-    return state.nodeIndex.queryNearPoint(point, radius);
+    final rect = Rect.fromCircle(center: point, radius: radius);
+    // You might want a more precise circular check here later if needed
+    return state.nodeIndex.queryNodesInRect(rect);
   }
 
-  /// Get isolated nodes using the NodeIndex
+  /// Get isolated nodes (nodes with no connections).
   List<FlowNode> getIsolatedNodes(FlowCanvasState state) {
-    return state.nodeIndex.getIsolatedNodes();
+    return state.nodes.values
+        .where((node) => !state.edgeIndex.isNodeConnected(node.id))
+        .toList();
   }
 
-  /// Get connected nodes for a specific node
+  /// Get the IDs of all nodes connected to a specific node.
   Set<String> getConnectedNodes(FlowCanvasState state, String nodeId) {
-    return state.nodeIndex.getConnectedNodes(nodeId);
+    // This information is correctly managed by the EdgeIndex.
+    return state.edgeIndex.getConnectedNodes(nodeId);
   }
 }

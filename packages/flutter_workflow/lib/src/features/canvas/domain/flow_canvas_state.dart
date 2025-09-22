@@ -48,13 +48,14 @@ abstract class FlowCanvasState with _$FlowCanvasState {
   }) = _FlowCanvasState;
 
   factory FlowCanvasState.initial() => FlowCanvasState(
-      nodes: {},
-      edges: {},
-      selectedNodes: {},
-      selectedEdges: {},
-      nodeStates: {},
-      edgeStates: {},
-      spatialHash: {},
-      edgeIndex: EdgeIndex.empty(),
-      nodeIndex: NodeIndex.empty());
+        nodes: {},
+        edges: {},
+        selectedNodes: {},
+        selectedEdges: {},
+        nodeStates: {},
+        edgeStates: {},
+        spatialHash: {},
+        edgeIndex: EdgeIndex.empty(),
+        nodeIndex: NodeIndex.empty(),
+      );
 }

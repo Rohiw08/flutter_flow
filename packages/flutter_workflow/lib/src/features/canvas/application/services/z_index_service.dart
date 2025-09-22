@@ -1,5 +1,5 @@
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 
 class ZIndexService {
   FlowCanvasState bringToFront(FlowCanvasState state, String nodeId) {

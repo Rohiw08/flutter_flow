@@ -6,7 +6,7 @@ import 'package:flutter_workflow/src/features/canvas/application/services/histor
 import 'package:flutter_workflow/src/features/canvas/application/services/node_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/selection_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/viewport_service.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
 /// Centralizes keyboard handling using KeyboardOptions mapping and services.
@@ -40,20 +40,14 @@ class KeyboardActionService {
   }) {
     switch (action) {
       case KeyboardAction.selectAll:
-        return history.apply(state, (s) => selectionService.selectAllNodes(s));
+        return history.apply(state, (s) => selectionService.selectAll(s));
       case KeyboardAction.deselectAll:
-        return history.apply(
-            state, (s) => s.copyWith(selectedNodes: {}, selectedEdges: {}));
+        return history.apply(state, (s) => selectionService.deselectAll(s));
       case KeyboardAction.deleteSelection:
-        return history.apply(state, (s) {
-          final removedEdges =
-              edgeService.removeEdges(s, s.selectedEdges.toList());
-          FlowCanvasState cur = removedEdges;
-          for (final nodeId in s.selectedNodes) {
-            cur = nodeService.removeNodeAndConnections(cur, nodeId);
-          }
-          return cur.copyWith(selectedNodes: {}, selectedEdges: {});
-        });
+        return history.apply(
+            state,
+            (s) => nodeService.removeNodesAndConnections(
+                state, state.selectedNodes.toList()));
       case KeyboardAction.moveUp:
         return history.apply(
             state,
@@ -102,7 +96,9 @@ class KeyboardActionService {
           _clipboardPayload = clipboardService.copy(s);
           if (_clipboardPayload == null) return s;
           return clipboardService.paste(s, _clipboardPayload!,
-              positionOffset: const Offset(30, 30));
+              positionOffset: const Offset(30, 30),
+              nodeService: nodeService,
+              edgeService: edgeService);
         });
       case KeyboardAction.undo:
         return history.undo() ?? state;

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 
 /// A lightweight history manager for undo/redo of immutable FlowCanvasState.
 ///

@@ -1,46 +1,115 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/application/services/node_query_service.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
+
+import '../../domain/state/edge_state.dart';
+import '../../domain/state/node_state.dart';
 
 /// Provider for the stateless SelectionService.
 final selectionServiceProvider =
     Provider<SelectionService>((ref) => SelectionService());
 
 /// A stateless service for handling business logic related to selection.
-///
-/// All methods are pure functions that operate on the `FlowCanvasState`
-/// and return a new, updated state.
 class SelectionService {
   // --- NODE SELECTION ---
 
-  /// Toggles the selection state of a single node.
+  /// Replaces the current selection with a single node.
+  FlowCanvasState selectNode(FlowCanvasState state, String nodeId) {
+    if (!state.nodes.containsKey(nodeId)) return state;
+
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    // Deselect previously selected nodes
+    for (final id in state.selectedNodes) {
+      if (id != nodeId) {
+        newNodeStates[id] = (newNodeStates[id] ?? const NodeRuntimeState())
+            .copyWith(selected: false);
+      }
+    }
+    // Select the new node
+    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
+        .copyWith(selected: true);
+
+    return state.copyWith(
+      selectedNodes: {nodeId},
+      nodeStates: newNodeStates,
+    );
+  }
+
+  /// Adds a node to the current selection.
+  FlowCanvasState addNodeToSelection(FlowCanvasState state, String nodeId) {
+    if (!state.nodes.containsKey(nodeId) ||
+        state.selectedNodes.contains(nodeId)) {
+      return state;
+    }
+    final newSelection = Set<String>.from(state.selectedNodes)..add(nodeId);
+
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
+        .copyWith(selected: true);
+
+    return state.copyWith(
+      selectedNodes: newSelection,
+      nodeStates: newNodeStates,
+    );
+  }
+
+  /// Removes a node from the current selection.
+  FlowCanvasState removeNodeFromSelection(
+      FlowCanvasState state, String nodeId) {
+    if (!state.selectedNodes.contains(nodeId)) return state;
+    final newSelection = Set<String>.from(state.selectedNodes)..remove(nodeId);
+
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
+        .copyWith(selected: false);
+
+    return state.copyWith(
+      selectedNodes: newSelection,
+      nodeStates: newNodeStates,
+    );
+  }
+
+  /// Toggles a node's selection state, optionally adding to the existing selection.
   FlowCanvasState toggleNodeSelection(
     FlowCanvasState state,
     String nodeId, {
     bool addToSelection = false,
   }) {
-    final newSelectedNodes =
-        addToSelection ? Set<String>.from(state.selectedNodes) : <String>{};
+    final isSelected = state.selectedNodes.contains(nodeId);
+    Set<String> newSelectedNodes;
 
-    if (newSelectedNodes.contains(nodeId)) {
-      newSelectedNodes.remove(nodeId);
+    if (addToSelection) {
+      newSelectedNodes = Set<String>.from(state.selectedNodes);
+      if (isSelected) {
+        newSelectedNodes.remove(nodeId);
+      } else {
+        newSelectedNodes.add(nodeId);
+      }
     } else {
-      newSelectedNodes.add(nodeId);
+      newSelectedNodes = isSelected ? {} : {nodeId};
     }
 
-    return state.copyWith(selectedNodes: newSelectedNodes);
-  }
+    // Update runtime states
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
 
-  /// Selects all nodes on the canvas.
-  FlowCanvasState selectAllNodes(FlowCanvasState state) {
-    return state.copyWith(selectedNodes: state.nodes.keys.toSet());
-  }
+    // If not adding to selection, first deselect all others
+    if (!addToSelection && !isSelected) {
+      for (final id in state.selectedNodes) {
+        newNodeStates[id] = (newNodeStates[id] ?? const NodeRuntimeState())
+            .copyWith(selected: false);
+      }
+    }
 
-  /// Clears the selection for all nodes.
-  FlowCanvasState clearNodeSelection(FlowCanvasState state) {
-    if (state.selectedNodes.isEmpty) return state;
-    return state.copyWith(selectedNodes: {});
+    // Toggle the target node's state
+    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
+        .copyWith(selected: newSelectedNodes.contains(nodeId));
+
+    return state.copyWith(
+      selectedNodes: newSelectedNodes,
+      nodeStates: newNodeStates,
+    );
   }
 
   // --- EDGE SELECTION ---
@@ -60,13 +129,74 @@ class SelectionService {
       newSelectedEdges.add(edgeId);
     }
 
-    return state.copyWith(selectedEdges: newSelectedEdges);
+    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
+    newEdgeStates[edgeId] = (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
+        .copyWith(selected: newSelectedEdges.contains(edgeId));
+
+    return state.copyWith(
+        selectedEdges: newSelectedEdges, edgeStates: newEdgeStates);
   }
 
-  /// Clears the selection for all edges.
-  FlowCanvasState clearEdgeSelection(FlowCanvasState state) {
-    if (state.selectedEdges.isEmpty) return state;
-    return state.copyWith(selectedEdges: {});
+  // --- GLOBAL SELECTION ---
+
+  /// Selects all items on the canvas, with options to specify what to select.
+  FlowCanvasState selectAll(
+    FlowCanvasState state, {
+    bool nodes = true,
+    bool edges = true,
+  }) {
+    final newSelectedNodes =
+        nodes ? state.nodes.keys.toSet() : state.selectedNodes;
+    final newSelectedEdges =
+        edges ? state.edges.keys.toSet() : state.selectedEdges;
+
+    // Update all runtime states
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    for (final nodeId in state.nodes.keys) {
+      newNodeStates[nodeId] =
+          (newNodeStates[nodeId] ?? const NodeRuntimeState())
+              .copyWith(selected: newSelectedNodes.contains(nodeId));
+    }
+    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
+    for (final edgeId in state.edges.keys) {
+      newEdgeStates[edgeId] =
+          (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
+              .copyWith(selected: newSelectedEdges.contains(edgeId));
+    }
+
+    return state.copyWith(
+      selectedNodes: newSelectedNodes,
+      selectedEdges: newSelectedEdges,
+      nodeStates: newNodeStates,
+      edgeStates: newEdgeStates,
+    );
+  }
+
+  /// Deselects all nodes and edges.
+  FlowCanvasState deselectAll(FlowCanvasState state) {
+    if (state.selectedNodes.isEmpty && state.selectedEdges.isEmpty) {
+      return state;
+    }
+
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    for (final nodeId in state.selectedNodes) {
+      newNodeStates[nodeId] =
+          (newNodeStates[nodeId] ?? const NodeRuntimeState())
+              .copyWith(selected: false);
+    }
+    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
+    for (final edgeId in state.selectedEdges) {
+      newEdgeStates[edgeId] =
+          (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
+              .copyWith(selected: false);
+    }
+
+    return state.copyWith(
+      selectedNodes: {},
+      selectedEdges: {},
+      nodeStates: newNodeStates,
+      edgeStates: newEdgeStates,
+    );
   }
 
   // --- BOX SELECTION ---
@@ -78,20 +208,22 @@ class SelectionService {
     );
   }
 
-  /// Updates the box selection area and calculates the selected nodes within it.
+  /// Updates the box selection area and calculates the selected elements within it.
   FlowCanvasState updateBoxSelection(
     FlowCanvasState state,
     Offset position, {
     SelectionMode selectionMode = SelectionMode.partial,
+    required NodeQueryService nodeQueryService,
   }) {
     if (state.selectionRect == null) return state;
 
     final newSelectionRect =
         Rect.fromPoints(state.selectionRect!.topLeft, position);
 
-    // Find nodes within the selection area
+    final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
+
     final nodesInArea = <String>{};
-    for (final node in state.nodes.values) {
+    for (final node in nodesInRect) {
       final overlaps = selectionMode == SelectionMode.partial
           ? newSelectionRect.overlaps(node.rect)
           : newSelectionRect.contains(node.rect.topLeft) &&
@@ -102,7 +234,6 @@ class SelectionService {
       }
     }
 
-    // Select edges where both endpoints are selected
     final edgesInArea = <String>{};
     for (final entry in state.edges.entries) {
       final e = entry.value;
@@ -112,10 +243,25 @@ class SelectionService {
       }
     }
 
+    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    for (final nodeId in state.nodes.keys) {
+      newNodeStates[nodeId] =
+          (newNodeStates[nodeId] ?? const NodeRuntimeState())
+              .copyWith(selected: nodesInArea.contains(nodeId));
+    }
+    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
+    for (final edgeId in state.edges.keys) {
+      newEdgeStates[edgeId] =
+          (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
+              .copyWith(selected: edgesInArea.contains(edgeId));
+    }
+
     return state.copyWith(
       selectionRect: newSelectionRect,
       selectedNodes: nodesInArea,
       selectedEdges: edgesInArea,
+      nodeStates: newNodeStates,
+      edgeStates: newEdgeStates,
     );
   }
 

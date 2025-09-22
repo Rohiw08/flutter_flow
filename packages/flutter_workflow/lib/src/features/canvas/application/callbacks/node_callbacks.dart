@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_workflow/src/features/canvas/application/streams/node_change_stream.dart';
 import '../events/node_change_event.dart';
 
 typedef NodeClickCallback = void Function(
@@ -35,6 +36,7 @@ class NodeCallbacks {
   final NodeContextMenuCallback onContextMenu;
   final NodesDeleteCallback onNodesDelete;
   final NodesChangeCallback onNodesChange;
+  final NodeStreams? streams;
 
   const NodeCallbacks({
     this.onClick = _defaultOnClick,
@@ -48,6 +50,7 @@ class NodeCallbacks {
     this.onContextMenu = _defaultOnContextMenu,
     this.onNodesDelete = _defaultOnNodesDelete,
     this.onNodesChange = _defaultOnNodesChange,
+    this.streams,
   });
 
   // Default implementations (do nothing)
@@ -76,6 +79,7 @@ class NodeCallbacks {
     NodeContextMenuCallback? onContextMenu,
     NodesDeleteCallback? onNodesDelete,
     NodesChangeCallback? onNodesChange,
+    NodeStreams? streams,
   }) {
     return NodeCallbacks(
       onClick: onClick ?? this.onClick,
@@ -89,6 +93,7 @@ class NodeCallbacks {
       onContextMenu: onContextMenu ?? this.onContextMenu,
       onNodesDelete: onNodesDelete ?? this.onNodesDelete,
       onNodesChange: onNodesChange ?? this.onNodesChange,
+      streams: streams ?? this.streams,
     );
   }
 
@@ -106,7 +111,8 @@ class NodeCallbacks {
         other.onMouseLeave == onMouseLeave &&
         other.onContextMenu == onContextMenu &&
         other.onNodesDelete == onNodesDelete &&
-        other.onNodesChange == onNodesChange;
+        other.onNodesChange == onNodesChange &&
+        other.streams == streams;
   }
 
   @override
@@ -123,6 +129,7 @@ class NodeCallbacks {
       onContextMenu,
       onNodesDelete,
       onNodesChange,
+      streams,
     );
   }
 }

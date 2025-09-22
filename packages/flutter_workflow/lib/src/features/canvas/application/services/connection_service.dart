@@ -5,7 +5,7 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/handle.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/flow_canvas_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/random_id_generator.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
@@ -192,7 +192,7 @@ class ConnectionService {
 
     if (sourceNode == null || sourceHandle == null) return null;
 
-    final nearbyHandles = _getHandlesNear(state, cursorPosition);
+    final nearbyHandles = state.nodeIndex.queryHandlesNear(cursorPosition);
     ClosestHandleResult? closestHandle;
     double minDistance = double.infinity;
 
@@ -275,27 +275,6 @@ class ConnectionService {
       targetNodeId: targetNodeId,
       targetHandleId: targetHandleId,
     );
-  }
-
-  Iterable<String> _getHandlesNear(
-    FlowCanvasState state,
-    Offset position, {
-    double gridSize = 200.0,
-  }) {
-    final gridX = (position.dx / gridSize).floor();
-    final gridY = (position.dy / gridSize).floor();
-    final nearbyHandles = <String>{};
-
-    for (int x = -1; x <= 1; x++) {
-      for (int y = -1; y <= 1; y++) {
-        final key = '${gridX + x},${gridY + y}';
-        final handlesInCell = state.spatialHash[key];
-        if (handlesInCell != null) {
-          nearbyHandles.addAll(handlesInCell);
-        }
-      }
-    }
-    return nearbyHandles;
   }
 
   // PUBLIC UTILITY METHODS
