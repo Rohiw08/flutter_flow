@@ -15,6 +15,7 @@ import 'package:flutter_workflow/src/features/canvas/application/services/select
 import 'package:flutter_workflow/src/features/canvas/application/services/serialization_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/viewport_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/z_index_service.dart';
+import 'package:flutter_workflow/src/features/canvas/application/streams/selection_change_stream.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/registries/edge_registry.dart';
@@ -100,12 +101,14 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   final EdgeStreams _edgeStreams = EdgeStreams();
   final ConnectionStreams _connectionStreams = ConnectionStreams();
   final PaneStreams _paneStreams = PaneStreams();
+  final SelectionStreams _selectionStreams = SelectionStreams();
 
   // Expose the streams publicly for the developer to listen to
   NodeStreams get nodeStreams => _nodeStreams;
   EdgeStreams get edgeStreams => _edgeStreams;
   ConnectionStreams get connectionStreams => _connectionStreams;
   PaneStreams get paneStreams => _paneStreams;
+  SelectionStreams get selectionStreams => _selectionStreams;
 
   // =================================================================================
   // --- State Update & Private Helpers ---
