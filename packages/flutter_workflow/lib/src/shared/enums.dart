@@ -34,6 +34,7 @@ enum EdgeMarkerType {
   none,
   arrow,
   circle,
+  arrowClosed,
 }
 
 enum ConnectionLineType {
@@ -79,13 +80,4 @@ enum KeyboardAction {
   duplicateSelection,
   undo,
   redo,
-}
-
-enum NodeChangeType {
-  position,
-  selection,
-  dimensions,
-  data,
-  add,
-  remove,
 }

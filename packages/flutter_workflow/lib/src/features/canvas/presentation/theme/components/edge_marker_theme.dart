@@ -42,25 +42,39 @@ class FlowEdgeMarkerStyle {
     );
   }
 
-  FlowEdgeMarkerStyle resolveEdgeMarkerTheme(
-    FlowEdgeMarkerStyle? markerTheme, {
-    EdgeMarkerType? type,
-    Color? color,
-    double? width,
-    double? height,
-    String? markerUnits,
-    String? orient,
-    double? strokeWidth,
-  }) {
-    final base = markerTheme ?? const FlowEdgeMarkerStyle();
-    return base.copyWith(
-      type: type,
-      color: color,
-      width: width,
-      height: height,
-      markerUnits: markerUnits,
-      orient: orient,
-      strokeWidth: strokeWidth,
+  factory FlowEdgeMarkerStyle.light() {
+    return const FlowEdgeMarkerStyle(
+      type: EdgeMarkerType.arrow,
+      color: Color(0xFF9E9E9E),
+      width: 12.0,
+      height: 12.0,
+      markerUnits: 'strokeWidth',
+      orient: 'auto',
+      strokeWidth: 2.0,
+    );
+  }
+
+  factory FlowEdgeMarkerStyle.dark() {
+    return const FlowEdgeMarkerStyle(
+      type: EdgeMarkerType.arrow,
+      color: Color(0xFFBDBDBD),
+      width: 12.0,
+      height: 12.0,
+      markerUnits: 'strokeWidth',
+      orient: 'auto',
+      strokeWidth: 2.0,
+    );
+  }
+
+  FlowEdgeMarkerStyle lerp(FlowEdgeMarkerStyle other, double t) {
+    return FlowEdgeMarkerStyle(
+      type: t < 0.5 ? type : other.type,
+      color: Color.lerp(color, other.color, t),
+      width: lerpDouble(width, other.width, t),
+      height: lerpDouble(height, other.height, t),
+      markerUnits: t < 0.5 ? markerUnits : other.markerUnits,
+      orient: t < 0.5 ? orient : other.orient,
+      strokeWidth: lerpDouble(strokeWidth, other.strokeWidth, t),
     );
   }
 
@@ -88,15 +102,5 @@ class FlowEdgeMarkerStyle {
         strokeWidth,
       );
 
-  FlowEdgeMarkerStyle lerp(FlowEdgeMarkerStyle other, double t) {
-    return FlowEdgeMarkerStyle(
-      type: t < 0.5 ? type : other.type,
-      color: Color.lerp(color, other.color, t),
-      width: lerpDouble(width, other.width, t),
-      height: lerpDouble(height, other.height, t),
-      markerUnits: t < 0.5 ? markerUnits : other.markerUnits,
-      orient: t < 0.5 ? orient : other.orient,
-      strokeWidth: lerpDouble(strokeWidth, other.strokeWidth, t),
-    );
-  }
+  light() {}
 }

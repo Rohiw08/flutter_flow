@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_label_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/theme/flow_theme.dart';
 
 class FlowCanvasThemeBuilder {
@@ -54,12 +55,21 @@ class FlowCanvasThemeBuilder {
     Color? errorBorderColor,
     Color? hoverBackgroundColor,
     Color? hoverBorderColor,
-    double? borderRadius,
+    Color? disabledBackgroundColor,
+    Color? disabledBorderColor,
     double? defaultBorderWidth,
     double? selectedBorderWidth,
-    TextStyle? defaultTextStyle,
-    EdgeInsets? defaultPadding,
+    double? hoverBorderWidth,
+    double? borderRadius,
     List<BoxShadow>? shadows,
+    TextStyle? defaultTextStyle,
+    Duration? animationDuration,
+    Curve? animationCurve,
+    EdgeInsetsGeometry? defaultPadding,
+    double? minWidth,
+    double? minHeight,
+    double? maxWidth,
+    double? maxHeight,
   }) {
     _theme = _theme.copyWith(
       node: _theme.node.copyWith(
@@ -71,12 +81,21 @@ class FlowCanvasThemeBuilder {
         errorBorderColor: errorBorderColor,
         hoverBackgroundColor: hoverBackgroundColor,
         hoverBorderColor: hoverBorderColor,
-        borderRadius: borderRadius,
+        disabledBackgroundColor: disabledBackgroundColor,
+        disabledBorderColor: disabledBorderColor,
         defaultBorderWidth: defaultBorderWidth,
         selectedBorderWidth: selectedBorderWidth,
-        defaultTextStyle: defaultTextStyle,
-        defaultPadding: defaultPadding,
+        hoverBorderWidth: hoverBorderWidth,
+        borderRadius: borderRadius,
         shadows: shadows,
+        defaultTextStyle: defaultTextStyle,
+        animationDuration: animationDuration,
+        animationCurve: animationCurve,
+        defaultPadding: defaultPadding,
+        minWidth: minWidth,
+        minHeight: minHeight,
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
       ),
     );
     return this;
@@ -85,21 +104,25 @@ class FlowCanvasThemeBuilder {
   FlowCanvasThemeBuilder edges({
     Color? defaultColor,
     Color? selectedColor,
+    Color? hoverColor,
     Color? animatedColor,
     double? defaultStrokeWidth,
     double? selectedStrokeWidth,
     double? arrowHeadSize,
     FlowEdgeLabelStyle? label,
+    FlowEdgeMarkerStyle? marker,
   }) {
     _theme = _theme.copyWith(
       edge: _theme.edge.copyWith(
         defaultColor: defaultColor,
         selectedColor: selectedColor,
+        hoverColor: hoverColor,
         animatedColor: animatedColor,
         defaultStrokeWidth: defaultStrokeWidth,
         selectedStrokeWidth: selectedStrokeWidth,
         arrowHeadSize: arrowHeadSize,
         labelStyle: label,
+        markerStyle: marker,
       ),
     );
     return this;
@@ -134,22 +157,34 @@ class FlowCanvasThemeBuilder {
     return this;
   }
 
-  FlowCanvasThemeBuilder miniMap(
-      {Color? backgroundColor,
-      Color? nodeColor,
-      Color? nodeStrokeColor,
-      Color? selectedNodeColor,
-      Color? maskColor,
-      Color? maskStrokeColor,
-      double? nodeStrokeWidth,
-      double? maskStrokeWidth,
-      double? borderRadius,
-      List<BoxShadow>? shadows}) {
+  FlowCanvasThemeBuilder miniMap({
+    Color? backgroundColor,
+    Color? nodeColor,
+    Color? nodeStrokeColor,
+    double? nodeBorderRadius,
+    Color? selectedNodeColor,
+    Color? maskColor,
+    Color? maskStrokeColor,
+    double? nodeStrokeWidth,
+    double? maskStrokeWidth,
+    double? borderRadius,
+    List<BoxShadow>? shadows,
+    double? padding,
+    double? viewportBorderRadius,
+    Color? selectedGlowColor,
+    double? selectedGlowBlur,
+    double? selectedGlowWidthMultiplier,
+    Color? viewportInnerGlowColor,
+    double? viewportInnerGlowWidthMultiplier,
+    double? viewportInnerGlowBlur,
+    Color? viewportInnerColor,
+  }) {
     _theme = _theme.copyWith(
       minimap: _theme.minimap.copyWith(
         backgroundColor: backgroundColor,
         nodeColor: nodeColor,
         nodeStrokeColor: nodeStrokeColor,
+        nodeBorderRadius: nodeBorderRadius,
         selectedNodeColor: selectedNodeColor,
         maskColor: maskColor,
         maskStrokeColor: maskStrokeColor,
@@ -157,6 +192,15 @@ class FlowCanvasThemeBuilder {
         maskStrokeWidth: maskStrokeWidth,
         borderRadius: borderRadius,
         shadows: shadows,
+        padding: padding,
+        viewportBorderRadius: viewportBorderRadius,
+        selectedGlowColor: selectedGlowColor,
+        selectedGlowBlur: selectedGlowBlur,
+        selectedGlowWidthMultiplier: selectedGlowWidthMultiplier,
+        viewportInnerGlowColor: viewportInnerGlowColor,
+        viewportInnerGlowWidthMultiplier: viewportInnerGlowWidthMultiplier,
+        viewportInnerGlowBlur: viewportInnerGlowBlur,
+        viewportInnerColor: viewportInnerColor,
       ),
     );
     return this;
@@ -182,20 +226,16 @@ class FlowCanvasThemeBuilder {
   }
 
   FlowCanvasThemeBuilder controls({
-    // Simple properties
     Color? containerColor,
     Color? buttonColor,
     Color? buttonHoverColor,
     Color? iconColor,
     Color? iconHoverColor,
     double? buttonSize,
-    Size? containerSize,
     double? buttonCornerRadius,
     double? containerCornerRadius,
     EdgeInsetsGeometry? padding,
     List<BoxShadow>? shadows,
-
-    // Advanced properties
     BoxDecoration? containerDecoration,
     BoxDecoration? buttonDecoration,
     BoxDecoration? buttonHoverDecoration,
@@ -219,6 +259,67 @@ class FlowCanvasThemeBuilder {
         buttonHoverDecoration: buttonHoverDecoration,
         iconStyle: iconStyle,
         iconHoverStyle: iconHoverStyle,
+      ),
+    );
+    return this;
+  }
+
+  FlowCanvasThemeBuilder connection({
+    Color? activeColor,
+    Color? validTargetColor,
+    Color? invalidTargetColor,
+    double? strokeWidth,
+    EdgePathType? pathType,
+  }) {
+    _theme = _theme.copyWith(
+      connection: _theme.connection.copyWith(
+        activeColor: activeColor,
+        validTargetColor: validTargetColor,
+        invalidTargetColor: invalidTargetColor,
+        strokeWidth: strokeWidth,
+        pathType: pathType,
+      ),
+    );
+    return this;
+  }
+
+  FlowCanvasThemeBuilder edgeMarker({
+    EdgeMarkerType? type,
+    Color? color,
+    double? width,
+    double? height,
+    String? markerUnits,
+    String? orient,
+    double? strokeWidth,
+  }) {
+    _theme = _theme.copyWith(
+      edgeMarker: _theme.edgeMarker.copyWith(
+        type: type,
+        color: color,
+        width: width,
+        height: height,
+        markerUnits: markerUnits,
+        orient: orient,
+        strokeWidth: strokeWidth,
+      ),
+    );
+    return this;
+  }
+
+  FlowCanvasThemeBuilder edgeLabel({
+    TextStyle? textStyle,
+    Color? backgroundColor,
+    Color? borderColor,
+    EdgeInsetsGeometry? padding,
+    BorderRadius? borderRadius,
+  }) {
+    _theme = _theme.copyWith(
+      edgeLabel: _theme.edgeLabel.copyWith(
+        textStyle: textStyle,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        padding: padding,
+        borderRadius: borderRadius,
       ),
     );
     return this;

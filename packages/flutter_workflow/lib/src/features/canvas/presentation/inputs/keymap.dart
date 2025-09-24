@@ -26,6 +26,10 @@ class Keymap {
           const RedoIntent(),
       LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyA):
           const SelectAllIntent(),
+      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.shift,
+          LogicalKeyboardKey.keyN): const SelectAllIntent(selectEdges: false),
+      LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.shift,
+          LogicalKeyboardKey.keyE): const SelectAllIntent(selectNodes: false),
     });
   }
 }

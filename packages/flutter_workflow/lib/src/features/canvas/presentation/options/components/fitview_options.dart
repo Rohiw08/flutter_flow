@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
 @immutable
@@ -44,33 +43,6 @@ class FitViewOptions {
       ease: ease ?? this.ease,
       interpolate: interpolate ?? this.interpolate,
       nodes: nodes ?? this.nodes,
-    );
-  }
-
-  FitViewOptions resolveFitViewOptions(
-    BuildContext context,
-    FitViewOptions? localOptions, {
-    EdgeInsets? padding,
-    bool? includeHiddenNodes,
-    double? minZoom,
-    double? maxZoom,
-    Duration? duration,
-    Curve? ease,
-    FitViewInterpolation? interpolate,
-    List<String>? nodes,
-  }) {
-    final base = localOptions ??
-        context.flowCanvasOptions.viewportOptions.fitViewOptions;
-
-    return base.copyWith(
-      padding: padding,
-      includeHiddenNodes: includeHiddenNodes,
-      minZoom: minZoom,
-      maxZoom: maxZoom,
-      duration: duration,
-      ease: ease,
-      interpolate: interpolate,
-      nodes: nodes,
     );
   }
 

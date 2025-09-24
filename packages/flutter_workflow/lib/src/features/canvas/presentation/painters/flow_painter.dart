@@ -1,34 +1,24 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/connection_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/edge_state.dart';
+import 'package:flutter_workflow/src/features/canvas/domain/state/node_state.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_export.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/edge_path_creator.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/flow_theme.dart';
 
-import '../../domain/models/connection.dart';
-
-/// Abstract base class for all custom edge painters.
-/// Extend this class to create your own custom edge rendering logic.
-/// This remains an abstract class and does not need to be immutable.
-abstract class EdgePainter {
-  void paint(
-    Canvas canvas,
-    Path path,
-    FlowEdge edge,
-    Paint paint,
-  );
-}
-
-/// A highly optimized painter for drawing edges, connections, and selection rectangles.
-///
-/// This painter is stateless and decoupled from the controller. It receives all
-/// necessary data to draw and uses pre-built Paint objects for maximum performance.
+/// A painter for drawing the edges, active connection,
+/// and selection rectangle on the canvas.
 class FlowPainter extends CustomPainter {
   final Map<String, FlowNode> nodes;
   final Map<String, FlowEdge> edges;
   final FlowConnection? connection;
+  final Map<String, NodeRuntimeState> nodeStates;
+  final Map<String, EdgeRuntimeState> edgeStates;
+  final FlowConnectionRuntimeState? connectionState;
   final Rect? selectionRect;
-  final FlowCanvasTheme theme;
+  final FlowCanvasTheme style;
   final double zoom;
 
   // Pre-built Paint objects for performance.
@@ -44,26 +34,29 @@ class FlowPainter extends CustomPainter {
     required this.edges,
     required this.connection,
     required this.selectionRect,
-    required this.theme,
+    required this.style,
     required this.zoom,
+    this.nodeStates = const {},
+    this.edgeStates = const {},
+    this.connectionState,
   })  : _defaultEdgePaint = Paint()
-          ..color = theme.edge.defaultColor
-          ..strokeWidth = theme.edge.defaultStrokeWidth
+          ..color = style.edge.defaultColor!
+          ..strokeWidth = style.edge.defaultStrokeWidth!
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round,
         _selectedEdgePaint = Paint()
-          ..color = theme.edge.selectedColor
-          ..strokeWidth = theme.edge.selectedStrokeWidth
+          ..color = style.edge.selectedColor!
+          ..strokeWidth = style.edge.selectedStrokeWidth!
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round,
         _connectionPaint = Paint()
-          ..strokeWidth = theme.connection.strokeWidth
+          ..strokeWidth = style.connection.strokeWidth
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round,
         _connectionEndpointPaint = Paint()..style = PaintingStyle.fill,
-        _selectionFillPaint = Paint()..color = theme.selection.fillColor,
+        _selectionFillPaint = Paint()..color = style.selection.fillColor!,
         _selectionStrokePaint = Paint()
-          ..color = theme.selection.borderColor
+          ..color = style.selection.borderColor!
           ..style = PaintingStyle.stroke;
 
   @override
@@ -76,24 +69,33 @@ class FlowPainter extends CustomPainter {
   void _drawEdges(Canvas canvas) {
     if (edges.isEmpty) return;
 
-    for (MapEntry<String, FlowEdge> edge in edges.entries) {
-      final sourceNode = nodes[edge.value.sourceNodeId];
-      final targetNode = nodes[edge.value.targetNodeId];
+    for (final entry in edges.entries) {
+      final edgeId = entry.key;
+      final edge = entry.value;
 
-      if (sourceNode == null || targetNode == null) continue;
+      final sourceNode = nodes[edge.sourceNodeId];
+      final targetNode = nodes[edge.targetNodeId];
 
-      final sourceHandle = sourceNode.handles[edge.value.sourceHandleId];
-      final targetHandle = targetNode.handles[edge.value.targetHandleId];
+      if (sourceNode == null ||
+          targetNode == null ||
+          edge.sourceHandleId == null ||
+          edge.targetHandleId == null) continue;
+
+      final sourceHandle = sourceNode.handles[edge.sourceHandleId!];
+      final targetHandle = targetNode.handles[edge.targetHandleId!];
 
       if (sourceHandle == null || targetHandle == null) continue;
 
       final start = sourceNode.position + sourceHandle.position;
       final end = targetNode.position + targetHandle.position;
 
-      final isSelected = sourceNode.isSelected || targetNode.isSelected;
+      // Get the selection state directly from the EdgeRuntimeState
+      final state = edgeStates[edgeId];
+      final isSelected = state?.selected ?? false;
+
       final paint = isSelected ? _selectedEdgePaint : _defaultEdgePaint;
 
-      final path = EdgePathCreator.createPath(edge.value.pathType, start, end);
+      final path = EdgePathCreator.createPath(edge.pathType, start, end);
       canvas.drawPath(path, paint);
     }
   }
@@ -101,20 +103,24 @@ class FlowPainter extends CustomPainter {
   void _drawConnection(Canvas canvas) {
     if (connection == null) return;
 
-    final color = connection!.isValid
-        ? theme.connection.validTargetColor
-        : theme.connection.activeColor;
+    // This part is already correct! It properly uses connectionState.
+    final isValid = connectionState?.isValid ?? false;
+    final color = isValid
+        ? style.connection.validTargetColor
+        : style.connection.activeColor;
 
     _connectionPaint.color = color;
     _connectionEndpointPaint.color = color;
 
     final path = EdgePathCreator.createPath(
-      theme.connection.pathType,
-      connection!.startPosition,
-      connection!.endPosition,
+      style.connection.pathType,
+      connection!.startPoint,
+      connection!.endPoint,
     );
     canvas.drawPath(path, _connectionPaint);
-    canvas.drawCircle(connection!.endPosition, theme.connection.endPointRadius,
+    canvas.drawCircle(
+        connection!.endPoint,
+        (style.handle.size ?? 10.0) / 2, // Use handle size for consistency
         _connectionEndpointPaint);
   }
 
@@ -122,19 +128,22 @@ class FlowPainter extends CustomPainter {
     if (selectionRect == null) return;
     canvas.drawRect(selectionRect!, _selectionFillPaint);
 
+    // Scale the border width to remain visually consistent when zoomed out
     _selectionStrokePaint.strokeWidth =
-        (theme.selection.borderWidth / zoom).clamp(0.5, 3.0);
+        (style.selection.borderWidth! / zoom).clamp(0.5, 3.0);
     canvas.drawRect(selectionRect!, _selectionStrokePaint);
   }
 
   @override
   bool shouldRepaint(covariant FlowPainter oldDelegate) {
-    // Highly efficient repaint check.
     return oldDelegate.nodes != nodes ||
         oldDelegate.edges != edges ||
+        oldDelegate.nodeStates != nodeStates ||
+        oldDelegate.edgeStates != edgeStates ||
+        oldDelegate.connectionState != connectionState ||
         oldDelegate.connection != connection ||
         oldDelegate.selectionRect != selectionRect ||
-        oldDelegate.theme != theme ||
+        oldDelegate.style != style ||
         oldDelegate.zoom != zoom;
   }
 }

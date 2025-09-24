@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
 
 @immutable
 class FlowHandleStyle {
@@ -96,32 +95,29 @@ class FlowHandleStyle {
     );
   }
 
-  FlowHandleStyle resolveHandleTheme(
-    BuildContext context,
-    FlowHandleStyle? handleTheme, {
-    Color? idleColor,
-    Color? hoverColor,
-    Color? activeColor,
-    Color? validTargetColor,
-    Color? invalidTargetColor,
-    double? size,
-    double? borderWidth,
-    Color? borderColor,
-    List<BoxShadow>? shadows,
-    bool? enableAnimations,
-  }) {
-    final base = handleTheme ?? context.flowCanvasTheme.handle;
-    return base.copyWith(
-      idleColor: idleColor,
-      hoverColor: hoverColor,
-      activeColor: activeColor,
-      validTargetColor: validTargetColor,
-      invalidTargetColor: invalidTargetColor,
-      size: size,
-      borderWidth: borderWidth,
-      borderColor: borderColor,
-      shadows: shadows,
-      enableAnimations: enableAnimations,
+  FlowHandleStyle lerp(FlowHandleStyle other, double t) {
+    return FlowHandleStyle(
+      idleColor: Color.lerp(idleColor, other.idleColor, t) ?? idleColor,
+      hoverColor: Color.lerp(hoverColor, other.hoverColor, t) ?? hoverColor,
+      activeColor: Color.lerp(activeColor, other.activeColor, t) ?? activeColor,
+      validTargetColor:
+          Color.lerp(validTargetColor, other.validTargetColor, t) ??
+              validTargetColor,
+      invalidTargetColor:
+          Color.lerp(invalidTargetColor, other.invalidTargetColor, t) ??
+              invalidTargetColor,
+      size: (size == null || other.size == null)
+          ? (t < 0.5 ? size : other.size)
+          : size! + (other.size! - size!) * t,
+      borderWidth: (borderWidth == null || other.borderWidth == null)
+          ? (t < 0.5 ? borderWidth : other.borderWidth)
+          : borderWidth! + (other.borderWidth! - borderWidth!) * t,
+      borderColor: Color.lerp(borderColor, other.borderColor, t) ?? borderColor,
+      shadows: t < 0.5 ? shadows : other.shadows,
+      enableAnimations:
+          (enableAnimations == null || other.enableAnimations == null)
+              ? (t < 0.5 ? enableAnimations : other.enableAnimations)
+              : (t < 0.5 ? enableAnimations! : other.enableAnimations!),
     );
   }
 
@@ -154,30 +150,4 @@ class FlowHandleStyle {
         shadows == null ? null : Object.hashAll(shadows!),
         enableAnimations,
       );
-
-  FlowHandleStyle lerp(FlowHandleStyle other, double t) {
-    return FlowHandleStyle(
-      idleColor: Color.lerp(idleColor, other.idleColor, t) ?? idleColor,
-      hoverColor: Color.lerp(hoverColor, other.hoverColor, t) ?? hoverColor,
-      activeColor: Color.lerp(activeColor, other.activeColor, t) ?? activeColor,
-      validTargetColor:
-          Color.lerp(validTargetColor, other.validTargetColor, t) ??
-              validTargetColor,
-      invalidTargetColor:
-          Color.lerp(invalidTargetColor, other.invalidTargetColor, t) ??
-              invalidTargetColor,
-      size: (size == null || other.size == null)
-          ? (t < 0.5 ? size : other.size)
-          : size! + (other.size! - size!) * t,
-      borderWidth: (borderWidth == null || other.borderWidth == null)
-          ? (t < 0.5 ? borderWidth : other.borderWidth)
-          : borderWidth! + (other.borderWidth! - borderWidth!) * t,
-      borderColor: Color.lerp(borderColor, other.borderColor, t) ?? borderColor,
-      shadows: t < 0.5 ? shadows : other.shadows,
-      enableAnimations:
-          (enableAnimations == null || other.enableAnimations == null)
-              ? (t < 0.5 ? enableAnimations : other.enableAnimations)
-              : (t < 0.5 ? enableAnimations! : other.enableAnimations!),
-    );
-  }
 }

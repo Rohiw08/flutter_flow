@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_label_theme.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
 
 @immutable
 class FlowEdgeStyle {
@@ -10,18 +10,20 @@ class FlowEdgeStyle {
   final double? defaultStrokeWidth;
   final double? selectedStrokeWidth;
   final double? arrowHeadSize;
-  final FlowEdgeLabelStyle? labelStyle;
   final Color? hoverColor;
+  final FlowEdgeLabelStyle? labelStyle;
+  final FlowEdgeMarkerStyle? markerStyle;
 
   const FlowEdgeStyle({
     this.defaultColor,
     this.selectedColor,
     this.animatedColor,
-    this.defaultStrokeWidth = 2.0,
-    this.selectedStrokeWidth = 3.0,
-    this.arrowHeadSize = 8.0,
+    this.defaultStrokeWidth,
+    this.selectedStrokeWidth,
+    this.arrowHeadSize,
     this.hoverColor,
     this.labelStyle,
+    this.markerStyle,
   });
 
   factory FlowEdgeStyle.light() {
@@ -34,6 +36,7 @@ class FlowEdgeStyle {
       selectedStrokeWidth: 3.0,
       arrowHeadSize: 8.0,
       labelStyle: FlowEdgeLabelStyle.light(),
+      markerStyle: FlowEdgeMarkerStyle.light(),
     );
   }
 
@@ -47,6 +50,7 @@ class FlowEdgeStyle {
       selectedStrokeWidth: 3.0,
       arrowHeadSize: 8.0,
       labelStyle: FlowEdgeLabelStyle.dark(),
+      markerStyle: FlowEdgeMarkerStyle.dark(),
     );
   }
 
@@ -59,6 +63,7 @@ class FlowEdgeStyle {
     double? selectedStrokeWidth,
     double? arrowHeadSize,
     FlowEdgeLabelStyle? labelStyle,
+    FlowEdgeMarkerStyle? markerStyle,
   }) {
     return FlowEdgeStyle(
       defaultColor: defaultColor ?? this.defaultColor,
@@ -69,34 +74,9 @@ class FlowEdgeStyle {
       selectedStrokeWidth: selectedStrokeWidth ?? this.selectedStrokeWidth,
       arrowHeadSize: arrowHeadSize ?? this.arrowHeadSize,
       labelStyle: labelStyle ?? this.labelStyle,
+      markerStyle: markerStyle ?? this.markerStyle,
     );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is FlowEdgeStyle &&
-        other.defaultColor == defaultColor &&
-        other.selectedColor == selectedColor &&
-        other.hoverColor == hoverColor &&
-        other.animatedColor == animatedColor &&
-        other.defaultStrokeWidth == defaultStrokeWidth &&
-        other.selectedStrokeWidth == selectedStrokeWidth &&
-        other.arrowHeadSize == arrowHeadSize &&
-        other.labelStyle == labelStyle;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        defaultColor,
-        selectedColor,
-        hoverColor,
-        animatedColor,
-        defaultStrokeWidth,
-        selectedStrokeWidth,
-        arrowHeadSize,
-        labelStyle,
-      );
 
   FlowEdgeStyle lerp(FlowEdgeStyle other, double t) {
     return FlowEdgeStyle(
@@ -124,31 +104,38 @@ class FlowEdgeStyle {
           ? null
           : (labelStyle ?? other.labelStyle)
               ?.lerp(other.labelStyle ?? labelStyle!, t),
+      markerStyle: markerStyle == null && other.markerStyle == null
+          ? null
+          : (markerStyle ?? other.markerStyle)
+              ?.lerp(other.markerStyle ?? markerStyle!, t),
     );
   }
 
-  FlowEdgeStyle resolveEdgeTheme(
-    BuildContext context,
-    FlowEdgeStyle? theme, {
-    Color? defaultColor,
-    Color? selectedColor,
-    Color? animatedColor,
-    Color? hoverColor,
-    double? defaultStrokeWidth,
-    double? selectedStrokeWidth,
-    double? arrowHeadSize,
-    FlowEdgeLabelStyle? labelStyle,
-  }) {
-    final base = theme ?? context.flowCanvasTheme.edge;
-    return base.copyWith(
-      defaultColor: defaultColor,
-      selectedColor: selectedColor,
-      animatedColor: animatedColor,
-      hoverColor: hoverColor,
-      defaultStrokeWidth: defaultStrokeWidth,
-      selectedStrokeWidth: selectedStrokeWidth,
-      arrowHeadSize: arrowHeadSize,
-      labelStyle: labelStyle,
-    );
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is FlowEdgeStyle &&
+        other.defaultColor == defaultColor &&
+        other.selectedColor == selectedColor &&
+        other.hoverColor == hoverColor &&
+        other.animatedColor == animatedColor &&
+        other.defaultStrokeWidth == defaultStrokeWidth &&
+        other.selectedStrokeWidth == selectedStrokeWidth &&
+        other.arrowHeadSize == arrowHeadSize &&
+        other.labelStyle == labelStyle &&
+        other.markerStyle == markerStyle;
   }
+
+  @override
+  int get hashCode => Object.hash(
+        defaultColor,
+        selectedColor,
+        hoverColor,
+        animatedColor,
+        defaultStrokeWidth,
+        selectedStrokeWidth,
+        arrowHeadSize,
+        labelStyle,
+        markerStyle,
+      );
 }

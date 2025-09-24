@@ -1,15 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 
 import '../../domain/indexes/edge_index.dart';
 import '../../domain/indexes/node_index.dart';
-
-/// Provider for the stateless NodeService.
-final nodeServiceProvider = Provider<NodeService>((ref) => NodeService());
 
 typedef NodeDataUpdater = Map<String, dynamic> Function(
     Map<String, dynamic> currentData);

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
 
 @immutable
 class FlowEdgeLabelStyle {
@@ -58,27 +57,6 @@ class FlowEdgeLabelStyle {
       borderColor: borderColor ?? this.borderColor,
       padding: padding ?? this.padding,
       borderRadius: borderRadius ?? this.borderRadius,
-    );
-  }
-
-  FlowEdgeLabelStyle resolveEdgeLabelTheme(
-    BuildContext context,
-    FlowEdgeLabelStyle? labelTheme, {
-    TextStyle? textStyle,
-    Color? backgroundColor,
-    Color? borderColor,
-    EdgeInsetsGeometry? padding,
-    BorderRadius? borderRadius,
-  }) {
-    final base = labelTheme ??
-        context.flowCanvasTheme.edge.labelStyle ??
-        const FlowEdgeLabelStyle();
-    return base.copyWith(
-      textStyle: textStyle,
-      backgroundColor: backgroundColor,
-      borderColor: borderColor,
-      padding: padding,
-      borderRadius: borderRadius,
     );
   }
 

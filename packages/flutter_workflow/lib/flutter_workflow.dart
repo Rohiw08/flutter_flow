@@ -1,7 +1,3 @@
-// --- PUBLIC API FACADE ---
-// The main entry point for all library interactions.
-export 'src/features/canvas/presentation/flow_canvas_facade.dart';
-
 // --- PRESENTATION (UI WIDGETS) ---
 // The widgets the user will add to their application.
 export 'src/features/canvas/presentation/flow_canvas.dart';
@@ -20,6 +16,7 @@ export 'src/features/canvas/domain/registries/edge_registry.dart';
 
 // --- SHARED ENUMS ---
 export 'src/shared/enums.dart';
+export 'src/shared/providers.dart';
 
 // --- THEMING ---
 // The public theme data, providers, and builders.

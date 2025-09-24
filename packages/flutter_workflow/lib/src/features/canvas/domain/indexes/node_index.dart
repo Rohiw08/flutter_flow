@@ -4,10 +4,6 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 typedef CellKey = String;
 
 /// Highly optimized, immutable index for nodes and their handles.
-///
-/// This class uses a spatial grid to provide high-performance queries for:
-/// - Finding nodes within a rectangle (for culling and box selection).
-/// - Finding handles near a point (for making connections).
 class NodeIndex {
   static const double _defaultCellSize = 200.0;
 
@@ -26,7 +22,6 @@ class NodeIndex {
         _handleSpatialGrid = handleSpatialGrid,
         _cellSize = cellSize;
 
-  /// Creates a new, empty index.
   factory NodeIndex.empty({double cellSize = _defaultCellSize}) {
     return NodeIndex._(
       nodes: {},
@@ -36,7 +31,6 @@ class NodeIndex {
     );
   }
 
-  /// Creates a new index from an existing collection of nodes.
   factory NodeIndex.fromNodes(
     Iterable<FlowNode> nodes, {
     double cellSize = _defaultCellSize,
@@ -58,36 +52,29 @@ class NodeIndex {
     );
   }
 
-  // --- PUBLIC GETTERS ---
-
-  /// Returns a node by its ID, or null if not found.
   FlowNode? getNode(String nodeId) => _nodes[nodeId];
 
-  /// Returns an iterable of all nodes in the index.
   Iterable<FlowNode> get allNodes => _nodes.values;
 
-  /// Finds all nodes whose bounding boxes overlap with the given rectangle.
-  /// This is a broad-phase query; a more precise filter may be needed.
   List<FlowNode> queryNodesInRect(Rect rect) {
-    final result = <String>{}; // Use a set to avoid duplicates
-    final cells = _getCellsInRect(rect);
+    final resultIds = <String>{};
+    final cells = _getCellsInRect(rect, _cellSize);
 
     for (final cellKey in cells) {
       final nodeIds = _nodeSpatialGrid[cellKey];
       if (nodeIds != null) {
-        result.addAll(nodeIds);
+        resultIds.addAll(nodeIds);
       }
     }
 
-    // Final filter, as the grid is an approximation based on top-left position.
-    return result
+    // The final filter is no longer needed because the grid is more accurate
+    return resultIds
         .map((id) => _nodes[id])
-        .where((node) => node != null && rect.overlaps(node.rect))
+        .where((node) => node != null)
         .cast<FlowNode>()
         .toList();
   }
 
-  /// Finds all handle IDs within a 3x3 grid area around the given position.
   Set<String> queryHandlesNear(Offset position) {
     final gridX = (position.dx / _cellSize).floor();
     final gridY = (position.dy / _cellSize).floor();
@@ -105,9 +92,6 @@ class NodeIndex {
     return nearbyHandles;
   }
 
-  // --- IMMUTABLE MODIFICATION METHODS ---
-
-  /// Returns a new index with the added node.
   NodeIndex addNode(FlowNode node) {
     final newNodeMap = Map<String, FlowNode>.from(_nodes)..[node.id] = node;
     final newNodeGrid = _deepCopyGrid(_nodeSpatialGrid);
@@ -123,7 +107,6 @@ class NodeIndex {
     );
   }
 
-  /// Returns a new index with the removed node.
   NodeIndex removeNode(FlowNode node) {
     if (!_nodes.containsKey(node.id)) return this;
 
@@ -141,8 +124,6 @@ class NodeIndex {
     );
   }
 
-  /// Returns a new index with the updated node. This is more efficient
-  /// than a remove and add, especially for position changes.
   NodeIndex updateNode(FlowNode oldNode, FlowNode newNode) {
     if (!_nodes.containsKey(oldNode.id)) return addNode(newNode);
 
@@ -166,15 +147,14 @@ class NodeIndex {
 
   static void _addNodeToGrids(FlowNode node, Map<CellKey, Set<String>> nodeGrid,
       Map<CellKey, Set<String>> handleGrid, double cellSize) {
-    // Add node's top-left position to its grid for broad-phase checks
-    final nodeCellKey = _getCellKey(node.position, cellSize);
-    nodeGrid.putIfAbsent(nodeCellKey, () => {}).add(node.id);
+    final cells = _getCellsInRect(node.rect, cellSize);
+    for (final cellKey in cells) {
+      nodeGrid.putIfAbsent(cellKey, () => {}).add(node.id);
+    }
 
-    // Add all of its handles to the handle spatial grid
     for (final handle in node.handles.values) {
       final handlePosition = node.position + handle.position;
       final handleCellKey = _getCellKey(handlePosition, cellSize);
-      // Store as 'nodeId/handleId' for easy parsing later
       handleGrid
           .putIfAbsent(handleCellKey, () => {})
           .add('${node.id}/${handle.id}');
@@ -186,11 +166,11 @@ class NodeIndex {
       Map<CellKey, Set<String>> nodeGrid,
       Map<CellKey, Set<String>> handleGrid,
       double cellSize) {
-    // Remove node
-    final nodeCellKey = _getCellKey(node.position, cellSize);
-    _removeFromGrid(nodeGrid, nodeCellKey, node.id);
+    final cells = _getCellsInRect(node.rect, cellSize);
+    for (final cellKey in cells) {
+      _removeFromGrid(nodeGrid, cellKey, node.id);
+    }
 
-    // Remove handles
     for (final handle in node.handles.values) {
       final handlePosition = node.position + handle.position;
       final handleCellKey = _getCellKey(handlePosition, cellSize);
@@ -209,12 +189,12 @@ class NodeIndex {
     }
   }
 
-  Set<CellKey> _getCellsInRect(Rect rect) {
+  static Set<CellKey> _getCellsInRect(Rect rect, double cellSize) {
     final cells = <CellKey>{};
-    final minX = (rect.left / _cellSize).floor();
-    final maxX = (rect.right / _cellSize).floor();
-    final minY = (rect.top / _cellSize).floor();
-    final maxY = (rect.bottom / _cellSize).floor();
+    final minX = (rect.left / cellSize).floor();
+    final maxX = (rect.right / cellSize).floor();
+    final minY = (rect.top / cellSize).floor();
+    final maxY = (rect.bottom / cellSize).floor();
 
     for (int x = minX; x <= maxX; x++) {
       for (int y = minY; y <= maxY; y++) {

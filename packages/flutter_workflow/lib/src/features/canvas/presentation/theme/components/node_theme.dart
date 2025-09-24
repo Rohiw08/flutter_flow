@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
 
 @immutable
 class FlowNodeStyle {
@@ -57,68 +56,68 @@ class FlowNodeStyle {
   });
 
   factory FlowNodeStyle.light() {
-    return FlowNodeStyle(
+    return const FlowNodeStyle(
       defaultBackgroundColor: Colors.white,
-      defaultBorderColor: const Color(0xFFE0E0E0),
-      selectedBackgroundColor: const Color(0xFFF0F8FF),
-      selectedBorderColor: const Color(0xFF2196F3),
-      errorBackgroundColor: const Color(0xFFFFEBEE),
-      errorBorderColor: const Color(0xFFE57373),
-      hoverBackgroundColor: const Color(0xFFF8F9FA),
-      hoverBorderColor: const Color(0xFFB0B0B0),
-      disabledBackgroundColor: const Color(0xFFF5F5F5),
-      disabledBorderColor: const Color(0xFFE0E0E0),
+      defaultBorderColor: Color(0xFFE0E0E0),
+      selectedBackgroundColor: Color(0xFFF0F8FF),
+      selectedBorderColor: Color(0xFF2196F3),
+      errorBackgroundColor: Color(0xFFFFEBEE),
+      errorBorderColor: Color(0xFFE57373),
+      hoverBackgroundColor: Color(0xFFF8F9FA),
+      hoverBorderColor: Color(0xFFB0B0B0),
+      disabledBackgroundColor: Color(0xFFF5F5F5),
+      disabledBorderColor: Color(0xFFE0E0E0),
       defaultBorderWidth: 1.0,
       selectedBorderWidth: 2.0,
       hoverBorderWidth: 1.5,
       borderRadius: 8.0,
-      shadows: const [
+      shadows: [
         BoxShadow(
           color: Color(0x40000000),
           blurRadius: 4,
           offset: Offset(0, 2),
         ),
       ],
-      defaultTextStyle: const TextStyle(
+      defaultTextStyle: TextStyle(
         color: Color(0xFF333333),
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      defaultPadding: const EdgeInsets.all(12.0),
+      defaultPadding: EdgeInsets.all(12.0),
       minWidth: 100.0,
       minHeight: 60.0,
     );
   }
 
   factory FlowNodeStyle.dark() {
-    return FlowNodeStyle(
-      defaultBackgroundColor: const Color(0xFF2D2D2D),
-      defaultBorderColor: const Color(0xFF404040),
-      selectedBackgroundColor: const Color(0xFF1E3A5F),
-      selectedBorderColor: const Color(0xFF64B5F6),
-      errorBackgroundColor: const Color(0xFF3D1A1A),
-      errorBorderColor: const Color(0xFFEF5350),
-      hoverBackgroundColor: const Color(0xFF3A3A3A),
-      hoverBorderColor: const Color(0xFF565656),
-      disabledBackgroundColor: const Color(0xFF1A1A1A),
-      disabledBorderColor: const Color(0xFF2A2A2A),
+    return const FlowNodeStyle(
+      defaultBackgroundColor: Color(0xFF2D2D2D),
+      defaultBorderColor: Color(0xFF404040),
+      selectedBackgroundColor: Color(0xFF1E3A5F),
+      selectedBorderColor: Color(0xFF64B5F6),
+      errorBackgroundColor: Color(0xFF3D1A1A),
+      errorBorderColor: Color(0xFFEF5350),
+      hoverBackgroundColor: Color(0xFF3A3A3A),
+      hoverBorderColor: Color(0xFF565656),
+      disabledBackgroundColor: Color(0xFF1A1A1A),
+      disabledBorderColor: Color(0xFF2A2A2A),
       defaultBorderWidth: 1.0,
       selectedBorderWidth: 2.0,
       hoverBorderWidth: 1.5,
       borderRadius: 8.0,
-      shadows: const [
+      shadows: [
         BoxShadow(
           color: Color(0x4D000000),
           blurRadius: 8,
           offset: Offset(0, 4),
         ),
       ],
-      defaultTextStyle: const TextStyle(
+      defaultTextStyle: TextStyle(
         color: Color(0xFFE0E0E0),
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
-      defaultPadding: const EdgeInsets.all(12.0),
+      defaultPadding: EdgeInsets.all(12.0),
       minWidth: 100.0,
       minHeight: 60.0,
     );
@@ -227,116 +226,6 @@ class FlowNodeStyle {
     );
   }
 
-  FlowNodeStyle resolveNodeTheme(
-    BuildContext context,
-    FlowNodeStyle? nodeTheme, {
-    Color? defaultBackgroundColor,
-    Color? defaultBorderColor,
-    Color? selectedBackgroundColor,
-    Color? selectedBorderColor,
-    Color? errorBackgroundColor,
-    Color? errorBorderColor,
-    double? defaultBorderWidth,
-    double? selectedBorderWidth,
-    double? borderRadius,
-    List<BoxShadow>? shadows,
-    TextStyle? defaultTextStyle,
-    Color? hoverBackgroundColor,
-    Color? hoverBorderColor,
-    Color? disabledBackgroundColor,
-    Color? disabledBorderColor,
-    double? hoverBorderWidth,
-    Duration? animationDuration,
-    Curve? animationCurve,
-    EdgeInsetsGeometry? defaultPadding,
-    double? minWidth,
-    double? minHeight,
-    double? maxWidth,
-    double? maxHeight,
-  }) {
-    final base = nodeTheme ?? context.flowCanvasTheme.node;
-    return base.copyWith(
-      defaultBackgroundColor: defaultBackgroundColor,
-      defaultBorderColor: defaultBorderColor,
-      selectedBackgroundColor: selectedBackgroundColor,
-      selectedBorderColor: selectedBorderColor,
-      errorBackgroundColor: errorBackgroundColor,
-      errorBorderColor: errorBorderColor,
-      defaultBorderWidth: defaultBorderWidth,
-      selectedBorderWidth: selectedBorderWidth,
-      borderRadius: borderRadius,
-      shadows: shadows,
-      defaultTextStyle: defaultTextStyle,
-      hoverBackgroundColor: hoverBackgroundColor,
-      hoverBorderColor: hoverBorderColor,
-      disabledBackgroundColor: disabledBackgroundColor,
-      disabledBorderColor: disabledBorderColor,
-      hoverBorderWidth: hoverBorderWidth,
-      animationDuration: animationDuration,
-      animationCurve: animationCurve,
-      defaultPadding: defaultPadding,
-      minWidth: minWidth,
-      minHeight: minHeight,
-      maxWidth: maxWidth,
-      maxHeight: maxHeight,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is FlowNodeStyle &&
-        other.defaultBackgroundColor == defaultBackgroundColor &&
-        other.defaultBorderColor == defaultBorderColor &&
-        other.selectedBackgroundColor == selectedBackgroundColor &&
-        other.selectedBorderColor == selectedBorderColor &&
-        other.errorBackgroundColor == errorBackgroundColor &&
-        other.errorBorderColor == errorBorderColor &&
-        other.defaultBorderWidth == defaultBorderWidth &&
-        other.selectedBorderWidth == selectedBorderWidth &&
-        other.borderRadius == borderRadius &&
-        listEquals(other.shadows, shadows) &&
-        other.defaultTextStyle == defaultTextStyle &&
-        other.hoverBackgroundColor == hoverBackgroundColor &&
-        other.hoverBorderColor == hoverBorderColor &&
-        other.disabledBackgroundColor == disabledBackgroundColor &&
-        other.disabledBorderColor == disabledBorderColor &&
-        other.hoverBorderWidth == hoverBorderWidth &&
-        other.animationDuration == animationDuration &&
-        other.animationCurve == animationCurve &&
-        other.defaultPadding == defaultPadding &&
-        other.minWidth == minWidth &&
-        other.minHeight == minHeight &&
-        other.maxWidth == maxWidth &&
-        other.maxHeight == maxHeight;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      defaultBackgroundColor,
-      defaultBorderColor,
-      selectedBackgroundColor,
-      selectedBorderColor,
-      errorBackgroundColor,
-      errorBorderColor,
-      defaultBorderWidth,
-      selectedBorderWidth,
-      borderRadius,
-      shadows == null ? null : Object.hashAll(shadows!),
-      defaultTextStyle,
-      hoverBackgroundColor,
-      hoverBorderColor,
-      disabledBackgroundColor,
-      disabledBorderColor,
-      hoverBorderWidth,
-      animationDuration,
-      animationCurve,
-      defaultPadding,
-      Object.hash(minWidth, minHeight, maxWidth, maxHeight),
-    );
-  }
-
   FlowNodeStyle lerp(FlowNodeStyle other, double t) {
     return FlowNodeStyle(
       defaultBackgroundColor:
@@ -394,6 +283,61 @@ class FlowNodeStyle {
       maxHeight: (maxHeight == null || other.maxHeight == null)
           ? (t < 0.5 ? maxHeight : other.maxHeight)
           : maxHeight! + (other.maxHeight! - maxHeight!) * t,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is FlowNodeStyle &&
+        other.defaultBackgroundColor == defaultBackgroundColor &&
+        other.defaultBorderColor == defaultBorderColor &&
+        other.selectedBackgroundColor == selectedBackgroundColor &&
+        other.selectedBorderColor == selectedBorderColor &&
+        other.errorBackgroundColor == errorBackgroundColor &&
+        other.errorBorderColor == errorBorderColor &&
+        other.defaultBorderWidth == defaultBorderWidth &&
+        other.selectedBorderWidth == selectedBorderWidth &&
+        other.borderRadius == borderRadius &&
+        listEquals(other.shadows, shadows) &&
+        other.defaultTextStyle == defaultTextStyle &&
+        other.hoverBackgroundColor == hoverBackgroundColor &&
+        other.hoverBorderColor == hoverBorderColor &&
+        other.disabledBackgroundColor == disabledBackgroundColor &&
+        other.disabledBorderColor == disabledBorderColor &&
+        other.hoverBorderWidth == hoverBorderWidth &&
+        other.animationDuration == animationDuration &&
+        other.animationCurve == animationCurve &&
+        other.defaultPadding == defaultPadding &&
+        other.minWidth == minWidth &&
+        other.minHeight == minHeight &&
+        other.maxWidth == maxWidth &&
+        other.maxHeight == maxHeight;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      defaultBackgroundColor,
+      defaultBorderColor,
+      selectedBackgroundColor,
+      selectedBorderColor,
+      errorBackgroundColor,
+      errorBorderColor,
+      defaultBorderWidth,
+      selectedBorderWidth,
+      borderRadius,
+      shadows == null ? null : Object.hashAll(shadows!),
+      defaultTextStyle,
+      hoverBackgroundColor,
+      hoverBorderColor,
+      disabledBackgroundColor,
+      disabledBorderColor,
+      hoverBorderWidth,
+      animationDuration,
+      animationCurve,
+      defaultPadding,
+      Object.hash(minWidth, minHeight, maxWidth, maxHeight),
     );
   }
 }

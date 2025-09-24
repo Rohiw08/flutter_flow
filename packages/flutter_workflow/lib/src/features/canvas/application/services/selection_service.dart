@@ -1,15 +1,10 @@
 import 'package:flutter/painting.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/node_query_service.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
 import '../../domain/state/edge_state.dart';
 import '../../domain/state/node_state.dart';
-
-/// Provider for the stateless SelectionService.
-final selectionServiceProvider =
-    Provider<SelectionService>((ref) => SelectionService());
 
 /// A stateless service for handling business logic related to selection.
 class SelectionService {
@@ -220,6 +215,7 @@ class SelectionService {
     final newSelectionRect =
         Rect.fromPoints(state.selectionRect!.topLeft, position);
 
+    // Use spatial indexing for efficient node querying
     final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
 
     final nodesInArea = <String>{};
@@ -234,12 +230,17 @@ class SelectionService {
       }
     }
 
+    // Use spatial indexing for efficient edge querying
     final edgesInArea = <String>{};
-    for (final entry in state.edges.entries) {
-      final e = entry.value;
-      if (nodesInArea.contains(e.sourceNodeId) &&
-          nodesInArea.contains(e.targetNodeId)) {
-        edgesInArea.add(entry.key);
+    for (final nodeId in nodesInArea) {
+      final connectedEdges = state.edgeIndex.getEdgesForNode(nodeId);
+      for (final edgeId in connectedEdges) {
+        final edge = state.edges[edgeId];
+        if (edge != null &&
+            nodesInArea.contains(edge.sourceNodeId) &&
+            nodesInArea.contains(edge.targetNodeId)) {
+          edgesInArea.add(edgeId);
+        }
       }
     }
 

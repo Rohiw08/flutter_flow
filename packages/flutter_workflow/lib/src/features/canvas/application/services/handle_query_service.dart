@@ -1,9 +1,5 @@
 import 'package:flutter/painting.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
-
-final handleQueryServiceProvider =
-    Provider<HandleQueryService>((ref) => HandleQueryService());
 
 /// A stateless service for performing high-performance queries on handles.
 /// It uses the unified NodeIndex from the FlowCanvasState.

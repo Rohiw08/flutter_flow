@@ -3,7 +3,6 @@ import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/random_id_generator.dart';
-
 import 'edge_service.dart';
 import 'node_service.dart';
 

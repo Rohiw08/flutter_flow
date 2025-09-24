@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
 
 @immutable
 class FlowSelectionStyle {
@@ -53,22 +52,19 @@ class FlowSelectionStyle {
     );
   }
 
-  FlowSelectionStyle resolveSelectionTheme(
-    BuildContext context,
-    FlowSelectionStyle? selectionTheme, {
-    Color? fillColor,
-    Color? borderColor,
-    double? borderWidth,
-    double? dashLength,
-    double? gapLength,
-  }) {
-    final base = selectionTheme ?? context.flowCanvasTheme.selection;
-    return base.copyWith(
-      fillColor: fillColor,
-      borderColor: borderColor,
-      borderWidth: borderWidth,
-      dashLength: dashLength,
-      gapLength: gapLength,
+  FlowSelectionStyle lerp(FlowSelectionStyle other, double t) {
+    return FlowSelectionStyle(
+      fillColor: Color.lerp(fillColor, other.fillColor, t) ?? fillColor,
+      borderColor: Color.lerp(borderColor, other.borderColor, t) ?? borderColor,
+      borderWidth: (borderWidth == null || other.borderWidth == null)
+          ? (t < 0.5 ? borderWidth : other.borderWidth)
+          : borderWidth! + (other.borderWidth! - borderWidth!) * t,
+      dashLength: (dashLength == null || other.dashLength == null)
+          ? (t < 0.5 ? dashLength : other.dashLength)
+          : dashLength! + (other.dashLength! - dashLength!) * t,
+      gapLength: (gapLength == null || other.gapLength == null)
+          ? (t < 0.5 ? gapLength : other.gapLength)
+          : gapLength! + (other.gapLength! - gapLength!) * t,
     );
   }
 
@@ -91,20 +87,4 @@ class FlowSelectionStyle {
         dashLength,
         gapLength,
       );
-
-  FlowSelectionStyle lerp(FlowSelectionStyle other, double t) {
-    return FlowSelectionStyle(
-      fillColor: Color.lerp(fillColor, other.fillColor, t) ?? fillColor,
-      borderColor: Color.lerp(borderColor, other.borderColor, t) ?? borderColor,
-      borderWidth: (borderWidth == null || other.borderWidth == null)
-          ? (t < 0.5 ? borderWidth : other.borderWidth)
-          : borderWidth! + (other.borderWidth! - borderWidth!) * t,
-      dashLength: (dashLength == null || other.dashLength == null)
-          ? (t < 0.5 ? dashLength : other.dashLength)
-          : dashLength! + (other.dashLength! - dashLength!) * t,
-      gapLength: (gapLength == null || other.gapLength == null)
-          ? (t < 0.5 ? gapLength : other.gapLength)
-          : gapLength! + (other.gapLength! - gapLength!) * t,
-    );
-  }
 }

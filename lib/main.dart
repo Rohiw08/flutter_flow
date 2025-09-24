@@ -19,15 +19,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class CanvasScreen extends StatefulWidget {
+class CanvasScreen extends ConsumerStatefulWidget {
   const CanvasScreen({super.key});
 
   @override
-  State<CanvasScreen> createState() => _CanvasScreenState();
+  ConsumerState<CanvasScreen> createState() => _CanvasScreenState();
 }
 
-class _CanvasScreenState extends State<CanvasScreen> {
-  late final FlowCanvasFacade facade;
+class _CanvasScreenState extends ConsumerState<CanvasScreen> {
   late final NodeRegistry nodeRegistry;
   late final EdgeRegistry edgeRegistry;
   bool _isInitialized = false;
@@ -43,55 +42,50 @@ class _CanvasScreenState extends State<CanvasScreen> {
     nodeRegistry = NodeRegistry();
     edgeRegistry = EdgeRegistry();
 
-    // 2. Initialize the Facade FIRST
-    facade = FlowCanvasFacade(
+    // 2. Get the controller from the provider
+    final controller = flowControllerProvider((
       nodeRegistry: nodeRegistry,
       edgeRegistry: edgeRegistry,
-    );
+    ));
 
-    // 3. Register Custom Node Types
+    // 4. Register Custom Node Types
     nodeRegistry.register('custom_node', (node) {
-      return CustomNodeWidget(node: node, facade: facade);
+      return CustomNodeWidget(node: node);
     });
 
-    // 4. Mark as initialized
+    // 5. Mark as initialized
     setState(() {
       _isInitialized = true;
     });
 
-    // 5. Add initial data after first frame
+    // 6. Add initial data after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _addInitialNodes();
       }
     });
-
-    // 6. Subscribe to viewport changes
-    facade.viewportStream.listen((viewport) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
   }
 
   void addNode() {
-    final node = FlowNode.create(
-      position: const Offset(0, 300), // Left of center
+    final node = FlowNodeFactory.create(
+      id: 'node_${DateTime.now().millisecondsSinceEpoch}',
+      position: const Offset(0, 300),
       size: const Size(150, 80),
       type: 'custom_node',
       handles: const [
         NodeHandle(
             id: 'out1', type: HandleType.source, position: Offset(150, 40)),
       ],
-      data: {'label': 'Node A'},
+      data: {'label': 'New Node'},
     );
-    facade.addNode(node);
+    controller.addNode(node);
   }
 
   void _addInitialNodes() {
     try {
-      final node1 = FlowNode.create(
-        position: const Offset(400, 300), // Left of center
+      final node1 = FlowNodeFactory.create(
+        id: 'node_1',
+        position: const Offset(400, 300),
         size: const Size(150, 80),
         type: 'custom_node',
         handles: const [
@@ -101,8 +95,9 @@ class _CanvasScreenState extends State<CanvasScreen> {
         data: {'label': 'Node A'},
       );
 
-      final node2 = FlowNode.create(
-        position: const Offset(200, 200), // Right of center
+      final node2 = FlowNodeFactory.create(
+        id: 'node_2',
+        position: const Offset(200, 200),
         size: const Size(150, 80),
         type: 'custom_node',
         handles: const [
@@ -115,7 +110,6 @@ class _CanvasScreenState extends State<CanvasScreen> {
       facade.addNode(node1);
       facade.addNode(node2);
     } catch (e) {
-      // Handle or log the error if needed
       debugPrint('Error adding initial nodes: $e');
     }
   }
@@ -147,7 +141,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
       appBar: AppBar(
         actions: [
           ElevatedButton(
-            onPressed: () => addNode(),
+            onPressed: addNode,
             child: const Icon(Icons.add),
           )
         ],
@@ -158,16 +152,18 @@ class _CanvasScreenState extends State<CanvasScreen> {
         facade: facade,
         overlays: [
           FlowBackground(
-            backgroundTheme: FlowCanvasBackgroundStyle.light(),
+            backgroundTheme: FlowBackgroundStyle.light(),
           ),
-          FlowMiniMap(facade: facade),
+          // FlowMiniMap(facade: facade),
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Align(
               alignment: Alignment.bottomLeft,
               child: FlowCanvasControls(
                 facade: facade,
-                containerCornerRadius: 12,
+                controlsTheme: const FlowCanvasControlsStyle(
+                  containerCornerRadius: 12,
+                ),
               ),
             ),
           ),
@@ -177,7 +173,7 @@ class _CanvasScreenState extends State<CanvasScreen> {
   }
 }
 
-/// An example of a custom node widget a user of the library would create.
+/// Custom node widget example
 class CustomNodeWidget extends StatelessWidget {
   final FlowNode node;
   final FlowCanvasFacade facade;
@@ -191,8 +187,8 @@ class CustomNodeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.flowCanvasTheme.node;
-    // The node's appearance can be driven by its `isSelected` property
-    final decoration = theme.getStyleForState(isSelected: node.isSelected);
+    final isSelected = facade.state.selectedNodes.contains(node.id);
+    final decoration = theme.getStyleForState(isSelected: isSelected);
 
     return Container(
       width: node.size.width,
@@ -208,15 +204,21 @@ class CustomNodeWidget extends StatelessWidget {
             ),
           ),
           // Add handles to the node
-          for (final handle in node.handles)
+          for (final handle in node.handles.values)
             Positioned(
-              left: handle.position.dx - 15, // Center the handle
-              top: handle.position.dy - 15, // Center the handle
+              left: handle.position.dx - 15,
+              top: handle.position.dy - 15,
               child: Handle(
-                facade: facade,
                 nodeId: node.id,
                 handleId: handle.id,
                 type: handle.type,
+                connectionStream: Stream.value(null), // Placeholder
+                onStartConnection: (nodeId, handleId, position) {
+                  facade.startConnection(nodeId, handleId, position);
+                },
+                onEndConnection: () {
+                  facade.endConnection();
+                },
               ),
             ),
         ],

@@ -48,6 +48,11 @@ class NodeOptions {
     );
   }
 
+  /// Resolves node options from the global FlowCanvasOptions in the context.
+  static NodeOptions resolve(BuildContext context) {
+    return context.flowCanvasOptions.nodeOptions;
+  }
+
   @override
   bool operator ==(covariant NodeOptions other) {
     if (identical(this, other)) return true;
@@ -77,32 +82,32 @@ class NodeOptions {
 
 extension ResolvedNodeOptions on FlowNode {
   bool isDraggable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
     return draggable ?? globalOptions.draggable;
   }
 
   bool isSelectable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
     return selectable ?? globalOptions.selectable;
   }
 
-  bool isFocusable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
-    return focusable ?? globalOptions.focusable;
-  }
-
   bool isDeletable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
     return deletable ?? globalOptions.deletable;
   }
 
+  bool isHidden(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
+    return hidden ?? globalOptions.hidden;
+  }
+
   bool isConnectable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
     return connectable ?? globalOptions.connectable;
   }
 
-  bool elevateNodeOnSelect(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.defaultNodeOptions;
+  bool elevateOnSelect(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
     return elevateNodeOnSelected ?? globalOptions.elevateNodesOnSelected;
   }
 }

@@ -5,6 +5,8 @@ import 'package:flutter_workflow/src/features/canvas/presentation/theme/componen
 import 'package:flutter_workflow/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 
+import '../theme/theme_resolver/handle_theme_resolver.dart';
+
 /// A callback function to validate a potential connection.
 typedef IsValidConnectionCallback = bool Function(String connection);
 
@@ -52,8 +54,7 @@ class _HandleState extends ConsumerState<Handle> {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        const FlowHandleStyle().resolveHandleTheme(context, widget.handleStyle);
+    final theme = resolveHandleTheme(context, widget.handleStyle);
 
     final double finalSize = theme.size ?? 10.0;
     final Color finalBorderColor = theme.borderColor ?? Colors.white;

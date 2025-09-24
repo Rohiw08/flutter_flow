@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../flow_theme.dart';
 import 'package:flutter/foundation.dart';
 
 class FlowCanvasControlsStyle {
@@ -180,65 +179,41 @@ class FlowCanvasControlsStyle {
     );
   }
 
-  FlowCanvasControlsStyle resolveControlTheme(
-    BuildContext context,
-    FlowCanvasControlsStyle? controlsTheme, {
-    Color? containerColor,
-    Color? buttonColor,
-    Color? buttonHoverColor,
-    Color? iconColor,
-    Color? iconHoverColor,
-    double? buttonSize,
-    double? buttonCornerRadius,
-    double? containerCornerRadius,
-    EdgeInsetsGeometry? padding,
-    List<BoxShadow>? shadows,
-    BoxDecoration? containerDecoration,
-    BoxDecoration? buttonDecoration,
-    BoxDecoration? buttonHoverDecoration,
-    TextStyle? iconStyle,
-    TextStyle? iconHoverStyle,
-  }) {
-    // First, try to get the provided theme
-    FlowCanvasControlsStyle base = controlsTheme ??
-        // Then try to get from Flutter theme extension (assuming FlowCanvasTheme exists)
-        _getThemeFromContext(context) ??
-        // Finally fall back to light theme
-        FlowCanvasControlsStyle.light();
-
-    return base.copyWith(
-      containerColor: containerColor,
-      buttonColor: buttonColor,
-      buttonHoverColor: buttonHoverColor,
-      iconColor: iconColor,
-      iconHoverColor: iconHoverColor,
-      buttonSize: buttonSize,
-      buttonCornerRadius: buttonCornerRadius,
-      containerCornerRadius: containerCornerRadius,
-      padding: padding,
-      shadows: shadows,
-      containerDecoration: containerDecoration,
-      buttonDecoration: buttonDecoration,
-      buttonHoverDecoration: buttonHoverDecoration,
-      iconStyle: iconStyle,
-      iconHoverStyle: iconHoverStyle,
+  FlowCanvasControlsStyle lerp(FlowCanvasControlsStyle other, double t) {
+    return FlowCanvasControlsStyle(
+      containerColor:
+          Color.lerp(containerColor, other.containerColor, t) ?? containerColor,
+      buttonColor: Color.lerp(buttonColor, other.buttonColor, t) ?? buttonColor,
+      buttonHoverColor:
+          Color.lerp(buttonHoverColor, other.buttonHoverColor, t) ??
+              buttonHoverColor,
+      iconColor: Color.lerp(iconColor, other.iconColor, t) ?? iconColor,
+      iconHoverColor:
+          Color.lerp(iconHoverColor, other.iconHoverColor, t) ?? iconHoverColor,
+      buttonSize: buttonSize == null || other.buttonSize == null
+          ? (t < 0.5 ? buttonSize : other.buttonSize)
+          : buttonSize! + (other.buttonSize! - buttonSize!) * t,
+      buttonCornerRadius:
+          buttonCornerRadius == null || other.buttonCornerRadius == null
+              ? (t < 0.5 ? buttonCornerRadius : other.buttonCornerRadius)
+              : buttonCornerRadius! +
+                  (other.buttonCornerRadius! - buttonCornerRadius!) * t,
+      containerCornerRadius:
+          containerCornerRadius == null || other.containerCornerRadius == null
+              ? (t < 0.5 ? containerCornerRadius : other.containerCornerRadius)
+              : containerCornerRadius! +
+                  (other.containerCornerRadius! - containerCornerRadius!) * t,
+      padding: EdgeInsetsGeometry.lerp(padding, other.padding, t) ?? padding,
+      shadows: t < 0.5 ? shadows : other.shadows,
+      containerDecoration:
+          t < 0.5 ? containerDecoration : other.containerDecoration,
+      buttonDecoration: t < 0.5 ? buttonDecoration : other.buttonDecoration,
+      buttonHoverDecoration:
+          t < 0.5 ? buttonHoverDecoration : other.buttonHoverDecoration,
+      iconStyle: TextStyle.lerp(iconStyle, other.iconStyle, t) ?? iconStyle,
+      iconHoverStyle: TextStyle.lerp(iconHoverStyle, other.iconHoverStyle, t) ??
+          iconHoverStyle,
     );
-  }
-
-// Helper function to extract theme from context
-  FlowCanvasControlsStyle? _getThemeFromContext(BuildContext context) {
-    try {
-      // This assumes you have a FlowCanvasTheme extension
-      // You'll need to implement this based on your theme structure
-      final themeExtension = Theme.of(context).extension<FlowCanvasTheme>();
-      return themeExtension?.controls;
-    } catch (e) {
-      // If FlowCanvasTheme doesn't exist, fall back to brightness-based theme
-      final brightness = Theme.of(context).brightness;
-      return brightness == Brightness.dark
-          ? FlowCanvasControlsStyle.dark()
-          : FlowCanvasControlsStyle.light();
-    }
   }
 
   @override
@@ -280,41 +255,4 @@ class FlowCanvasControlsStyle {
         iconStyle,
         iconHoverStyle,
       );
-
-  FlowCanvasControlsStyle lerp(FlowCanvasControlsStyle other, double t) {
-    return FlowCanvasControlsStyle(
-      containerColor:
-          Color.lerp(containerColor, other.containerColor, t) ?? containerColor,
-      buttonColor: Color.lerp(buttonColor, other.buttonColor, t) ?? buttonColor,
-      buttonHoverColor:
-          Color.lerp(buttonHoverColor, other.buttonHoverColor, t) ??
-              buttonHoverColor,
-      iconColor: Color.lerp(iconColor, other.iconColor, t) ?? iconColor,
-      iconHoverColor:
-          Color.lerp(iconHoverColor, other.iconHoverColor, t) ?? iconHoverColor,
-      buttonSize: buttonSize == null || other.buttonSize == null
-          ? (t < 0.5 ? buttonSize : other.buttonSize)
-          : buttonSize! + (other.buttonSize! - buttonSize!) * t,
-      buttonCornerRadius:
-          buttonCornerRadius == null || other.buttonCornerRadius == null
-              ? (t < 0.5 ? buttonCornerRadius : other.buttonCornerRadius)
-              : buttonCornerRadius! +
-                  (other.buttonCornerRadius! - buttonCornerRadius!) * t,
-      containerCornerRadius:
-          containerCornerRadius == null || other.containerCornerRadius == null
-              ? (t < 0.5 ? containerCornerRadius : other.containerCornerRadius)
-              : containerCornerRadius! +
-                  (other.containerCornerRadius! - containerCornerRadius!) * t,
-      padding: EdgeInsetsGeometry.lerp(padding, other.padding, t) ?? padding,
-      shadows: t < 0.5 ? shadows : other.shadows,
-      containerDecoration:
-          t < 0.5 ? containerDecoration : other.containerDecoration,
-      buttonDecoration: t < 0.5 ? buttonDecoration : other.buttonDecoration,
-      buttonHoverDecoration:
-          t < 0.5 ? buttonHoverDecoration : other.buttonHoverDecoration,
-      iconStyle: TextStyle.lerp(iconStyle, other.iconStyle, t) ?? iconStyle,
-      iconHoverStyle: TextStyle.lerp(iconHoverStyle, other.iconHoverStyle, t) ??
-          iconHoverStyle,
-    );
-  }
 }

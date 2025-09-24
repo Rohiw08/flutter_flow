@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/background_theme.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_export.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
 
 FlowBackgroundStyle resolveBackgroundTheme(
@@ -18,19 +18,20 @@ FlowBackgroundStyle resolveBackgroundTheme(
   BlendMode? blendMode,
   List<Color>? alternateColors,
 }) {
-  final base = theme ?? FlowBackgroundStyle.light();
-  return base.copyWith(
-    backgroundColor: backgroundColor,
-    variant: pattern,
-    patternColor: patternColor,
-    gap: gap,
-    lineWidth: lineWidth,
-    dotRadius: dotRadius,
-    crossSize: crossSize,
-    fadeOnZoom: fadeOnZoom,
-    gradient: gradient,
-    patternOffset: patternOffset,
-    blendMode: blendMode,
-    alternateColors: alternateColors,
+  final contextTheme = context.flowCanvasTheme.background;
+
+  return contextTheme.copyWith(
+    backgroundColor: backgroundColor ?? theme?.backgroundColor,
+    variant: pattern ?? theme?.variant,
+    patternColor: patternColor ?? theme?.patternColor,
+    gap: gap ?? theme?.gap,
+    lineWidth: lineWidth ?? theme?.lineWidth,
+    dotRadius: dotRadius ?? theme?.dotRadius,
+    crossSize: crossSize ?? theme?.crossSize,
+    fadeOnZoom: fadeOnZoom ?? theme?.fadeOnZoom,
+    gradient: gradient ?? theme?.gradient,
+    patternOffset: patternOffset ?? theme?.patternOffset,
+    blendMode: blendMode ?? theme?.blendMode,
+    alternateColors: alternateColors ?? theme?.alternateColors,
   );
 }

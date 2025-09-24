@@ -1,13 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 
 import '../../domain/indexes/edge_index.dart';
-
-/// Provider for the stateless EdgeService.
-final edgeServiceProvider = Provider<EdgeService>((ref) {
-  return EdgeService();
-});
 
 /// A function type for updating the data map of a FlowEdge.
 ///

@@ -47,6 +47,10 @@ class EdgeOptions {
     );
   }
 
+  static EdgeOptions resolve(BuildContext context) {
+    return context.flowCanvasOptions.edgeOptions;
+  }
+
   @override
   bool operator ==(covariant EdgeOptions other) {
     if (identical(this, other)) return true;
@@ -100,12 +104,8 @@ extension ResolvedEdgeOptions on FlowEdge {
     return reconnectable ?? globalOptions.reconnectable;
   }
 
-  bool elevateEdgesOnSelectResolved(BuildContext context) {
+  bool elevateOnSelect(BuildContext context) {
     final globalOptions = context.flowCanvasOptions.edgeOptions;
     return elevateEdgeOnSelected ?? globalOptions.elevateEdgesOnSelect;
   }
-
-  // Unified name to mirror node options helper
-  bool elevateOnSelect(BuildContext context) =>
-      elevateEdgesOnSelectResolved(context);
 }

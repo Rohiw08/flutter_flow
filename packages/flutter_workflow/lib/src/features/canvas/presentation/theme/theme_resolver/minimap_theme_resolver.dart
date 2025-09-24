@@ -5,7 +5,6 @@ import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_ex
 FlowMinimapStyle resolveMiniMapTheme(
   BuildContext context,
   FlowMinimapStyle? theme, {
-  // Optional overrides if needed in future
   Color? backgroundColor,
   Color? nodeColor,
   Color? nodeStrokeColor,
@@ -27,27 +26,32 @@ FlowMinimapStyle resolveMiniMapTheme(
   double? viewportInnerGlowBlur,
   Color? viewportInnerColor,
 }) {
-  final base = theme ?? context.flowCanvasTheme.minimap;
-  return base.copyWith(
-    backgroundColor: backgroundColor,
-    nodeColor: nodeColor,
-    nodeStrokeColor: nodeStrokeColor,
-    nodeBorderRadius: nodeBorderRadius,
-    selectedNodeColor: selectedNodeColor,
-    maskColor: maskColor,
-    maskStrokeColor: maskStrokeColor,
-    nodeStrokeWidth: nodeStrokeWidth,
-    maskStrokeWidth: maskStrokeWidth,
-    borderRadius: borderRadius,
-    shadows: shadows,
-    padding: padding,
-    viewportBorderRadius: viewportBorderRadius,
-    selectedGlowColor: selectedGlowColor,
-    selectedGlowBlur: selectedGlowBlur,
-    selectedGlowWidthMultiplier: selectedGlowWidthMultiplier,
-    viewportInnerGlowColor: viewportInnerGlowColor,
-    viewportInnerGlowWidthMultiplier: viewportInnerGlowWidthMultiplier,
-    viewportInnerGlowBlur: viewportInnerGlowBlur,
-    viewportInnerColor: viewportInnerColor,
+  final contextTheme = context.flowCanvasTheme.minimap;
+
+  return contextTheme.copyWith(
+    backgroundColor: backgroundColor ?? theme?.backgroundColor,
+    nodeColor: nodeColor ?? theme?.nodeColor,
+    nodeStrokeColor: nodeStrokeColor ?? theme?.nodeStrokeColor,
+    nodeBorderRadius: nodeBorderRadius ?? theme?.nodeBorderRadius,
+    selectedNodeColor: selectedNodeColor ?? theme?.selectedNodeColor,
+    maskColor: maskColor ?? theme?.maskColor,
+    maskStrokeColor: maskStrokeColor ?? theme?.maskStrokeColor,
+    nodeStrokeWidth: nodeStrokeWidth ?? theme?.nodeStrokeWidth,
+    maskStrokeWidth: maskStrokeWidth ?? theme?.maskStrokeWidth,
+    borderRadius: borderRadius ?? theme?.borderRadius,
+    shadows: shadows ?? theme?.shadows,
+    padding: padding ?? theme?.padding,
+    viewportBorderRadius: viewportBorderRadius ?? theme?.viewportBorderRadius,
+    selectedGlowColor: selectedGlowColor ?? theme?.selectedGlowColor,
+    selectedGlowBlur: selectedGlowBlur ?? theme?.selectedGlowBlur,
+    selectedGlowWidthMultiplier:
+        selectedGlowWidthMultiplier ?? theme?.selectedGlowWidthMultiplier,
+    viewportInnerGlowColor:
+        viewportInnerGlowColor ?? theme?.viewportInnerGlowColor,
+    viewportInnerGlowWidthMultiplier: viewportInnerGlowWidthMultiplier ??
+        theme?.viewportInnerGlowWidthMultiplier,
+    viewportInnerGlowBlur:
+        viewportInnerGlowBlur ?? theme?.viewportInnerGlowBlur,
+    viewportInnerColor: viewportInnerColor ?? theme?.viewportInnerColor,
   );
 }

@@ -10,25 +10,25 @@ class KeyboardOptions {
   final double zoomStep;
   final Map<ShortcutActivator, KeyboardAction> shortcuts;
 
-  const KeyboardOptions._({
+  /// A const constructor with a default empty map for shortcuts.
+  const KeyboardOptions({
     this.enabled = true,
     this.arrowKeyMoveSpeed = 10.0,
     this.zoomStep = 0.1,
-    required this.shortcuts,
+    this.shortcuts = const {},
   });
 
-  // Factory constructor that creates the default shortcuts
-  factory KeyboardOptions({
+  /// A factory that creates KeyboardOptions with default, platform-aware shortcuts.
+  factory KeyboardOptions.withDefaults({
     bool enabled = true,
     double arrowKeyMoveSpeed = 10.0,
     double zoomStep = 0.1,
-    Map<ShortcutActivator, KeyboardAction>? shortcuts,
   }) {
-    return KeyboardOptions._(
+    return KeyboardOptions(
       enabled: enabled,
       arrowKeyMoveSpeed: arrowKeyMoveSpeed,
       zoomStep: zoomStep,
-      shortcuts: shortcuts ?? _getDefaultShortcuts(),
+      shortcuts: _getDefaultShortcuts(),
     );
   }
 
@@ -87,7 +87,7 @@ class KeyboardOptions {
     double? zoomStep,
     Map<ShortcutActivator, KeyboardAction>? shortcuts,
   }) {
-    return KeyboardOptions._(
+    return KeyboardOptions(
       enabled: enabled ?? this.enabled,
       arrowKeyMoveSpeed: arrowKeyMoveSpeed ?? this.arrowKeyMoveSpeed,
       zoomStep: zoomStep ?? this.zoomStep,

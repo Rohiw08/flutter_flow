@@ -1,15 +1,15 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/background_theme.dart';
+import '../theme/components/background_theme.dart';
 
 class BackgroundPainter extends CustomPainter {
   final ui.FragmentProgram program;
-  final FlowBackgroundStyle theme;
+  final FlowBackgroundStyle style;
   late final ui.FragmentShader shader;
 
   BackgroundPainter({
     required this.program,
-    required this.theme,
+    required this.style,
   }) {
     shader = program.fragmentShader();
   }
@@ -30,29 +30,29 @@ class BackgroundPainter extends CustomPainter {
     shader.setFloat(index++, size.height);
 
     // Background color
-    shader.setFloat(index++, theme.backgroundColor.r);
-    shader.setFloat(index++, theme.backgroundColor.g);
-    shader.setFloat(index++, theme.backgroundColor.b);
-    shader.setFloat(index++, theme.backgroundColor.a);
+    shader.setFloat(index++, style.backgroundColor!.r);
+    shader.setFloat(index++, style.backgroundColor!.g);
+    shader.setFloat(index++, style.backgroundColor!.b);
+    shader.setFloat(index++, style.backgroundColor!.a);
 
     // Pattern color
-    shader.setFloat(index++, theme.patternColor.r);
-    shader.setFloat(index++, theme.patternColor.g);
-    shader.setFloat(index++, theme.patternColor.b);
-    shader.setFloat(index++, theme.patternColor.a);
+    shader.setFloat(index++, style.patternColor!.r);
+    shader.setFloat(index++, style.patternColor!.g);
+    shader.setFloat(index++, style.patternColor!.b);
+    shader.setFloat(index++, style.patternColor!.a);
 
     // Pattern parameters
-    shader.setFloat(index++, theme.gap);
-    shader.setFloat(index++, theme.lineWidth);
-    shader.setFloat(index++, theme.dotRadius ?? 2.0);
-    shader.setFloat(index++, theme.crossSize ?? 6.0);
-    shader.setFloat(index++, theme.variant.index.toDouble());
+    shader.setFloat(index++, style.gap!);
+    shader.setFloat(index++, style.lineWidth!);
+    shader.setFloat(index++, style.dotRadius ?? 2.0);
+    shader.setFloat(index++, style.crossSize ?? 6.0);
+    shader.setFloat(index++, style.variant!.index.toDouble());
 
     return shader;
   }
 
   @override
   bool shouldRepaint(covariant BackgroundPainter oldDelegate) {
-    return !identical(oldDelegate.theme, theme);
+    return !identical(oldDelegate.style, style);
   }
 }

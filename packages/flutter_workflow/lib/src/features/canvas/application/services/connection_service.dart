@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/handle.dart';
@@ -8,11 +7,6 @@ import 'package:flutter_workflow/src/features/canvas/domain/state/connection_sta
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/random_id_generator.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
-
-/// Provider for the stateless ConnectionService.
-final connectionServiceProvider = Provider<ConnectionService>((ref) {
-  return ConnectionService();
-});
 
 typedef ConnectionValidator = bool Function(
   FlowNode sourceNode,

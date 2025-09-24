@@ -1,15 +1,10 @@
 import 'dart:math';
 import 'package:flutter/painting.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/options/components/fitview_options.dart';
 
 import '../../domain/models/node.dart';
-
-/// Provider for the stateless ViewportService.
-final viewportServiceProvider =
-    Provider<ViewportService>((ref) => ViewportService());
 
 typedef NodeBounds = ({Rect rect, List<FlowNode> nodes});
 

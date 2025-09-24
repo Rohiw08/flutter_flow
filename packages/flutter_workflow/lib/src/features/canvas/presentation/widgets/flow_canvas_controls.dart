@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/flow_canvas_facade.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/widgets/control_button.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/theme/components/controller_theme.dart';
 
+import '../../../../shared/providers.dart';
 import '../theme/components/controller_button_theme.dart';
+import '../theme/theme_resolver/controller_theme_resolver.dart';
 
-class FlowCanvasControls extends StatelessWidget {
-  final FlowCanvasFacade facade;
+class FlowCanvasControls extends ConsumerWidget {
   final bool showZoom;
   final bool showFitView;
   final bool showLock;
@@ -19,7 +20,6 @@ class FlowCanvasControls extends StatelessWidget {
 
   const FlowCanvasControls({
     super.key,
-    required this.facade,
     this.showZoom = true,
     this.showFitView = true,
     this.showLock = true,
@@ -30,10 +30,13 @@ class FlowCanvasControls extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Resolve the final theme
-    final theme = const FlowCanvasControlsStyle()
-        .resolveControlTheme(context, controlsTheme);
+    final theme = resolveControlTheme(context, controlsTheme);
+    final controller = ref.read(internalControllerProvider.notifier);
+    final isLocked = ref.watch(
+      internalControllerProvider.select((s) => s.isPanZoomLocked),
+    );
 
     return ControlThemeProvider(
       theme: theme,
@@ -44,51 +47,50 @@ class FlowCanvasControls extends StatelessWidget {
           direction: orientation,
           spacing: spacing ?? 0.0,
           mainAxisSize: MainAxisSize.min,
-          children: _buildButtons(context, theme),
+          children: _buildButtons(context, theme, controller, isLocked),
         ),
       ),
     );
   }
 
   List<Widget> _buildButtons(
-      BuildContext context, FlowCanvasControlsStyle theme) {
+    BuildContext context,
+    FlowCanvasControlsStyle theme,
+    dynamic controller,
+    bool isLocked,
+  ) {
     return [
       if (showZoom) ...[
         ControlButton(
           icon: Icons.add,
           tooltip: 'Zoom In',
-          onPressed: () => facade.zoom(0.2),
+          onPressed: () => controller.zoom(0.2,
+              focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0),
         ),
         ControlButton(
           icon: Icons.remove,
           tooltip: 'Zoom Out',
-          onPressed: () => facade.zoom(-0.2),
+          onPressed: () => controller.zoom(-0.2,
+              focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0),
         ),
       ],
       if (showFitView) ...[
         ControlButton(
           icon: Icons.fit_screen,
           tooltip: 'Fit View',
-          onPressed: () => facade.fitView(),
+          onPressed: () => controller.fitView(),
         ),
         ControlButton(
           icon: Icons.center_focus_strong,
           tooltip: 'Center View',
-          onPressed: () => facade.centerView(),
+          onPressed: () => controller.centerView(),
         ),
       ],
       if (showLock)
-        StreamBuilder<bool>(
-          stream: facade.isPanZoomLockedStream,
-          builder: (context, snapshot) {
-            final isLocked = snapshot.data ?? false;
-            return ControlButton(
-              icon: isLocked ? Icons.lock : Icons.lock_open,
-              tooltip: isLocked ? 'Unlock' : 'Lock',
-              onPressed: facade.togglePanZoomLock,
-            );
-          },
-        ),
+        ControlButton(
+            icon: isLocked ? Icons.lock : Icons.lock_open,
+            tooltip: isLocked ? 'Unlock' : 'Lock',
+            onPressed: controller.toggleLock),
       ...children,
     ];
   }

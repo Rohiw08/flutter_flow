@@ -86,7 +86,7 @@ class _FlowBackgroundState extends State<FlowBackground> {
         child: CustomPaint(
           painter: BackgroundPainter(
             program: _program!,
-            theme: theme, // No matrix needed!
+            style: theme, // No matrix needed!
           ),
           size: Size.infinite,
         ),

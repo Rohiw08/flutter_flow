@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/src/features/canvas/application/events/connection_change_event.dart';
 import 'package:flutter_workflow/src/features/canvas/application/events/edge_change_event.dart';
 import 'package:flutter_workflow/src/features/canvas/application/events/node_change_event.dart';
+import 'package:flutter_workflow/src/features/canvas/application/events/selection_change_event.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/clipboard_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/connection_service.dart';
 import 'package:flutter_workflow/src/features/canvas/application/services/edge_query_service.dart';
@@ -31,6 +32,8 @@ import 'streams/connection_change_stream.dart';
 import 'streams/edge_change_stream.dart';
 import 'streams/node_change_stream.dart';
 import 'streams/pane_change_stream.dart';
+import 'streams/viewport_change_stream.dart';
+import 'events/viewport_change_event.dart';
 
 /// The central state management hub for the Flow Canvas.
 ///
@@ -102,6 +105,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   final ConnectionStreams _connectionStreams = ConnectionStreams();
   final PaneStreams _paneStreams = PaneStreams();
   final SelectionStreams _selectionStreams = SelectionStreams();
+  final ViewportStreams _viewportStreams = ViewportStreams();
 
   // Expose the streams publicly for the developer to listen to
   NodeStreams get nodeStreams => _nodeStreams;
@@ -109,6 +113,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   ConnectionStreams get connectionStreams => _connectionStreams;
   PaneStreams get paneStreams => _paneStreams;
   SelectionStreams get selectionStreams => _selectionStreams;
+  ViewportStreams get viewportStreams => _viewportStreams;
 
   // =================================================================================
   // --- State Update & Private Helpers ---
@@ -141,17 +146,32 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void setViewportSize(Size size) {
     if (state.viewportSize != size) {
       _mutate((s) => s.copyWith(viewportSize: size));
+      _viewportStreams.emit(ViewportEvent(
+        type: ViewportEventType.resize,
+        viewport: state.viewport,
+        viewportSize: size,
+      ));
     }
   }
 
   void pan(Offset delta) {
     _mutate((s) => _viewportService.pan(s, delta));
-    _paneStreams.emitEvent(
-        PaneEvent(type: PaneEventType.move, viewport: state.viewport));
+    final evt = PaneEvent(type: PaneEventType.move, viewport: state.viewport);
+    _paneStreams.emitEvent(evt);
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
   }
 
   void toggleLock() {
     _mutate((s) => s.copyWith(isPanZoomLocked: !s.isPanZoomLocked));
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
   }
 
   void zoom(
@@ -167,20 +187,37 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
           minZoom: minZoom,
           maxZoom: maxZoom,
         ));
-    _paneStreams.emitEvent(
-        PaneEvent(type: PaneEventType.move, viewport: state.viewport));
+    final evt = PaneEvent(type: PaneEventType.move, viewport: state.viewport);
+    _paneStreams.emitEvent(evt);
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
   }
 
-  void fitView({FitViewOptions options = const FitViewOptions()}) =>
-      _mutate((s) => _viewportService.fitView(s, options: options));
+  void fitView({FitViewOptions options = const FitViewOptions()}) {
+    _mutate((s) => _viewportService.fitView(s, options: options));
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
+  }
 
   void centerView() {
     if (state.viewportSize == null) return;
     centerOnPosition(Offset.zero);
   }
 
-  void resetView() =>
-      _mutate((s) => s.copyWith(viewport: const FlowViewport()));
+  void resetView() {
+    _mutate((s) => s.copyWith(viewport: const FlowViewport()));
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
+  }
 
   void centerOnPosition(Offset canvasPosition) {
     if (state.viewportSize == null) return;
@@ -188,6 +225,11 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         Offset(state.viewportSize!.width / 2, state.viewportSize!.height / 2);
     _mutate(
         (s) => s.copyWith(viewport: s.viewport.copyWith(offset: newOffset)));
+    _viewportStreams.emit(ViewportEvent(
+      type: ViewportEventType.change,
+      viewport: state.viewport,
+      viewportSize: state.viewportSize,
+    ));
   }
 
   /// Converts a point from screen coordinates to canvas coordinates.
@@ -245,6 +287,11 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         .map((id) => NodeChangeEvent(nodeId: id, type: NodeChangeType.remove))
         .toList();
     _nodeStreams.emitChanges(nodeEvents);
+
+    // Emit NodeEvent.delete for each removed node (interaction-level event)
+    for (final id in removedNodeIds) {
+      _nodeStreams.emitEvent(NodeEvent(nodeId: id, type: NodeEventType.delete));
+    }
 
     final edgeEvents = removedEdgeIds
         .map((id) => EdgeChangeEvent(edgeId: id, type: EdgeEventType.delete))
@@ -360,6 +407,11 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
           nodeId: nodeId, type: NodeChangeType.selection, newValue: isSelected);
       _nodeStreams.emitChanges([event]);
     }
+    _selectionStreams.emit(SelectionChangeEvent(
+      selectedNodeIds: state.selectedNodes,
+      selectedEdgeIds: state.selectedEdges,
+      state: state,
+    ));
   }
 
   void selectEdge(String edgeId, {bool addToSelection = false}) {
@@ -375,12 +427,21 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
           data: {'selected': isSelected});
       _edgeStreams.emitChanges([event]);
     }
+    _selectionStreams.emit(SelectionChangeEvent(
+      selectedNodeIds: state.selectedNodes,
+      selectedEdgeIds: state.selectedEdges,
+      state: state,
+    ));
   }
 
   void selectAll({bool nodes = true, bool edges = true}) {
     _mutate((s) => _selectionService.selectAll(s, nodes: nodes, edges: edges));
-    // Emitting events for a full selectAll can be noisy, but here's how you could
-    // For now, developers can listen to the generic onStateChange stream
+    _selectionStreams.emit(SelectionChangeEvent(
+      selectedNodeIds: state.selectedNodes,
+      selectedEdgeIds: state.selectedEdges,
+      state: state,
+    ));
+    // Emitting events for a full selectAll can be noisy; consumers can use selectionStreams
   }
 
   void startSelection(Offset position) =>
@@ -391,10 +452,22 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
           selectionMode: selectionMode ?? SelectionMode.partial,
           nodeQueryService: _nodeQueryService));
 
-  void endSelection() => _mutate((s) => _selectionService.endBoxSelection(s));
+  void endSelection() {
+    _mutate((s) => _selectionService.endBoxSelection(s));
+    _selectionStreams.emit(SelectionChangeEvent(
+      selectedNodeIds: state.selectedNodes,
+      selectedEdgeIds: state.selectedEdges,
+      state: state,
+    ));
+  }
 
   void deselectAll() {
     _mutate((s) => _selectionService.deselectAll(s));
+    _selectionStreams.emit(SelectionChangeEvent(
+      selectedNodeIds: state.selectedNodes,
+      selectedEdgeIds: state.selectedEdges,
+      state: state,
+    ));
   }
 
   // =================================================================================
@@ -529,6 +602,8 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void handleKeyboardAction(
     KeyboardAction action, {
     required KeyboardOptions options,
+    required double minZoom,
+    required double maxZoom,
   }) {
     _mutate(
       (s) => _keyboardActionService.handleAction(
@@ -537,8 +612,8 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         arrowMoveDelta:
             Offset(options.arrowKeyMoveSpeed, options.arrowKeyMoveSpeed),
         zoomStep: options.zoomStep,
-        minZoom: s.viewport.zoom,
-        maxZoom: s.viewport.zoom,
+        minZoom: minZoom,
+        maxZoom: maxZoom,
       ),
     );
   }
@@ -595,6 +670,8 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     _edgeStreams.dispose();
     _connectionStreams.dispose();
     _paneStreams.dispose();
+    _selectionStreams.dispose();
+    _viewportStreams.dispose();
     transformationController.dispose();
     super.dispose();
   }

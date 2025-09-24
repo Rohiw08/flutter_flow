@@ -1,4 +1,5 @@
 import 'package:flutter_workflow/src/features/canvas/presentation/options/components/edge_options.dart';
+import 'package:flutter_workflow/src/features/canvas/presentation/options/components/keyboard_options.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/options/components/node_options.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/options/components/viewport_options.dart';
 
@@ -10,8 +11,9 @@ class FlowOptions {
   final double canvasWidth;
   final double canvasHeight;
   final EdgeOptions edgeOptions;
-  final NodeOptions defaultNodeOptions;
+  final NodeOptions nodeOptions;
   final ViewportOptions viewportOptions;
+  final KeyboardOptions keyboardOptions;
 
   const FlowOptions({
     this.enableMultiSelection = true,
@@ -21,8 +23,9 @@ class FlowOptions {
     this.canvasWidth = 500000,
     this.canvasHeight = 500000,
     this.edgeOptions = const EdgeOptions(),
-    this.defaultNodeOptions = const NodeOptions(),
+    this.nodeOptions = const NodeOptions(),
     this.viewportOptions = const ViewportOptions(),
+    this.keyboardOptions = const KeyboardOptions(),
   });
 
   FlowOptions copyWith({
@@ -33,8 +36,9 @@ class FlowOptions {
     double? canvasWidth,
     double? canvasHeight,
     EdgeOptions? edgeOptions,
-    NodeOptions? defaultNodeOptions,
+    NodeOptions? nodeOptions,
     ViewportOptions? viewportOptions,
+    KeyboardOptions? keyboardOptions,
   }) {
     return FlowOptions(
       enableMultiSelection: enableMultiSelection ?? this.enableMultiSelection,
@@ -45,8 +49,9 @@ class FlowOptions {
       canvasWidth: canvasWidth ?? this.canvasWidth,
       canvasHeight: canvasHeight ?? this.canvasHeight,
       edgeOptions: edgeOptions ?? this.edgeOptions,
-      defaultNodeOptions: defaultNodeOptions ?? this.defaultNodeOptions,
+      nodeOptions: nodeOptions ?? this.nodeOptions,
       viewportOptions: viewportOptions ?? this.viewportOptions,
+      keyboardOptions: keyboardOptions ?? this.keyboardOptions,
     );
   }
 
@@ -61,8 +66,9 @@ class FlowOptions {
         other.canvasWidth == canvasWidth &&
         other.canvasHeight == canvasHeight &&
         other.edgeOptions == edgeOptions &&
-        other.defaultNodeOptions == defaultNodeOptions &&
-        other.viewportOptions == viewportOptions;
+        other.nodeOptions == nodeOptions &&
+        other.viewportOptions == viewportOptions &&
+        other.keyboardOptions == keyboardOptions;
   }
 
   @override
@@ -74,7 +80,8 @@ class FlowOptions {
         canvasWidth.hashCode ^
         canvasHeight.hashCode ^
         edgeOptions.hashCode ^
-        defaultNodeOptions.hashCode ^
-        viewportOptions.hashCode;
+        nodeOptions.hashCode ^
+        viewportOptions.hashCode ^
+        keyboardOptions.hashCode;
   }
 }

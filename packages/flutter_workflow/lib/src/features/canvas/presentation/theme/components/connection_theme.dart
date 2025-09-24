@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_workflow/src/shared/enums.dart';
-import 'package:flutter_workflow/src/features/canvas/presentation/theme/theme_extensions.dart';
 
 @immutable
 class FlowConnectionStyle {
@@ -55,6 +54,20 @@ class FlowConnectionStyle {
     );
   }
 
+  FlowConnectionStyle lerp(FlowConnectionStyle other, double t) {
+    return FlowConnectionStyle(
+      activeColor: Color.lerp(activeColor, other.activeColor, t) ?? activeColor,
+      validTargetColor:
+          Color.lerp(validTargetColor, other.validTargetColor, t) ??
+              validTargetColor,
+      invalidTargetColor:
+          Color.lerp(invalidTargetColor, other.invalidTargetColor, t) ??
+              invalidTargetColor,
+      strokeWidth: strokeWidth + (other.strokeWidth - strokeWidth) * t,
+      pathType: t < 0.5 ? pathType : other.pathType,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -74,37 +87,4 @@ class FlowConnectionStyle {
         strokeWidth,
         pathType, // NEW
       );
-
-  FlowConnectionStyle lerp(FlowConnectionStyle other, double t) {
-    return FlowConnectionStyle(
-      activeColor: Color.lerp(activeColor, other.activeColor, t) ?? activeColor,
-      validTargetColor:
-          Color.lerp(validTargetColor, other.validTargetColor, t) ??
-              validTargetColor,
-      invalidTargetColor:
-          Color.lerp(invalidTargetColor, other.invalidTargetColor, t) ??
-              invalidTargetColor,
-      strokeWidth: strokeWidth + (other.strokeWidth - strokeWidth) * t,
-      pathType: t < 0.5 ? pathType : other.pathType,
-    );
-  }
-
-  FlowConnectionStyle resolveConnectionTheme(
-    BuildContext context,
-    FlowConnectionStyle? theme, {
-    Color? activeColor,
-    Color? validTargetColor,
-    Color? invalidTargetColor,
-    double? strokeWidth,
-    EdgePathType? pathType,
-  }) {
-    final base = theme ?? context.flowCanvasTheme.connection;
-    return base.copyWith(
-      activeColor: activeColor,
-      validTargetColor: validTargetColor,
-      invalidTargetColor: invalidTargetColor,
-      strokeWidth: strokeWidth,
-      pathType: pathType,
-    );
-  }
 }
