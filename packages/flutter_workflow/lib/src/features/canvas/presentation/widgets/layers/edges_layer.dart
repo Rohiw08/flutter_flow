@@ -2,15 +2,20 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/flutter_workflow.dart';
 import 'package:flutter_workflow/src/features/canvas/application/callbacks/edge_callbacks.dart';
+import '../../../../../shared/providers.dart';
 import '../../../application/callbacks/pane_callbacks.dart';
 import '../../../domain/flow_canvas_state.dart';
 import '../../../domain/models/connection.dart';
+import '../../../domain/models/edge.dart';
+import '../../../domain/models/node.dart';
+import '../../../domain/registries/edge_registry.dart';
 import '../../painters/flow_painter.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/options/components/edge_options.dart';
 import 'package:flutter_workflow/src/features/canvas/presentation/utility/edge_path_creator.dart';
 import 'package:flutter_workflow/src/features/canvas/application/events/edge_change_event.dart';
+
+import '../../theme/theme_provider.dart';
 
 class FlowEdgeLayer extends ConsumerStatefulWidget {
   final EdgeRegistry edgeRegistry;
@@ -72,6 +77,9 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
       selectionRect: paintState.selectionRect,
       style: theme,
       zoom: paintState.zoom,
+      nodeStates: fullState.nodeStates,
+      edgeStates: fullState.edgeStates,
+      connectionState: fullState.connectionState,
     );
 
     return Listener(
@@ -79,7 +87,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
         final box = context.findRenderObject() as RenderBox?;
         if (box == null) return;
         final local = box.globalToLocal(event.position);
-        final hit = _hitTestEdgeAt(local, fullState, edgesForPainter);
+        final hit =
+            _hitTestEdgeAt(local, fullState, edgesForPainter, paintState.zoom);
         if (hit != _hoveredEdgeId) {
           if (_hoveredEdgeId != null) {
             final exitEvent = PointerExitEvent(position: event.position);
@@ -108,7 +117,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
           final box = context.findRenderObject() as RenderBox?;
           if (box == null) return;
           final local = box.globalToLocal(details.globalPosition);
-          final hit = _hitTestEdgeAt(local, fullState, edgesForPainter);
+          final hit = _hitTestEdgeAt(
+              local, fullState, edgesForPainter, paintState.zoom);
           if (hit != null) {
             // Selection
             if (paintState.edges[hit]?.isSelectable(context) ?? true) {
@@ -134,7 +144,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
           final box = context.findRenderObject() as RenderBox?;
           if (box == null) return;
           final local = box.globalToLocal(details.globalPosition);
-          final hit = _hitTestEdgeAt(local, fullState, edgesForPainter);
+          final hit = _hitTestEdgeAt(
+              local, fullState, edgesForPainter, paintState.zoom);
           if (hit != null) {
             widget.edgeCallbacks.onContextMenu(hit, details);
             controller.edgeStreams.emitEvent(EdgeChangeEvent(
@@ -153,8 +164,9 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     Offset localPos,
     FlowCanvasState state,
     Map<String, FlowEdge> edges,
+    double zoom,
   ) {
-    const double tolerance = 8.0;
+    const double baseTolerance = 8.0;
     const double searchRadius = 50.0;
 
     // Use spatial indexing to pre-filter nodes near the click position
@@ -188,7 +200,11 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
       final end = targetNode.position + targetHandle.position;
       final path = EdgePathCreator.createPath(edge.pathType, start, end);
 
-      if (_isPointNearPath(path, localPos, tolerance)) {
+      // Use per-edge interaction width, scaled by zoom, with a sensible minimum
+      final interactionTolerance =
+          ((edge.interactionWidth) / (2.0 * zoom)).clamp(baseTolerance, 64.0);
+
+      if (_isPointNearPath(path, localPos, interactionTolerance.toDouble())) {
         return edgeId;
       }
     }

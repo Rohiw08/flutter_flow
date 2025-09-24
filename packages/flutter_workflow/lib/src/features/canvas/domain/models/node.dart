@@ -1,4 +1,4 @@
-import 'package:flutter/painting.dart';
+import 'dart:ui';
 import 'package:flutter_workflow/src/features/canvas/domain/models/handle.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -9,7 +9,8 @@ part 'node.freezed.dart';
 abstract class FlowNode with _$FlowNode {
   const FlowNode._();
 
-  factory FlowNode({
+  // The primary, generated constructor
+  const factory FlowNode({
     required String type,
     required String id,
     required Offset position,
@@ -27,26 +28,17 @@ abstract class FlowNode with _$FlowNode {
     bool? elevateNodeOnSelected,
   }) = _FlowNode;
 
-  Offset get center =>
-      Offset(position.dx + size.width / 2, position.dy + size.height / 2);
-
-  // A getter for the node's rectangle, derived from its properties.
-  Rect get rect =>
-      Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
-}
-
-// Add this extension at the end of the file
-extension FlowNodeFactory on FlowNode {
-  /// Factory method to create a FlowNode with common defaults
-  static FlowNode create({
+  /// Custom factory method to create a FlowNode with common defaults,
+  /// especially for converting a list of handles to a map.
+  factory FlowNode.create({
     required String id,
+    required String type,
     required Offset position,
     required Size size,
-    required String type,
-    String? parentId,
-    List<NodeHandle> handles = const [],
-    Map<String, dynamic> data = const {},
     int zIndex = 0,
+    String? parentId,
+    @Default([]) List<NodeHandle>? handles,
+    @Default({}) Map<String, dynamic>? data,
     bool? hidden,
     bool? draggable,
     bool? selectable,
@@ -55,12 +47,12 @@ extension FlowNodeFactory on FlowNode {
     bool? focusable,
     bool? elevateNodeOnSelected,
   }) {
-    // Convert handles list to map
-    final handlesMap = <String, NodeHandle>{};
-    for (final handle in handles) {
-      handlesMap[handle.id] = handle;
-    }
+    // Convert the provided list of handles into a map
+    final handlesMap = handles != null
+        ? {for (var handle in handles) handle.id: handle}
+        : <String, NodeHandle>{};
 
+    // Call the primary constructor with the correctly formatted map
     return FlowNode(
       id: id,
       type: type,
@@ -68,7 +60,7 @@ extension FlowNodeFactory on FlowNode {
       size: size,
       parentId: parentId,
       handles: handlesMap,
-      data: data,
+      data: data ?? <String, dynamic>{},
       zIndex: zIndex,
       hidden: hidden,
       draggable: draggable,
@@ -79,4 +71,11 @@ extension FlowNodeFactory on FlowNode {
       elevateNodeOnSelected: elevateNodeOnSelected,
     );
   }
+
+  // Getters remain the same
+  Offset get center =>
+      Offset(position.dx + size.width / 2, position.dy + size.height / 2);
+
+  Rect get rect =>
+      Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
 }

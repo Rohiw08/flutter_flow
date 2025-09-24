@@ -5,6 +5,7 @@ import 'package:flutter_workflow/src/features/canvas/application/callbacks/edge_
 import 'package:flutter_workflow/src/features/canvas/application/callbacks/node_callbacks.dart';
 import 'package:flutter_workflow/src/features/canvas/application/callbacks/pane_callbacks.dart';
 import 'package:flutter_workflow/src/features/canvas/application/flow_canvas_controller.dart';
+import 'package:flutter_workflow/src/features/canvas/application/flow_controller_facade.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/node.dart';
@@ -24,11 +25,11 @@ import 'inputs/keymap.dart';
 /// The main entry point widget for the Flow Canvas library.
 class FlowCanvas extends StatefulWidget {
   // --- CORE MEMBERS ---
-  final FlowCanvasController? controller;
+  final FlowController? controller;
   final List<FlowNode>? initialNodes;
   final List<FlowEdge>? initialEdges;
-  final NodeRegistry nodeRegistry;
-  final EdgeRegistry edgeRegistry;
+  final NodeRegistry? nodeRegistry;
+  final EdgeRegistry? edgeRegistry;
   final FlowOptions options;
   final FlowCanvasTheme? theme;
 
@@ -41,33 +42,12 @@ class FlowCanvas extends StatefulWidget {
   // --- UI ---
   final List<Widget> overlays;
 
-  /// Controlled Constructor
-  ///
-  /// Use this when you want to manage the state and interactions externally by
-  /// creating and providing your own [FlowCanvasController].
+  //
   const FlowCanvas({
     super.key,
-    required this.controller,
-    required this.nodeRegistry,
-    required this.edgeRegistry,
-    this.options = const FlowOptions(),
-    this.theme,
-    this.nodeCallbacks = const NodeCallbacks(),
-    this.edgeCallbacks = const EdgeCallbacks(),
-    this.connectionCallbacks = const ConnectionCallbacks(),
-    this.paneCallbacks = const PaneCallbacks(),
-    this.overlays = const [],
-  })  : initialNodes = null,
-        initialEdges = null;
-
-  /// Uncontrolled Constructor
-  ///
-  /// Use this for a quick and simple setup. The canvas will create and manage
-  /// its own internal state. You can provide initial nodes and edges.
-  const FlowCanvas.uncontrolled({
-    super.key,
-    required this.nodeRegistry,
-    required this.edgeRegistry,
+    this.controller,
+    this.nodeRegistry,
+    this.edgeRegistry,
     this.initialNodes,
     this.initialEdges,
     this.theme,
@@ -77,7 +57,10 @@ class FlowCanvas extends StatefulWidget {
     this.connectionCallbacks = const ConnectionCallbacks(),
     this.paneCallbacks = const PaneCallbacks(),
     this.overlays = const [],
-  }) : controller = null;
+  }) : assert(
+          (controller != null) ^ (nodeRegistry != null && edgeRegistry != null),
+          'Provide either a FlowController (controlled) OR nodeRegistry+edgeRegistry (uncontrolled).',
+        );
 
   @override
   State<FlowCanvas> createState() => _FlowCanvasState();
@@ -86,7 +69,9 @@ class FlowCanvas extends StatefulWidget {
 class _FlowCanvasState extends State<FlowCanvas> {
   late final FlowCanvasController _controller;
   late final ProviderContainer _internalProviderContainer;
-  bool _isUncontrolled = false;
+  bool _ownsController = false;
+  late final NodeRegistry _nodeRegistryInUse;
+  late final EdgeRegistry _edgeRegistryInUse;
 
   @override
   void initState() {
@@ -94,16 +79,22 @@ class _FlowCanvasState extends State<FlowCanvas> {
     _internalProviderContainer = ProviderContainer();
 
     if (widget.controller != null) {
-      _controller = widget.controller!;
-      _isUncontrolled = false;
+      // Controlled: use provided controller, and take registries from it to avoid duplication
+      _controller = widget.controller!.controller;
+      _nodeRegistryInUse = widget.controller!.nodeRegistry;
+      _edgeRegistryInUse = widget.controller!.edgeRegistry;
+      _ownsController = false;
     } else {
-      _isUncontrolled = true;
+      // Uncontrolled by default: manage internal state ourselves
+      _ownsController = true;
+      _nodeRegistryInUse = widget.nodeRegistry!;
+      _edgeRegistryInUse = widget.edgeRegistry!;
       _controller = _internalProviderContainer.read(
         StateNotifierProvider<FlowCanvasController, FlowCanvasState>(
           (ref) => FlowCanvasController(
             ref,
-            nodeRegistry: widget.nodeRegistry,
-            edgeRegistry: widget.edgeRegistry,
+            nodeRegistry: _nodeRegistryInUse,
+            edgeRegistry: _edgeRegistryInUse,
             initialState: FlowCanvasState.initial().copyWith(
               nodes: {for (var n in widget.initialNodes ?? []) n.id: n},
               edges: {for (var e in widget.initialEdges ?? []) e.id: e},
@@ -116,7 +107,7 @@ class _FlowCanvasState extends State<FlowCanvas> {
 
   @override
   void dispose() {
-    if (_isUncontrolled) {
+    if (_ownsController) {
       _controller.dispose();
     }
     _internalProviderContainer.dispose();
@@ -137,8 +128,8 @@ class _FlowCanvasState extends State<FlowCanvas> {
           options: widget.options,
           child: _FlowCanvasCore(
             overlays: widget.overlays,
-            nodeRegistry: widget.nodeRegistry,
-            edgeRegistry: widget.edgeRegistry,
+            nodeRegistry: _nodeRegistryInUse,
+            edgeRegistry: _edgeRegistryInUse,
             nodeCallbacks: widget.nodeCallbacks,
             edgeCallbacks: widget.edgeCallbacks,
             paneCallbacks: widget.paneCallbacks,
@@ -179,48 +170,48 @@ class _FlowCanvasCore extends ConsumerWidget {
       options: options,
       keymap: Keymap.standard(),
       child: LayoutBuilder(
-      builder: (context, constraints) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            controller.setViewportSize(
-                Size(constraints.maxWidth, constraints.maxHeight));
-          }
-        });
+        builder: (context, constraints) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              controller.setViewportSize(
+                  Size(constraints.maxWidth, constraints.maxHeight));
+            }
+          });
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            InteractiveViewer(
-              transformationController: controller.transformationController,
-              constrained: false,
-              minScale: options.viewportOptions.minZoom,
-              maxScale: options.viewportOptions.maxZoom,
-              panEnabled: !isLocked,
-              scaleEnabled: !isLocked,
-              child: SizedBox(
-                width: options.canvasWidth,
-                height: options.canvasHeight,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    FlowEdgeLayer(
-                      edgeRegistry: edgeRegistry,
-                      edgeCallbacks: edgeCallbacks,
-                      paneCallbacks: paneCallbacks,
-                    ),
-                    FlowNodesLayer(
-                      nodeRegistry: nodeRegistry,
-                      nodeCallbacks: nodeCallbacks,
-                      paneCallbacks: paneCallbacks,
-                    ),
-                  ],
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              InteractiveViewer(
+                transformationController: controller.transformationController,
+                constrained: false,
+                minScale: options.viewportOptions.minZoom,
+                maxScale: options.viewportOptions.maxZoom,
+                panEnabled: !isLocked,
+                scaleEnabled: !isLocked,
+                child: SizedBox(
+                  width: options.canvasWidth,
+                  height: options.canvasHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      FlowEdgeLayer(
+                        edgeRegistry: edgeRegistry,
+                        edgeCallbacks: edgeCallbacks,
+                        paneCallbacks: paneCallbacks,
+                      ),
+                      FlowNodesLayer(
+                        nodeRegistry: nodeRegistry,
+                        nodeCallbacks: nodeCallbacks,
+                        paneCallbacks: paneCallbacks,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            ...overlays,
-          ],
-        );
-      },
+              ...overlays,
+            ],
+          );
+        },
       ),
     );
   }

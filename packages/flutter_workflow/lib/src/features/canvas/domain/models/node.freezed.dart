@@ -461,7 +461,7 @@ extension FlowNodePatterns on FlowNode {
 /// @nodoc
 
 class _FlowNode extends FlowNode {
-  _FlowNode(
+  const _FlowNode(
       {required this.type,
       required this.id,
       required this.position,

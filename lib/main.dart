@@ -2,7 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_workflow/flutter_workflow.dart';
 
-// Main entry point for the example application
+// A custom node widget for demonstration purposes.
+class CustomNodeWidget extends StatelessWidget {
+  final FlowNode node;
+
+  const CustomNodeWidget({super.key, required this.node});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.amber.shade200,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black, width: 2),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            node.data['label'] ?? 'Custom Node',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text('This is a custom widget!'),
+        ],
+      ),
+    );
+  }
+}
+
+// 1. Define initial nodes for the canvas.
+final List<FlowNode> initialNodes = [
+  FlowNode.create(
+    id: '1',
+    position: const Offset(100, 100),
+    size: const Size(150, 80),
+    type: 'default',
+    handles: [
+      const NodeHandle(
+          id: '1-out', type: HandleType.source, position: Offset(150, 40)),
+    ],
+    data: {'label': 'Default Node 1'},
+  ),
+  FlowNode.create(
+    id: '2',
+    position: const Offset(400, 200),
+    size: const Size(150, 80),
+    type: 'custom',
+    handles: [
+      const NodeHandle(
+          id: '2-in', type: HandleType.target, position: Offset(0, 40)),
+    ],
+    data: {'label': 'My Custom Node'},
+  ),
+];
+
+// 2. Define initial edges (connections) for the canvas.
+final List<FlowEdge> initialEdges = [
+  const FlowEdge(
+    id: 'e1-2',
+    sourceNodeId: '1',
+    sourceHandleId: '1-out',
+    targetNodeId: '2',
+    targetHandleId: '2-in',
+  ),
+];
+
+// 3. Set up the registries for custom node and edge types.
+final nodeRegistry = NodeRegistry()
+  ..registerDefaultTypes() // Includes 'default', 'input', 'output'
+  ..register('custom', (node) => CustomNodeWidget(node: node));
+
+final edgeRegistry = EdgeRegistry(); // Can be used for custom edge types
+
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -12,217 +85,97 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.light(),
-      home: const CanvasScreen(),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Example(),
+      ),
     );
   }
 }
 
-class CanvasScreen extends ConsumerStatefulWidget {
-  const CanvasScreen({super.key});
+class Example extends StatefulWidget {
+  const Example({super.key});
 
   @override
-  ConsumerState<CanvasScreen> createState() => _CanvasScreenState();
+  State<Example> createState() => _ExampleState();
 }
 
-class _CanvasScreenState extends ConsumerState<CanvasScreen> {
-  late final NodeRegistry nodeRegistry;
-  late final EdgeRegistry edgeRegistry;
-  bool _isInitialized = false;
+class _ExampleState extends State<Example> {
+  final FlowController _controller =
+      FlowController(nodeRegistry: nodeRegistry, edgeRegistry: edgeRegistry);
 
   @override
   void initState() {
     super.initState();
-    _initializeCanvas();
-  }
-
-  void _initializeCanvas() {
-    // 1. Initialize Registries
-    nodeRegistry = NodeRegistry();
-    edgeRegistry = EdgeRegistry();
-
-    // 2. Get the controller from the provider
-    final controller = flowControllerProvider((
-      nodeRegistry: nodeRegistry,
-      edgeRegistry: edgeRegistry,
-    ));
-
-    // 4. Register Custom Node Types
-    nodeRegistry.register('custom_node', (node) {
-      return CustomNodeWidget(node: node);
-    });
-
-    // 5. Mark as initialized
-    setState(() {
-      _isInitialized = true;
-    });
-
-    // 6. Add initial data after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _addInitialNodes();
-      }
-    });
-  }
-
-  void addNode() {
-    final node = FlowNodeFactory.create(
-      id: 'node_${DateTime.now().millisecondsSinceEpoch}',
-      position: const Offset(0, 300),
-      size: const Size(150, 80),
-      type: 'custom_node',
-      handles: const [
-        NodeHandle(
-            id: 'out1', type: HandleType.source, position: Offset(150, 40)),
-      ],
-      data: {'label': 'New Node'},
-    );
-    controller.addNode(node);
-  }
-
-  void _addInitialNodes() {
-    try {
-      final node1 = FlowNodeFactory.create(
-        id: 'node_1',
-        position: const Offset(400, 300),
-        size: const Size(150, 80),
-        type: 'custom_node',
-        handles: const [
-          NodeHandle(
-              id: 'out1', type: HandleType.source, position: Offset(150, 40)),
-        ],
-        data: {'label': 'Node A'},
-      );
-
-      final node2 = FlowNodeFactory.create(
-        id: 'node_2',
-        position: const Offset(200, 200),
-        size: const Size(150, 80),
-        type: 'custom_node',
-        handles: const [
-          NodeHandle(
-              id: 'in1', type: HandleType.target, position: Offset(0, 40)),
-        ],
-        data: {'label': 'Node B'},
-      );
-
-      facade.addNode(node1);
-      facade.addNode(node2);
-    } catch (e) {
-      debugPrint('Error adding initial nodes: $e');
-    }
+    _controller.controller.addNodes(initialNodes);
+    _controller.controller.importEdges(initialEdges);
   }
 
   @override
   void dispose() {
-    facade.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      children: [
+        // Add some buttons to interact with the controlled canvas
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Wrap(
+            spacing: 8.0,
+            runSpacing: 4.0,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Initializing Canvas...'),
+              ElevatedButton(
+                onPressed: () {
+                  final newNode = FlowNode.create(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    position: const Offset(200, 300),
+                    size: const Size(150, 80),
+                    type: 'default',
+                    handles: [
+                      const NodeHandle(
+                          id: 'new-in',
+                          type: HandleType.target,
+                          position: Offset(0, 40)),
+                    ],
+                    data: {'label': 'Added Node'},
+                  );
+                  _controller.controller.addNode(newNode);
+                },
+                child: const Text('Add Node'),
+              ),
+              ElevatedButton(
+                onPressed: () => _controller.controller.removeSelectedNodes(),
+                child: const Text('Remove Selected'),
+              ),
+              ElevatedButton(
+                onPressed: () => _controller.controller.fitView(),
+                child: const Text('Fit View'),
+              ),
+              ElevatedButton(
+                onPressed: () => _controller.controller.undo(),
+                child: const Text('Undo'),
+              ),
+              ElevatedButton(
+                onPressed: () => _controller.controller.redo(),
+                child: const Text('Redo'),
+              ),
             ],
           ),
         ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          ElevatedButton(
-            onPressed: addNode,
-            child: const Icon(Icons.add),
-          )
-        ],
-      ),
-      body: FlowCanvas(
-        nodeRegistry: nodeRegistry,
-        edgeRegistry: edgeRegistry,
-        facade: facade,
-        overlays: [
-          FlowBackground(
-            backgroundTheme: FlowBackgroundStyle.light(),
+        const Divider(),
+        Expanded(
+          child: FlowCanvas(
+            controller: _controller,
+            nodeRegistry: nodeRegistry,
+            edgeRegistry: edgeRegistry,
           ),
-          // FlowMiniMap(facade: facade),
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: FlowCanvasControls(
-                facade: facade,
-                controlsTheme: const FlowCanvasControlsStyle(
-                  containerCornerRadius: 12,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Custom node widget example
-class CustomNodeWidget extends StatelessWidget {
-  final FlowNode node;
-  final FlowCanvasFacade facade;
-
-  const CustomNodeWidget({
-    super.key,
-    required this.node,
-    required this.facade,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.flowCanvasTheme.node;
-    final isSelected = facade.state.selectedNodes.contains(node.id);
-    final decoration = theme.getStyleForState(isSelected: isSelected);
-
-    return Container(
-      width: node.size.width,
-      height: node.size.height,
-      decoration: decoration.decoration,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Center(
-            child: Text(
-              node.data['label'] ?? '',
-              style: theme.defaultTextStyle,
-            ),
-          ),
-          // Add handles to the node
-          for (final handle in node.handles.values)
-            Positioned(
-              left: handle.position.dx - 15,
-              top: handle.position.dy - 15,
-              child: Handle(
-                nodeId: node.id,
-                handleId: handle.id,
-                type: handle.type,
-                connectionStream: Stream.value(null), // Placeholder
-                onStartConnection: (nodeId, handleId, position) {
-                  facade.startConnection(nodeId, handleId, position);
-                },
-                onEndConnection: () {
-                  facade.endConnection();
-                },
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

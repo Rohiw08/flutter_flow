@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/connection.dart';
 import 'package:flutter_workflow/src/features/canvas/domain/models/edge.dart';
@@ -24,6 +25,8 @@ class FlowPainter extends CustomPainter {
   // Pre-built Paint objects for performance.
   final Paint _defaultEdgePaint;
   final Paint _selectedEdgePaint;
+  final Paint _hoverEdgePaint;
+  final Paint _animatedEdgePaint;
   final Paint _connectionPaint;
   final Paint _connectionEndpointPaint;
   final Paint _selectionFillPaint;
@@ -47,6 +50,16 @@ class FlowPainter extends CustomPainter {
         _selectedEdgePaint = Paint()
           ..color = style.edge.selectedColor!
           ..strokeWidth = style.edge.selectedStrokeWidth!
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+        _hoverEdgePaint = Paint()
+          ..color = style.edge.hoverColor ?? style.edge.selectedColor!
+          ..strokeWidth = style.edge.selectedStrokeWidth!
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+        _animatedEdgePaint = Paint()
+          ..color = style.edge.animatedColor ?? style.edge.defaultColor!
+          ..strokeWidth = style.edge.defaultStrokeWidth!
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round,
         _connectionPaint = Paint()
@@ -89,15 +102,71 @@ class FlowPainter extends CustomPainter {
       final start = sourceNode.position + sourceHandle.position;
       final end = targetNode.position + targetHandle.position;
 
-      // Get the selection state directly from the EdgeRuntimeState
+      // Edge runtime state
       final state = edgeStates[edgeId];
       final isSelected = state?.selected ?? false;
+      final isHovered = state?.hovered ?? false;
+      final isAnimating = state?.isAnimating ?? false;
 
-      final paint = isSelected ? _selectedEdgePaint : _defaultEdgePaint;
+      // Choose base paint
+      Paint paint;
+      if (isSelected) {
+        paint = _selectedEdgePaint;
+      } else if (isHovered) {
+        paint = _hoverEdgePaint;
+      } else if (isAnimating) {
+        paint = _animatedEdgePaint;
+      } else {
+        paint = _defaultEdgePaint;
+      }
 
+      // Build path and draw
       final path = EdgePathCreator.createPath(edge.pathType, start, end);
       canvas.drawPath(path, paint);
+
+      // Draw simple arrow head marker at end if configured
+      final marker = edge.endMarkerStyle ?? style.edge.markerStyle;
+      if (marker?.type != null &&
+          marker?.width != null &&
+          marker?.height != null) {
+        _drawArrowHead(canvas, path, paint, marker!.width!, marker.height!);
+      }
     }
+  }
+
+  void _drawArrowHead(
+      Canvas canvas, Path path, Paint basePaint, double width, double height) {
+    final metrics = path.computeMetrics();
+    if (metrics.isEmpty) return;
+    final last = metrics.last;
+    final tangent = last.getTangentForOffset(last.length);
+    if (tangent == null) return;
+    final position = tangent.position;
+    final direction = tangent.vector;
+
+    final angle = direction.direction;
+    final arrowPath = Path();
+    final tip = position;
+    final left = Offset(
+      tip.dx - width * 0.8 * cos(angle - pi / 6),
+      tip.dy - width * 0.8 * sin(angle - pi / 6),
+    );
+    final right = Offset(
+      tip.dx - width * 0.8 * cos(angle + pi / 6),
+      tip.dy - width * 0.8 * sin(angle + pi / 6),
+    );
+    arrowPath.moveTo(tip.dx, tip.dy);
+    arrowPath.lineTo(left.dx, left.dy);
+    arrowPath.moveTo(tip.dx, tip.dy);
+    arrowPath.lineTo(right.dx, right.dy);
+
+    final arrowPaint = Paint()
+      ..color = basePaint.color
+      ..strokeWidth = basePaint.strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawPath(arrowPath, arrowPaint);
   }
 
   void _drawConnection(Canvas canvas) {
