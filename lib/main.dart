@@ -1,80 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_workflow/flutter_workflow.dart';
-
-// A custom node widget for demonstration purposes.
-class CustomNodeWidget extends StatelessWidget {
-  final FlowNode node;
-
-  const CustomNodeWidget({super.key, required this.node});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.amber.shade200,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black, width: 2),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            node.data['label'] ?? 'Custom Node',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text('This is a custom widget!'),
-        ],
-      ),
-    );
-  }
-}
-
-// 1. Define initial nodes for the canvas.
-final List<FlowNode> initialNodes = [
-  FlowNode.create(
-    id: '1',
-    position: const Offset(100, 100),
-    size: const Size(150, 80),
-    type: 'default',
-    handles: [
-      const NodeHandle(
-          id: '1-out', type: HandleType.source, position: Offset(150, 40)),
-    ],
-    data: {'label': 'Default Node 1'},
-  ),
-  FlowNode.create(
-    id: '2',
-    position: const Offset(400, 200),
-    size: const Size(150, 80),
-    type: 'custom',
-    handles: [
-      const NodeHandle(
-          id: '2-in', type: HandleType.target, position: Offset(0, 40)),
-    ],
-    data: {'label': 'My Custom Node'},
-  ),
-];
-
-// 2. Define initial edges (connections) for the canvas.
-final List<FlowEdge> initialEdges = [
-  const FlowEdge(
-    id: 'e1-2',
-    sourceNodeId: '1',
-    sourceHandleId: '1-out',
-    targetNodeId: '2',
-    targetHandleId: '2-in',
-  ),
-];
-
-// 3. Set up the registries for custom node and edge types.
-final nodeRegistry = NodeRegistry()
-  ..registerDefaultTypes() // Includes 'default', 'input', 'output'
-  ..register('custom', (node) => CustomNodeWidget(node: node));
-
-final edgeRegistry = EdgeRegistry(); // Can be used for custom edge types
+import 'package:flow_canvas/flow_canvas.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -102,21 +28,60 @@ class Example extends StatefulWidget {
 }
 
 class _ExampleState extends State<Example> {
-  final FlowController _controller =
-      FlowController(nodeRegistry: nodeRegistry, edgeRegistry: edgeRegistry);
+  FlowCanvasController? _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller.controller.addNodes(initialNodes);
-    _controller.controller.importEdges(initialEdges);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
+
+  // 1. Define initial nodes for the canvas.
+  final List<FlowNode> initialNodes = [
+    FlowNode.create(
+      id: '1',
+      position: const Offset(100, 100),
+      size: const Size(150, 80),
+      type: 'default',
+      handles: [
+        const NodeHandle(
+            id: '1-out', type: HandleType.source, position: Offset(150, 40)),
+      ],
+      data: {'label': 'Default Node 1'},
+    ),
+    FlowNode.create(
+      id: '2',
+      position: const Offset(400, 200),
+      size: const Size(150, 80),
+      type: 'custom',
+      handles: [
+        const NodeHandle(
+            id: '2-in', type: HandleType.target, position: Offset(0, 40)),
+      ],
+      data: {'label': 'My Custom Node'},
+    ),
+  ];
+
+// 2. Define initial edges (connections) for the canvas.
+  final List<FlowEdge> initialEdges = [
+    const FlowEdge(
+      id: 'e1-2',
+      sourceNodeId: '1',
+      sourceHandleId: '1-out',
+      targetNodeId: '2',
+      targetHandleId: '2-in',
+    ),
+  ];
+
+  // 3. Set up the registries for custom node and edge types.
+  final nodeRegistry = NodeRegistry()
+    ..register('custom', (node) => CustomNodeWidget(node: node));
+
+  final edgeRegistry = EdgeRegistry(); // Can be used for custom edge types
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +96,7 @@ class _ExampleState extends State<Example> {
             children: [
               ElevatedButton(
                 onPressed: () {
+                  if (_controller == null) return;
                   final newNode = FlowNode.create(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     position: const Offset(200, 300),
@@ -144,24 +110,24 @@ class _ExampleState extends State<Example> {
                     ],
                     data: {'label': 'Added Node'},
                   );
-                  _controller.controller.addNode(newNode);
+                  _controller!.addNode(newNode);
                 },
                 child: const Text('Add Node'),
               ),
               ElevatedButton(
-                onPressed: () => _controller.controller.removeSelectedNodes(),
+                onPressed: () => _controller?.removeSelectedNodes(),
                 child: const Text('Remove Selected'),
               ),
               ElevatedButton(
-                onPressed: () => _controller.controller.fitView(),
+                onPressed: () => _controller?.fitView(),
                 child: const Text('Fit View'),
               ),
               ElevatedButton(
-                onPressed: () => _controller.controller.undo(),
+                onPressed: () => _controller?.undo(),
                 child: const Text('Undo'),
               ),
               ElevatedButton(
-                onPressed: () => _controller.controller.redo(),
+                onPressed: () => _controller?.redo(),
                 child: const Text('Redo'),
               ),
             ],
@@ -170,12 +136,70 @@ class _ExampleState extends State<Example> {
         const Divider(),
         Expanded(
           child: FlowCanvas(
-            controller: _controller,
             nodeRegistry: nodeRegistry,
             edgeRegistry: edgeRegistry,
+            onCanvasCreated: (c) {
+              setState(() {
+                _controller = c;
+              });
+              // Populate initial content after the controller is available.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _controller?.addNodes(initialNodes);
+                _controller?.importEdges(initialEdges);
+              });
+            },
+            overlays: const [
+              FlowBackground(),
+              FlowMiniMap(),
+              FlowCanvasControls(),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+// A custom node widget for demonstration purposes.
+class CustomNodeWidget extends StatelessWidget {
+  final FlowNode node;
+
+  const CustomNodeWidget({super.key, required this.node});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.amber.shade200,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black, width: 2),
+      ),
+      // Use smaller padding and make the content flexible so it can fit in
+      // tight constraints (tests often pump small windows).
+      padding: const EdgeInsets.all(6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              node.data['label']?.toString() ?? 'Custom Node',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Flexible(
+            child: Text(
+              'This is a custom widget!',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

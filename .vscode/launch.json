@@ -22,21 +22,21 @@
             "flutterMode": "release"
         },
         {
-            "name": "flutter_workflow",
-            "cwd": "packages\\flutter_workflow",
+            "name": "flow_canvas",
+            "cwd": "packages\\flow_canvas",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "flutter_workflow (profile mode)",
-            "cwd": "packages\\flutter_workflow",
+            "name": "flow_canvas (profile mode)",
+            "cwd": "packages\\flow_canvas",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "flutter_workflow (release mode)",
-            "cwd": "packages\\flutter_workflow",
+            "name": "flow_canvas (release mode)",
+            "cwd": "packages\\flow_canvas",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

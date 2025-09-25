@@ -1,5 +1,5 @@
 name: flutter_flow
-description: "An example application for the flutter_workflow library."
+description: "An example application for the flow_canvas library."
 publish_to: 'none' 
 version: 1.0.0+1
 
@@ -16,8 +16,8 @@ dependencies:
   
   # This is the most important part:
   # It tells the main app to use the local package we created.
-  flutter_workflow:
-    path: packages/flutter_workflow
+  flow_canvas:
+    path: packages/flow_canvas
 
 dev_dependencies:
   flutter_test:
