@@ -18,7 +18,9 @@ mixin _$FlowCanvasState {
   Map<String, FlowNode> get nodes;
   Map<String, FlowEdge> get edges;
   Map<String, NodeRuntimeState> get nodeStates;
-  Map<String, EdgeRuntimeState> get edgeStates;
+  Map<String, EdgeRuntimeState>
+      get edgeStates; // ADDED: State management for handles
+  Map<String, HandleRuntimeState> get handleStates;
   Set<String> get selectedNodes;
   Set<String> get selectedEdges;
   Map<String, Set<String>> get spatialHash; // Edge indexing
@@ -54,6 +56,8 @@ mixin _$FlowCanvasState {
             const DeepCollectionEquality()
                 .equals(other.edgeStates, edgeStates) &&
             const DeepCollectionEquality()
+                .equals(other.handleStates, handleStates) &&
+            const DeepCollectionEquality()
                 .equals(other.selectedNodes, selectedNodes) &&
             const DeepCollectionEquality()
                 .equals(other.selectedEdges, selectedEdges) &&
@@ -84,30 +88,32 @@ mixin _$FlowCanvasState {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(nodes),
-      const DeepCollectionEquality().hash(edges),
-      const DeepCollectionEquality().hash(nodeStates),
-      const DeepCollectionEquality().hash(edgeStates),
-      const DeepCollectionEquality().hash(selectedNodes),
-      const DeepCollectionEquality().hash(selectedEdges),
-      const DeepCollectionEquality().hash(spatialHash),
-      edgeIndex,
-      nodeIndex,
-      minZIndex,
-      maxZIndex,
-      isPanZoomLocked,
-      viewport,
-      viewportSize,
-      connection,
-      connectionState,
-      selectionRect,
-      dragMode);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        const DeepCollectionEquality().hash(nodes),
+        const DeepCollectionEquality().hash(edges),
+        const DeepCollectionEquality().hash(nodeStates),
+        const DeepCollectionEquality().hash(edgeStates),
+        const DeepCollectionEquality().hash(handleStates),
+        const DeepCollectionEquality().hash(selectedNodes),
+        const DeepCollectionEquality().hash(selectedEdges),
+        const DeepCollectionEquality().hash(spatialHash),
+        edgeIndex,
+        nodeIndex,
+        minZIndex,
+        maxZIndex,
+        isPanZoomLocked,
+        viewport,
+        viewportSize,
+        connection,
+        connectionState,
+        selectionRect,
+        dragMode
+      ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -122,6 +128,7 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       Map<String, FlowEdge> edges,
       Map<String, NodeRuntimeState> nodeStates,
       Map<String, EdgeRuntimeState> edgeStates,
+      Map<String, HandleRuntimeState> handleStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
       Map<String, Set<String>> spatialHash,
@@ -159,6 +166,7 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? edges = null,
     Object? nodeStates = null,
     Object? edgeStates = null,
+    Object? handleStates = null,
     Object? selectedNodes = null,
     Object? selectedEdges = null,
     Object? spatialHash = null,
@@ -191,6 +199,10 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.edgeStates
           : edgeStates // ignore: cast_nullable_to_non_nullable
               as Map<String, EdgeRuntimeState>,
+      handleStates: null == handleStates
+          ? _self.handleStates
+          : handleStates // ignore: cast_nullable_to_non_nullable
+              as Map<String, HandleRuntimeState>,
       selectedNodes: null == selectedNodes
           ? _self.selectedNodes
           : selectedNodes // ignore: cast_nullable_to_non_nullable
@@ -388,6 +400,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, FlowEdge> edges,
             Map<String, NodeRuntimeState> nodeStates,
             Map<String, EdgeRuntimeState> edgeStates,
+            Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
             Map<String, Set<String>> spatialHash,
@@ -413,6 +426,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.edges,
             _that.nodeStates,
             _that.edgeStates,
+            _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
             _that.spatialHash,
@@ -452,6 +466,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, FlowEdge> edges,
             Map<String, NodeRuntimeState> nodeStates,
             Map<String, EdgeRuntimeState> edgeStates,
+            Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
             Map<String, Set<String>> spatialHash,
@@ -476,6 +491,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.edges,
             _that.nodeStates,
             _that.edgeStates,
+            _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
             _that.spatialHash,
@@ -514,6 +530,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, FlowEdge> edges,
             Map<String, NodeRuntimeState> nodeStates,
             Map<String, EdgeRuntimeState> edgeStates,
+            Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
             Map<String, Set<String>> spatialHash,
@@ -538,6 +555,7 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.edges,
             _that.nodeStates,
             _that.edgeStates,
+            _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
             _that.spatialHash,
@@ -566,6 +584,7 @@ class _FlowCanvasState extends FlowCanvasState {
       final Map<String, FlowEdge> edges = const {},
       final Map<String, NodeRuntimeState> nodeStates = const {},
       final Map<String, EdgeRuntimeState> edgeStates = const {},
+      final Map<String, HandleRuntimeState> handleStates = const {},
       final Set<String> selectedNodes = const {},
       final Set<String> selectedEdges = const {},
       final Map<String, Set<String>> spatialHash = const {},
@@ -584,6 +603,7 @@ class _FlowCanvasState extends FlowCanvasState {
         _edges = edges,
         _nodeStates = nodeStates,
         _edgeStates = edgeStates,
+        _handleStates = handleStates,
         _selectedNodes = selectedNodes,
         _selectedEdges = selectedEdges,
         _spatialHash = spatialHash,
@@ -625,6 +645,17 @@ class _FlowCanvasState extends FlowCanvasState {
     if (_edgeStates is EqualUnmodifiableMapView) return _edgeStates;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_edgeStates);
+  }
+
+// ADDED: State management for handles
+  final Map<String, HandleRuntimeState> _handleStates;
+// ADDED: State management for handles
+  @override
+  @JsonKey()
+  Map<String, HandleRuntimeState> get handleStates {
+    if (_handleStates is EqualUnmodifiableMapView) return _handleStates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_handleStates);
   }
 
   final Set<String> _selectedNodes;
@@ -706,6 +737,8 @@ class _FlowCanvasState extends FlowCanvasState {
             const DeepCollectionEquality()
                 .equals(other._edgeStates, _edgeStates) &&
             const DeepCollectionEquality()
+                .equals(other._handleStates, _handleStates) &&
+            const DeepCollectionEquality()
                 .equals(other._selectedNodes, _selectedNodes) &&
             const DeepCollectionEquality()
                 .equals(other._selectedEdges, _selectedEdges) &&
@@ -736,30 +769,32 @@ class _FlowCanvasState extends FlowCanvasState {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_nodes),
-      const DeepCollectionEquality().hash(_edges),
-      const DeepCollectionEquality().hash(_nodeStates),
-      const DeepCollectionEquality().hash(_edgeStates),
-      const DeepCollectionEquality().hash(_selectedNodes),
-      const DeepCollectionEquality().hash(_selectedEdges),
-      const DeepCollectionEquality().hash(_spatialHash),
-      edgeIndex,
-      nodeIndex,
-      minZIndex,
-      maxZIndex,
-      isPanZoomLocked,
-      viewport,
-      viewportSize,
-      connection,
-      connectionState,
-      selectionRect,
-      dragMode);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        const DeepCollectionEquality().hash(_nodes),
+        const DeepCollectionEquality().hash(_edges),
+        const DeepCollectionEquality().hash(_nodeStates),
+        const DeepCollectionEquality().hash(_edgeStates),
+        const DeepCollectionEquality().hash(_handleStates),
+        const DeepCollectionEquality().hash(_selectedNodes),
+        const DeepCollectionEquality().hash(_selectedEdges),
+        const DeepCollectionEquality().hash(_spatialHash),
+        edgeIndex,
+        nodeIndex,
+        minZIndex,
+        maxZIndex,
+        isPanZoomLocked,
+        viewport,
+        viewportSize,
+        connection,
+        connectionState,
+        selectionRect,
+        dragMode
+      ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
   }
 }
 
@@ -776,6 +811,7 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       Map<String, FlowEdge> edges,
       Map<String, NodeRuntimeState> nodeStates,
       Map<String, EdgeRuntimeState> edgeStates,
+      Map<String, HandleRuntimeState> handleStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
       Map<String, Set<String>> spatialHash,
@@ -816,6 +852,7 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? edges = null,
     Object? nodeStates = null,
     Object? edgeStates = null,
+    Object? handleStates = null,
     Object? selectedNodes = null,
     Object? selectedEdges = null,
     Object? spatialHash = null,
@@ -848,6 +885,10 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self._edgeStates
           : edgeStates // ignore: cast_nullable_to_non_nullable
               as Map<String, EdgeRuntimeState>,
+      handleStates: null == handleStates
+          ? _self._handleStates
+          : handleStates // ignore: cast_nullable_to_non_nullable
+              as Map<String, HandleRuntimeState>,
       selectedNodes: null == selectedNodes
           ? _self._selectedNodes
           : selectedNodes // ignore: cast_nullable_to_non_nullable

@@ -2,6 +2,7 @@ import 'package:flutter/painting.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/node_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 
 import '../../domain/state/edge_state.dart';
 import '../../domain/state/node_state.dart';
@@ -230,10 +231,11 @@ class SelectionService {
       }
     }
 
-    // Use spatial indexing for efficient edge querying
+    // Use index-backed queries for edges connected to nodes in the area
+    final edgeQuery = EdgeQueryService();
     final edgesInArea = <String>{};
     for (final nodeId in nodesInArea) {
-      final connectedEdges = state.edgeIndex.getEdgesForNode(nodeId);
+      final connectedEdges = edgeQuery.getEdgesForNode(state, nodeId);
       for (final edgeId in connectedEdges) {
         final edge = state.edges[edgeId];
         if (edge != null &&

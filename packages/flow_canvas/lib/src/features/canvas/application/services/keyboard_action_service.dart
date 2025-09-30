@@ -51,13 +51,14 @@ class KeyboardActionService {
       case KeyboardAction.moveUp:
         return history.apply(
             state,
-            (s) => nodeService.dragSelectedNodes(
-                s, Offset(0, -arrowMoveDelta.dy)));
-      case KeyboardAction.moveDown:
-        return history.apply(
-            state,
             (s) =>
                 nodeService.dragSelectedNodes(s, Offset(0, arrowMoveDelta.dy)));
+      case KeyboardAction.moveDown:
+        // In Cartesian, "Down" is a negative Y value.
+        return history.apply(
+            state,
+            (s) => nodeService.dragSelectedNodes(
+                s, Offset(0, -arrowMoveDelta.dy)));
       case KeyboardAction.moveLeft:
         return history.apply(
             state,

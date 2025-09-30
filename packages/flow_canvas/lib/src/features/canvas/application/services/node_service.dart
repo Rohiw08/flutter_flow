@@ -6,6 +6,7 @@ import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 
 import '../../domain/indexes/edge_index.dart';
 import '../../domain/indexes/node_index.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 
 typedef NodeDataUpdater = Map<String, dynamic> Function(
     Map<String, dynamic> currentData);
@@ -77,13 +78,14 @@ class NodeService {
     EdgeIndex newEdgeIndex = state.edgeIndex;
     final newSelectedNodes = Set<String>.from(state.selectedNodes);
 
+    final edgeQuery = EdgeQueryService();
     Set<String> allEdgeIdsToRemove = {};
     List<FlowNode> removedNodes = [];
     for (final nodeId in nodeIds) {
       final removedNode = newNodes.remove(nodeId);
       if (removedNode != null) {
         removedNodes.add(removedNode);
-        allEdgeIdsToRemove.addAll(state.edgeIndex.getEdgesForNode(nodeId));
+        allEdgeIdsToRemove.addAll(edgeQuery.getEdgesForNode(state, nodeId));
         newNodeIndex = newNodeIndex
             .removeNode(removedNode); // FIX 1: Pass the FlowNode object
         newSelectedNodes.remove(nodeId);
@@ -148,6 +150,14 @@ class NodeService {
     return state.copyWith(
       nodes: newNodes,
       nodeIndex: newNodeIndex,
+    );
+  }
+
+  FlowCanvasState updateNode(FlowCanvasState state, FlowNode node) {
+    final newNodes = Map<String, FlowNode>.from(state.nodes);
+    newNodes[node.id] = node;
+    return state.copyWith(
+      nodes: newNodes,
     );
   }
 }

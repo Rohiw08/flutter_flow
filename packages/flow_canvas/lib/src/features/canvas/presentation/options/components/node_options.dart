@@ -21,8 +21,8 @@ class NodeOptions {
     this.selectable = true,
     this.connectable = true,
     this.deletable = true,
-    this.focusable = true,
-    this.elevateNodesOnSelected = true,
+    this.focusable = false,
+    this.elevateNodesOnSelected = false,
   });
 
   NodeOptions copyWith({

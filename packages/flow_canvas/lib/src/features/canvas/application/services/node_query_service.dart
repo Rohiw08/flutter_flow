@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 
 class NodeQueryService {
   /// Query nodes in a rectangle using the NodeIndex.
@@ -18,14 +19,15 @@ class NodeQueryService {
 
   /// Get isolated nodes (nodes with no connections).
   List<FlowNode> getIsolatedNodes(FlowCanvasState state) {
+    final edgeQuery = EdgeQueryService();
     return state.nodes.values
-        .where((node) => !state.edgeIndex.isNodeConnected(node.id))
+        .where((node) => !edgeQuery.isNodeConnected(state, node.id))
         .toList();
   }
 
   /// Get the IDs of all nodes connected to a specific node.
   Set<String> getConnectedNodes(FlowCanvasState state, String nodeId) {
-    // This information is correctly managed by the EdgeIndex.
-    return state.edgeIndex.getConnectedNodes(nodeId);
+    final edgeQuery = EdgeQueryService();
+    return edgeQuery.getConnectedNodes(state, nodeId);
   }
 }

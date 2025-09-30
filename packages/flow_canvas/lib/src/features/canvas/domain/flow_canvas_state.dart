@@ -5,6 +5,7 @@ import 'package:flow_canvas/src/features/canvas/domain/state/connection_state.da
 import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/edge_state.dart';
+import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
@@ -23,6 +24,8 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default({}) Map<String, FlowEdge> edges,
     @Default({}) Map<String, NodeRuntimeState> nodeStates,
     @Default({}) Map<String, EdgeRuntimeState> edgeStates,
+    // ADDED: State management for handles
+    @Default({}) Map<String, HandleRuntimeState> handleStates,
     @Default({}) Set<String> selectedNodes,
     @Default({}) Set<String> selectedEdges,
     @Default({}) Map<String, Set<String>> spatialHash,
@@ -54,6 +57,8 @@ abstract class FlowCanvasState with _$FlowCanvasState {
         selectedEdges: {},
         nodeStates: {},
         edgeStates: {},
+        // ADDED: Initial empty map for handle states
+        handleStates: {},
         spatialHash: {},
         edgeIndex: EdgeIndex.empty(),
         nodeIndex: NodeIndex.empty(),

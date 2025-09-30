@@ -5,6 +5,36 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'node.freezed.dart';
 
 /// Represents a single node in the flow canvas.
+///
+/// required String type
+///
+/// required String id
+///
+/// required Offset position
+///
+/// required Size size
+///
+/// String? parentId
+///
+/// @Default({}) Map<String, NodeHandle> handles
+///
+/// @Default({}) Map<String, dynamic> data
+///
+/// @Default(0) int zIndex
+///
+/// bool? hidden
+///
+/// bool? draggable
+///
+/// bool? selectable
+///
+/// bool? connectable
+///
+/// bool? deletable
+///
+/// bool? focusable
+///
+/// bool? elevateNodeOnSelected
 @freezed
 abstract class FlowNode with _$FlowNode {
   const FlowNode._();
@@ -19,6 +49,7 @@ abstract class FlowNode with _$FlowNode {
     @Default({}) Map<String, NodeHandle> handles,
     @Default({}) Map<String, dynamic> data,
     @Default(0) int zIndex,
+    @Default(10) double hitTestPadding,
     bool? hidden,
     bool? draggable,
     bool? selectable,
@@ -36,6 +67,7 @@ abstract class FlowNode with _$FlowNode {
     required Offset position,
     required Size size,
     int zIndex = 0,
+    double hitTestPadding = 10,
     String? parentId,
     @Default([]) List<NodeHandle>? handles,
     @Default({}) Map<String, dynamic>? data,
@@ -47,11 +79,9 @@ abstract class FlowNode with _$FlowNode {
     bool? focusable,
     bool? elevateNodeOnSelected,
   }) {
-    // Convert the provided list of handles into a map
     final handlesMap = handles != null
         ? {for (var handle in handles) handle.id: handle}
         : <String, NodeHandle>{};
-
     // Call the primary constructor with the correctly formatted map
     return FlowNode(
       id: id,
@@ -59,8 +89,8 @@ abstract class FlowNode with _$FlowNode {
       position: position,
       size: size,
       parentId: parentId,
-      handles: handlesMap,
       data: data ?? <String, dynamic>{},
+      handles: handlesMap,
       zIndex: zIndex,
       hidden: hidden,
       draggable: draggable,

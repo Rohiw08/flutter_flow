@@ -22,6 +22,7 @@ mixin _$FlowNode {
   Map<String, NodeHandle> get handles;
   Map<String, dynamic> get data;
   int get zIndex;
+  double get hitTestPadding;
   bool? get hidden;
   bool? get draggable;
   bool? get selectable;
@@ -52,6 +53,8 @@ mixin _$FlowNode {
             const DeepCollectionEquality().equals(other.handles, handles) &&
             const DeepCollectionEquality().equals(other.data, data) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.hitTestPadding, hitTestPadding) ||
+                other.hitTestPadding == hitTestPadding) &&
             (identical(other.hidden, hidden) || other.hidden == hidden) &&
             (identical(other.draggable, draggable) ||
                 other.draggable == draggable) &&
@@ -78,6 +81,7 @@ mixin _$FlowNode {
       const DeepCollectionEquality().hash(handles),
       const DeepCollectionEquality().hash(data),
       zIndex,
+      hitTestPadding,
       hidden,
       draggable,
       selectable,
@@ -88,7 +92,7 @@ mixin _$FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -106,6 +110,7 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       Map<String, NodeHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
+      double hitTestPadding,
       bool? hidden,
       bool? draggable,
       bool? selectable,
@@ -135,6 +140,7 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? handles = null,
     Object? data = null,
     Object? zIndex = null,
+    Object? hitTestPadding = null,
     Object? hidden = freezed,
     Object? draggable = freezed,
     Object? selectable = freezed,
@@ -176,6 +182,10 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      hitTestPadding: null == hitTestPadding
+          ? _self.hitTestPadding
+          : hitTestPadding // ignore: cast_nullable_to_non_nullable
+              as double,
       hidden: freezed == hidden
           ? _self.hidden
           : hidden // ignore: cast_nullable_to_non_nullable
@@ -310,6 +320,7 @@ extension FlowNodePatterns on FlowNode {
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
+            double hitTestPadding,
             bool? hidden,
             bool? draggable,
             bool? selectable,
@@ -332,6 +343,7 @@ extension FlowNodePatterns on FlowNode {
             _that.handles,
             _that.data,
             _that.zIndex,
+            _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
             _that.selectable,
@@ -368,6 +380,7 @@ extension FlowNodePatterns on FlowNode {
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
+            double hitTestPadding,
             bool? hidden,
             bool? draggable,
             bool? selectable,
@@ -389,6 +402,7 @@ extension FlowNodePatterns on FlowNode {
             _that.handles,
             _that.data,
             _that.zIndex,
+            _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
             _that.selectable,
@@ -424,6 +438,7 @@ extension FlowNodePatterns on FlowNode {
             Map<String, NodeHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
+            double hitTestPadding,
             bool? hidden,
             bool? draggable,
             bool? selectable,
@@ -445,6 +460,7 @@ extension FlowNodePatterns on FlowNode {
             _that.handles,
             _that.data,
             _that.zIndex,
+            _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
             _that.selectable,
@@ -470,6 +486,7 @@ class _FlowNode extends FlowNode {
       final Map<String, NodeHandle> handles = const {},
       final Map<String, dynamic> data = const {},
       this.zIndex = 0,
+      this.hitTestPadding = 10,
       this.hidden,
       this.draggable,
       this.selectable,
@@ -513,6 +530,9 @@ class _FlowNode extends FlowNode {
   @JsonKey()
   final int zIndex;
   @override
+  @JsonKey()
+  final double hitTestPadding;
+  @override
   final bool? hidden;
   @override
   final bool? draggable;
@@ -550,6 +570,8 @@ class _FlowNode extends FlowNode {
             const DeepCollectionEquality().equals(other._handles, _handles) &&
             const DeepCollectionEquality().equals(other._data, _data) &&
             (identical(other.zIndex, zIndex) || other.zIndex == zIndex) &&
+            (identical(other.hitTestPadding, hitTestPadding) ||
+                other.hitTestPadding == hitTestPadding) &&
             (identical(other.hidden, hidden) || other.hidden == hidden) &&
             (identical(other.draggable, draggable) ||
                 other.draggable == draggable) &&
@@ -576,6 +598,7 @@ class _FlowNode extends FlowNode {
       const DeepCollectionEquality().hash(_handles),
       const DeepCollectionEquality().hash(_data),
       zIndex,
+      hitTestPadding,
       hidden,
       draggable,
       selectable,
@@ -586,7 +609,7 @@ class _FlowNode extends FlowNode {
 
   @override
   String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -606,6 +629,7 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
       Map<String, NodeHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
+      double hitTestPadding,
       bool? hidden,
       bool? draggable,
       bool? selectable,
@@ -635,6 +659,7 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? handles = null,
     Object? data = null,
     Object? zIndex = null,
+    Object? hitTestPadding = null,
     Object? hidden = freezed,
     Object? draggable = freezed,
     Object? selectable = freezed,
@@ -676,6 +701,10 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
           ? _self.zIndex
           : zIndex // ignore: cast_nullable_to_non_nullable
               as int,
+      hitTestPadding: null == hitTestPadding
+          ? _self.hitTestPadding
+          : hitTestPadding // ignore: cast_nullable_to_non_nullable
+              as double,
       hidden: freezed == hidden
           ? _self.hidden
           : hidden // ignore: cast_nullable_to_non_nullable

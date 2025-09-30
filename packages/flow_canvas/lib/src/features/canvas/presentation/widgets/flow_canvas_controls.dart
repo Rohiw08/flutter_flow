@@ -1,3 +1,4 @@
+import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/control_button.dart';
@@ -13,6 +14,8 @@ class FlowCanvasControls extends ConsumerWidget {
   final bool showLock;
   final List<Widget> children;
   final Axis orientation;
+  final Alignment alignment;
+  final EdgeInsetsGeometry margin;
   final double? spacing; // Added spacing parameter
 
   // THEME OVERRIDES
@@ -24,6 +27,8 @@ class FlowCanvasControls extends ConsumerWidget {
     this.showFitView = true,
     this.showLock = true,
     this.orientation = Axis.vertical,
+    this.alignment = Alignment.bottomLeft,
+    this.margin = const EdgeInsets.all(20),
     this.children = const [],
     this.spacing = 6.0,
     this.controlsTheme,
@@ -40,14 +45,18 @@ class FlowCanvasControls extends ConsumerWidget {
 
     return ControlThemeProvider(
       theme: theme,
-      child: Container(
-        padding: theme.effectivePadding, // Use container padding from theme
-        decoration: theme.effectiveContainerDecoration,
-        child: Flex(
-          direction: orientation,
-          spacing: spacing ?? 0.0,
-          mainAxisSize: MainAxisSize.min,
-          children: _buildButtons(context, theme, controller, isLocked),
+      child: Align(
+        alignment: alignment,
+        child: Container(
+          margin: margin,
+          padding: theme.effectivePadding, // Use container padding from theme
+          decoration: theme.effectiveContainerDecoration,
+          child: Flex(
+            direction: orientation,
+            spacing: spacing ?? 0.0,
+            mainAxisSize: MainAxisSize.min,
+            children: _buildButtons(context, theme, controller, isLocked),
+          ),
         ),
       ),
     );
@@ -56,7 +65,7 @@ class FlowCanvasControls extends ConsumerWidget {
   List<Widget> _buildButtons(
     BuildContext context,
     FlowCanvasControlsStyle theme,
-    dynamic controller,
+    FlowCanvasController controller,
     bool isLocked,
   ) {
     return [

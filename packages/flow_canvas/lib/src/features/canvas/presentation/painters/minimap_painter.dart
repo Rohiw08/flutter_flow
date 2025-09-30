@@ -25,26 +25,29 @@ class MiniMapPainter extends CustomPainter {
   // Pre-built Paint objects for performance.
   final Paint _backgroundPaint;
   final Paint _nodePaint;
-  final Paint _maskPaint;
   final Paint _viewportStrokePaint;
+  final Paint _viewportFillPaint;
 
   MiniMapPainter({
     required this.nodes,
     required this.viewport,
     required this.theme,
   })  : _backgroundPaint = Paint()
-          ..color = (theme.backgroundColor ?? Colors.transparent),
-        _nodePaint = Paint()..color = (theme.nodeColor ?? Colors.blue),
-        _maskPaint = Paint()
-          ..color = (theme.maskColor ?? const Color(0x66000000)),
+          ..color = (theme.backgroundColor ?? Colors.grey.shade200),
+        _nodePaint = Paint()..color = (theme.nodeColor ?? Colors.blue.shade600),
         _viewportStrokePaint = Paint()
-          ..color = (theme.maskStrokeColor ?? Colors.white)
-          ..strokeWidth = (theme.maskStrokeWidth ?? 1.0)
-          ..style = PaintingStyle.stroke;
+          ..color = (theme.maskStrokeColor ?? Colors.red.shade600)
+          ..strokeWidth = (theme.maskStrokeWidth ?? 2.0)
+          ..style = PaintingStyle.stroke,
+        _viewportFillPaint = Paint()
+          ..color = (theme.maskStrokeColor ?? Colors.red.shade600).withAlpha(30)
+          ..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final transform = calculateTransform(_getBounds(nodes), size, theme);
+    final combinedBounds = _getCombinedBounds(nodes, viewport);
+    final transform = calculateTransform(combinedBounds, size, theme);
+
     if (transform.scale <= 0) {
       canvas.drawRect(
           Rect.fromLTWH(0, 0, size.width, size.height), _backgroundPaint);
@@ -52,39 +55,72 @@ class MiniMapPainter extends CustomPainter {
     }
 
     canvas.save();
+
+    // Draw background
     canvas.drawRect(
         Rect.fromLTWH(0, 0, size.width, size.height), _backgroundPaint);
+
+    // Draw nodes
     _drawNodes(canvas, transform);
-    _drawViewport(canvas, size, transform);
+
+    // Draw viewport indicator
+    _drawViewport(canvas, transform);
+
     canvas.restore();
   }
 
   void _drawNodes(Canvas canvas, MiniMapTransform transform) {
-    final nodesPath = Path();
-
     for (final node in nodes) {
       final nodeRect = fromCanvasToMiniMap(node.rect, transform);
-      nodesPath.addRect(nodeRect);
+      // Make sure nodes are visible even when very small
+      const minSize = 2.0;
+      final adjustedRect = Rect.fromLTWH(
+        nodeRect.left,
+        nodeRect.top,
+        math.max(nodeRect.width, minSize),
+        math.max(nodeRect.height, minSize),
+      );
+      canvas.drawRect(adjustedRect, _nodePaint);
     }
-    canvas.drawPath(nodesPath, _nodePaint);
   }
 
-  void _drawViewport(Canvas canvas, Size size, MiniMapTransform transform) {
+  void _drawViewport(Canvas canvas, MiniMapTransform transform) {
+    if (viewport.isEmpty) return;
+
     final viewportInMiniMap = fromCanvasToMiniMap(viewport, transform);
-    final maskPath = Path.combine(
-      PathOperation.difference,
-      Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-      Path()..addRect(viewportInMiniMap),
-    );
-    canvas.drawPath(maskPath, _maskPaint);
+
+    // Draw viewport fill (semi-transparent)
+    canvas.drawRect(viewportInMiniMap, _viewportFillPaint);
+
+    // Draw viewport border
     canvas.drawRect(viewportInMiniMap, _viewportStrokePaint);
   }
 
-  Rect _getBounds(List<FlowNode> nodes) {
-    if (nodes.isEmpty) return Rect.zero;
-    return nodes
-        .map((node) => node.rect)
-        .reduce((a, b) => a.expandToInclude(b));
+  // FIXED: Calculate bounds that include both nodes AND viewport
+  Rect _getCombinedBounds(List<FlowNode> nodes, Rect viewport) {
+    if (nodes.isEmpty && viewport.isEmpty) return Rect.zero;
+
+    Rect? combinedBounds;
+
+    // Include all node bounds
+    if (nodes.isNotEmpty) {
+      combinedBounds =
+          nodes.map((node) => node.rect).reduce((a, b) => a.expandToInclude(b));
+    }
+
+    // Include viewport bounds
+    if (!viewport.isEmpty) {
+      combinedBounds = combinedBounds?.expandToInclude(viewport) ?? viewport;
+    }
+
+    // Add some padding to ensure everything is visible
+    if (combinedBounds != null && !combinedBounds.isEmpty) {
+      final padding =
+          math.max(combinedBounds.width, combinedBounds.height) * 0.1;
+      combinedBounds = combinedBounds.inflate(padding);
+    }
+
+    return combinedBounds ?? Rect.zero;
   }
 
   // --- STATIC UTILITY METHODS ---
@@ -95,6 +131,7 @@ class MiniMapPainter extends CustomPainter {
       return const MiniMapTransform(
           scale: 0, offset: Offset.zero, contentBounds: Rect.zero);
     }
+
     final padding = theme.padding ?? 10.0;
     final paddedWidth = minimapSize.width - (padding * 2);
     final paddedHeight = minimapSize.height - (padding * 2);
@@ -106,6 +143,7 @@ class MiniMapPainter extends CustomPainter {
       return MiniMapTransform(
           scale: 0, offset: Offset.zero, contentBounds: contentBounds);
     }
+
     final scaleX = paddedWidth / contentBounds.width;
     final scaleY = paddedHeight / contentBounds.height;
     final scale = math.min(scaleX, scaleY);

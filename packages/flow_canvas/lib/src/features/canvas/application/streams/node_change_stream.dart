@@ -1,19 +1,6 @@
 import 'dart:async';
+import '../../../../shared/enums.dart';
 import '../events/node_change_event.dart';
-
-enum NodeEventType {
-  click,
-  doubleClick,
-  dragStart,
-  drag,
-  dragStop,
-  mouseEnter,
-  mouseMove,
-  mouseLeave,
-  contextMenu,
-  delete,
-  change,
-}
 
 class NodeEvent {
   final String nodeId;

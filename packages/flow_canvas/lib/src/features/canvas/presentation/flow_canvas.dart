@@ -14,6 +14,7 @@ import 'package:flow_canvas/src/features/canvas/presentation/options/options_pro
 import 'package:flow_canvas/src/features/canvas/presentation/theme/flow_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_provider.dart';
 
+import '../../../shared/enums.dart';
 import '../../../shared/providers.dart';
 import '../application/flow_canvas_controller.dart';
 import 'widgets/layers/edges_layer.dart';
@@ -82,12 +83,10 @@ class _FlowCanvasState extends State<FlowCanvas> {
       overrides: [
         nodeRegistryProvider.overrideWithValue(widget.nodeRegistry),
         edgeRegistryProvider.overrideWithValue(widget.edgeRegistry),
+        flowOptionsProvider.overrideWithValue(widget.options),
         flowControllerProvider.overrideWith(
           (ref) => FlowCanvasController(ref, initialState: initialState),
         ),
-        // Expose the created controller via the internalControllerProvider so
-        // descendant widgets can read/watch it. This prevents the
-        // UnimplementedError when internalControllerProvider is accessed.
         internalControllerProvider.overrideWith(
           (ref) => ref.watch(flowControllerProvider.notifier),
         ),
@@ -147,6 +146,9 @@ class _FlowCanvasCore extends ConsumerWidget {
     final isLocked = ref.watch(
       internalControllerProvider.select((state) => state.isPanZoomLocked),
     );
+    final dragMode = ref.watch(
+      internalControllerProvider.select((state) => state.dragMode),
+    );
 
     final backgroundOverlays = overlays.whereType<FlowBackground>().toList();
     final foregroundOverlays =
@@ -158,39 +160,50 @@ class _FlowCanvasCore extends ConsumerWidget {
       keymap: Keymap.standard(),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              controller.setViewportSize(
-                  Size(constraints.maxWidth, constraints.maxHeight));
-            }
-          });
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) {
+              if (context.mounted) {
+                controller.setViewportSize(
+                    Size(constraints.maxWidth, constraints.maxHeight));
+              }
+            },
+          );
 
           return Stack(
+            alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
-              InteractiveViewer(
-                transformationController: controller.transformationController,
-                constrained: false,
-                minScale: options.viewportOptions.minZoom,
-                maxScale: options.viewportOptions.maxZoom,
-                panEnabled: !isLocked,
-                scaleEnabled: !isLocked,
-                child: SizedBox(
-                  width: options.canvasWidth,
-                  height: options.canvasHeight,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      ...backgroundOverlays,
-                      FlowEdgeLayer(
-                        edgeCallbacks: edgeCallbacks,
-                        paneCallbacks: paneCallbacks,
-                      ),
-                      FlowNodesLayer(
-                        nodeCallbacks: nodeCallbacks,
-                        paneCallbacks: paneCallbacks,
-                      ),
-                    ],
+              IgnorePointer(
+                ignoring: isLocked,
+                child: InteractiveViewer(
+                  transformationController: controller.transformationController,
+                  constrained: false,
+                  // panAxis: options.viewportOptions,
+                  // panEnabled: false,
+                  minScale: options.viewportOptions.minZoom,
+                  maxScale: options.viewportOptions.maxZoom,
+                  panEnabled: !isLocked && dragMode == DragMode.none,
+                  scaleEnabled: !isLocked && dragMode == DragMode.none,
+                  child: SizedBox(
+                    width: options.canvasWidth,
+                    height: options.canvasHeight,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Background Layer
+                        ...backgroundOverlays,
+                        // Edges Layer
+                        FlowEdgeLayer(
+                          edgeCallbacks: edgeCallbacks,
+                          paneCallbacks: paneCallbacks,
+                        ),
+
+                        /// Nodes Layer
+                        FlowNodesLayer(
+                          nodeCallbacks: nodeCallbacks,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

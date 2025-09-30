@@ -30,6 +30,20 @@ enum ThemeCategory {
   custom,
 }
 
+enum NodeEventType {
+  click,
+  doubleClick,
+  dragStart,
+  drag,
+  dragStop,
+  mouseEnter,
+  mouseMove,
+  mouseLeave,
+  contextMenu,
+  delete,
+  change,
+}
+
 enum EdgeMarkerType {
   none,
   arrow,

@@ -1,7 +1,9 @@
+import 'package:flow_canvas/src/features/canvas/presentation/options/options_provider.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
+import 'package:flow_canvas/src/shared/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
-import 'package:flow_canvas/src/features/canvas/application/callbacks/pane_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/domain/registries/node_registry.dart';
 
 import '../../../../../shared/providers.dart';
@@ -15,12 +17,10 @@ import 'package:flow_canvas/src/features/canvas/application/streams/node_change_
 /// when nodes are dragged or other canvas state changes occur.
 class FlowNodesLayer extends ConsumerWidget {
   final NodeCallbacks nodeCallbacks;
-  final PaneCallbacks paneCallbacks;
 
   const FlowNodesLayer({
     super.key,
     required this.nodeCallbacks,
-    required this.paneCallbacks,
   });
 
   @override
@@ -103,21 +103,28 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
     );
     final controller = ref.read(internalControllerProvider.notifier);
 
+    final options = FlowCanvasOptionsProvider.of(context);
+    final coordinateConverter = CanvasCoordinateConverter(
+      canvasWidth: options.canvasWidth,
+      canvasHeight: options.canvasHeight,
+    );
+    final renderPosition = coordinateConverter.cartesianToRender(node.position);
+
     // Resolve effective options (consider node overrides and global defaults)
     final resolved = NodeOptions.resolve(context);
     final isHidden = node.hidden ?? resolved.hidden;
     final isDraggable = node.draggable ?? resolved.draggable;
     final isSelectable = node.selectable ?? resolved.selectable;
     final isFocusable = node.focusable ?? resolved.focusable;
-
     if (isHidden) return const SizedBox.shrink();
 
     return Positioned(
-      left: node.position.dx,
-      top: node.position.dy,
-      width: node.size.width,
-      height: node.size.height,
+      left: renderPosition.dx,
+      top: renderPosition.dy,
+      width: node.size.width + node.hitTestPadding,
+      height: node.size.height + node.hitTestPadding,
       child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
         onEnter: (e) {
           widget.nodeCallbacks.onMouseEnter(widget.nodeId, e);
           controller.nodeStreams.emitEvent(NodeEvent(
@@ -146,8 +153,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
           focusNode: _focusNode,
           canRequestFocus: isFocusable,
           child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            // Selection + focus
+            behavior: HitTestBehavior.deferToChild,
             onTapDown: (details) {
               if (isSelectable) {
                 controller.selectNode(widget.nodeId, addToSelection: false);
@@ -181,6 +187,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
             // Dragging
             onPanStart: isDraggable
                 ? (details) {
+                    controller.startNodeDrag();
                     widget.nodeCallbacks.onDragStart(widget.nodeId, details);
                     controller.nodeStreams.emitEvent(NodeEvent(
                       nodeId: widget.nodeId,
@@ -191,12 +198,16 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
                 : null,
             onPanUpdate: isDraggable
                 ? (details) {
-                    // Ensure node is part of selection; if not, select it
+                    final adjustedDelta = details.delta * 2;
+
                     if (isSelectable) {
                       controller.selectNode(widget.nodeId,
                           addToSelection: false);
                     }
-                    controller.dragSelectedBy(details.delta);
+
+                    // Pass the reliable screenDelta to the controller.
+                    controller.dragSelectedBy(adjustedDelta);
+
                     widget.nodeCallbacks.onDrag(widget.nodeId, details);
                     controller.nodeStreams.emitEvent(NodeEvent(
                       nodeId: widget.nodeId,
@@ -207,6 +218,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
                 : null,
             onPanEnd: isDraggable
                 ? (details) {
+                    controller.endNodeDrag();
                     widget.nodeCallbacks.onDragStop(widget.nodeId, details);
                     controller.nodeStreams.emitEvent(NodeEvent(
                       nodeId: widget.nodeId,

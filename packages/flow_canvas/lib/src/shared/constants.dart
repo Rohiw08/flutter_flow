@@ -1,9 +1,5 @@
 // Constants for the Flutter Workflow package
 class FlowConstants {
-  // Canvas dimensions
-  static const double defaultCanvasWidth = 500000.0;
-  static const double defaultCanvasHeight = 500000.0;
-
   // Viewport settings
   static const double defaultMinZoom = 0.1;
   static const double defaultMaxZoom = 2.0;

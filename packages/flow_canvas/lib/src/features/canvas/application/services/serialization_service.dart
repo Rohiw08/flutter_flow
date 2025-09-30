@@ -85,6 +85,7 @@ class SerializationService {
       deletable: json['deletable'] as bool?,
       focusable: json['focusable'] as bool?,
       elevateNodeOnSelected: json['elevateNodeOnSelected'] as bool?,
+      hitTestPadding: json['hitTestPadding'] as double,
     );
   }
 

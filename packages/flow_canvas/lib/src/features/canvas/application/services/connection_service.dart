@@ -5,6 +5,8 @@ import 'package:flow_canvas/src/features/canvas/domain/models/handle.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
+// ADDED: Import for HandleRuntimeState
+import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/random_id_generator.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 
@@ -15,10 +17,6 @@ typedef ConnectionValidator = bool Function(
   NodeHandle targetHandle,
 );
 
-/// Callback type for edge creation customization.
-///
-/// This factory allows for complete customization of the `FlowEdge` created
-/// when a connection is successfully made.
 typedef EdgeFactory = FlowEdge Function({
   required String id,
   required String sourceNodeId,
@@ -27,7 +25,6 @@ typedef EdgeFactory = FlowEdge Function({
   required String targetHandleId,
 });
 
-/// A small helper class to store the result of a handle search.
 class ClosestHandleResult {
   final String nodeId;
   final NodeHandle handle;
@@ -40,12 +37,7 @@ class ClosestHandleResult {
   });
 }
 
-/// A stateless service for handling all logic related to creating and managing connections.
-///
-/// This service operates on a `FlowCanvasState` object and returns a new, updated
-/// state, ensuring immutability.
 class ConnectionService {
-  /// Starts a new connection process from a specific node handle.
   FlowCanvasState startConnection(
     FlowCanvasState state, {
     required String fromNodeId,
@@ -55,18 +47,18 @@ class ConnectionService {
     final fromNode = state.nodes[fromNodeId];
     final fromHandle = fromNode?.handles[fromHandleId];
 
-    if (fromNode == null || fromHandle == null) {
-      debugPrint("Connection start failed: Invalid source node or handle.");
-      return state;
-    }
+    if (fromNode == null || fromHandle == null) return state;
+    if (fromHandle.type == HandleType.target) return state;
 
-    if (fromHandle.type != HandleType.source &&
-        fromHandle.type != HandleType.both) {
-      debugPrint("Connection start failed: Handle type cannot be a source.");
-      return state;
-    }
+    final handleKey = '$fromNodeId/$fromHandleId';
+    final newHandleStates =
+        Map<String, HandleRuntimeState>.from(state.handleStates);
+    newHandleStates[handleKey] =
+        (newHandleStates[handleKey] ?? const HandleRuntimeState())
+            .copyWith(isActive: true);
 
     return state.copyWith(
+      handleStates: newHandleStates,
       connection: FlowConnection(
         id: 'pending_${generateUniqueId()}',
         type: 'pending',
@@ -79,7 +71,6 @@ class ConnectionService {
     );
   }
 
-  /// Updates the active connection as the user's cursor moves.
   FlowCanvasState updateConnection(
     FlowCanvasState state,
     Offset cursorPosition, {
@@ -88,9 +79,23 @@ class ConnectionService {
   }) {
     if (state.connection == null) return state;
 
+    final newHandleStates =
+        Map<String, HandleRuntimeState>.from(state.handleStates);
+    String? currentTargetHandleKey;
+
+    // Reset the state of the previously targeted handle
+    if (state.connection?.toNodeId != null &&
+        state.connection?.toHandleId != null) {
+      final prevTargetKey =
+          '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
+      newHandleStates[prevTargetKey] =
+          (newHandleStates[prevTargetKey] ?? const HandleRuntimeState())
+              .copyWith(isValidTarget: false, isInvalidTarget: false);
+    }
+
     String? targetNodeId;
     String? targetHandleId;
-    bool isValid = false;
+    bool isConnectionValid = false;
 
     final closestHandle = _findClosestHandle(
       state,
@@ -102,20 +107,37 @@ class ConnectionService {
     if (closestHandle != null) {
       targetNodeId = closestHandle.nodeId;
       targetHandleId = closestHandle.handle.id;
-      isValid = true;
+      currentTargetHandleKey = '$targetNodeId/$targetHandleId';
+      isConnectionValid = true;
+      // Mark the new target handle as valid
+      newHandleStates[currentTargetHandleKey] =
+          (newHandleStates[currentTargetHandleKey] ??
+                  const HandleRuntimeState())
+              .copyWith(isValidTarget: true);
+    } else {
+      // If there's a handle nearby but it's invalid, mark it as invalid
+      final closestInvalid = _findClosestHandle(state, cursorPosition,
+          snapRadius: snapRadius, validator: validator, ignoreValidation: true);
+      if (closestInvalid != null) {
+        final invalidKey =
+            '${closestInvalid.nodeId}/${closestInvalid.handle.id}';
+        newHandleStates[invalidKey] =
+            (newHandleStates[invalidKey] ?? const HandleRuntimeState())
+                .copyWith(isInvalidTarget: true);
+      }
     }
 
     return state.copyWith(
+      handleStates: newHandleStates,
       connection: state.connection!.copyWith(
         endPoint: cursorPosition,
         toNodeId: targetNodeId,
         toHandleId: targetHandleId,
       ),
-      connectionState: FlowConnectionRuntimeState(isValid: isValid),
+      connectionState: FlowConnectionRuntimeState(isValid: isConnectionValid),
     );
   }
 
-  /// Ends the connection process, creating an edge if valid.
   FlowCanvasState endConnection(
     FlowCanvasState state, {
     EdgeFactory? edgeFactory,
@@ -123,6 +145,8 @@ class ConnectionService {
   }) {
     final pendingConnection = state.connection;
     if (pendingConnection == null) return state;
+
+    final newHandleStates = _clearConnectionStates(state);
 
     final targetNodeId = pendingConnection.toNodeId;
     final targetHandleId = pendingConnection.toHandleId;
@@ -142,20 +166,19 @@ class ConnectionService {
           _isValidConnection(
               sourceNode, sourceHandle, targetNode, targetHandle, validator)) {
         final newEdge = _createEdge(
-          sourceNodeId: pendingConnection.fromNodeId!,
-          sourceHandleId: pendingConnection.fromHandleId!,
-          targetNodeId: targetNodeId,
-          targetHandleId: targetHandleId,
-          factory: edgeFactory,
-        );
-
-        final newEdges = Map<String, FlowEdge>.from(state.edges);
-        newEdges[newEdge.id] = newEdge;
+            sourceNodeId: pendingConnection.fromNodeId!,
+            sourceHandleId: pendingConnection.fromHandleId!,
+            targetNodeId: targetNodeId,
+            targetHandleId: targetHandleId,
+            factory: edgeFactory);
+        final newEdges = Map<String, FlowEdge>.from(state.edges)
+          ..[newEdge.id] = newEdge;
 
         return state.copyWith(
           edges: newEdges,
           connection: null,
           connectionState: null,
+          handleStates: newHandleStates,
           dragMode: DragMode.none,
         );
       }
@@ -164,22 +187,51 @@ class ConnectionService {
     return cancelConnection(state);
   }
 
-  /// Explicitly cancels the connection in progress.
   FlowCanvasState cancelConnection(FlowCanvasState state) {
     if (state.connection == null) return state;
     return state.copyWith(
       connection: null,
       connectionState: null,
+      handleStates: _clearConnectionStates(state),
       dragMode: DragMode.none,
     );
   }
 
-  // PRIVATE HELPERS
+  // Resets all active/target flags on handles
+  Map<String, HandleRuntimeState> _clearConnectionStates(
+      FlowCanvasState state) {
+    final newHandleStates =
+        Map<String, HandleRuntimeState>.from(state.handleStates);
+
+    // Reset source handle
+    if (state.connection?.fromNodeId != null &&
+        state.connection?.fromHandleId != null) {
+      final sourceKey =
+          '${state.connection!.fromNodeId}/${state.connection!.fromHandleId}';
+      newHandleStates[sourceKey] =
+          (newHandleStates[sourceKey] ?? const HandleRuntimeState())
+              .copyWith(isActive: false);
+    }
+
+    // Reset target handle
+    if (state.connection?.toNodeId != null &&
+        state.connection?.toHandleId != null) {
+      final targetKey =
+          '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
+      newHandleStates[targetKey] =
+          (newHandleStates[targetKey] ?? const HandleRuntimeState())
+              .copyWith(isValidTarget: false, isInvalidTarget: false);
+    }
+
+    return newHandleStates;
+  }
+
   ClosestHandleResult? _findClosestHandle(
     FlowCanvasState state,
     Offset cursorPosition, {
     required double snapRadius,
     ConnectionValidator? validator,
+    bool ignoreValidation = false, // Added flag
   }) {
     final sourceNode = state.nodes[state.connection!.fromNodeId];
     final sourceHandle = sourceNode?.handles[state.connection!.fromHandleId];
@@ -204,14 +256,16 @@ class ConnectionService {
       if (potentialTargetNode == null || potentialTargetHandle == null) {
         continue;
       }
+      if (potentialTargetHandle.type == HandleType.source) continue;
 
       final handleCenter =
           potentialTargetNode.position + potentialTargetHandle.position;
       final distance = (cursorPosition - handleCenter).distance;
 
       if (distance <= snapRadius && distance < minDistance) {
-        if (_isValidConnection(sourceNode, sourceHandle, potentialTargetNode,
-            potentialTargetHandle, validator)) {
+        if (ignoreValidation ||
+            _isValidConnection(sourceNode, sourceHandle, potentialTargetNode,
+                potentialTargetHandle, validator)) {
           minDistance = distance;
           closestHandle = ClosestHandleResult(
             nodeId: potentialTargetNodeId,
@@ -255,23 +309,20 @@ class ConnectionService {
     final edgeId = generateUniqueId();
     if (factory != null) {
       return factory(
+          id: edgeId,
+          sourceNodeId: sourceNodeId,
+          sourceHandleId: sourceHandleId,
+          targetNodeId: targetNodeId,
+          targetHandleId: targetHandleId);
+    }
+    return FlowEdge(
         id: edgeId,
         sourceNodeId: sourceNodeId,
         sourceHandleId: sourceHandleId,
         targetNodeId: targetNodeId,
-        targetHandleId: targetHandleId,
-      );
-    }
-    return FlowEdge(
-      id: edgeId,
-      sourceNodeId: sourceNodeId,
-      sourceHandleId: sourceHandleId,
-      targetNodeId: targetNodeId,
-      targetHandleId: targetHandleId,
-    );
+        targetHandleId: targetHandleId);
   }
 
-  // PUBLIC UTILITY METHODS
   List<FlowEdge> getConnectedEdges(
       FlowCanvasState state, String nodeId, String handleId) {
     return state.edges.values

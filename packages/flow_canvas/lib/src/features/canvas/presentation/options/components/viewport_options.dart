@@ -36,7 +36,7 @@ class ViewportOptions {
     this.fitView = false,
     this.fitViewOptions = const FitViewOptions(),
     this.minZoom = 0.5,
-    this.maxZoom = 2,
+    this.maxZoom = 3,
     this.snapToGrid = false,
     this.snapGrid = const SnapGrid(),
     this.onlyRenderVisibleElements = false,

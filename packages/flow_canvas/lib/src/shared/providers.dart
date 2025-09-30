@@ -1,3 +1,4 @@
+import 'package:flow_canvas/flow_canvas.dart' show FlowOptions;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
 import '../features/canvas/application/services/clipboard_service.dart';
@@ -53,6 +54,10 @@ final nodeRegistryProvider = Provider<NodeRegistry>((ref) {
 /// This should be overridden in the FlowCanvas widget.
 final edgeRegistryProvider = Provider<EdgeRegistry>((ref) {
   throw UnimplementedError('EdgeRegistryProvider must be overridden');
+});
+
+final flowOptionsProvider = Provider<FlowOptions>((ref) {
+  throw UnimplementedError('FlowOptionsProvider must be overridden');
 });
 
 // --- SERVICE PROVIDERS ---

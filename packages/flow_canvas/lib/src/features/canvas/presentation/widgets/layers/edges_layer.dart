@@ -1,5 +1,5 @@
-import 'dart:math' show Point;
 import 'package:equatable/equatable.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +10,6 @@ import '../../../domain/flow_canvas_state.dart';
 import '../../../domain/models/connection.dart';
 import '../../../domain/models/edge.dart';
 import '../../../domain/models/node.dart';
-// import '../../../domain/registries/edge_registry.dart';
 import '../../painters/flow_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/edge_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/edge_path_creator.dart';
@@ -39,57 +38,12 @@ class _EdgeGeom {
       {required this.path, required this.bounds, required this.samples});
 }
 
-class _SimpleGridIndex {
-  final double cellSize;
-  final Map<Point<int>, Set<String>> _grid = {};
-  _SimpleGridIndex(this.cellSize);
-
-  void clear() => _grid.clear();
-
-  void insert(String id, Rect rect) {
-    final minX = (rect.left / cellSize).floor();
-    final maxX = (rect.right / cellSize).floor();
-    final minY = (rect.top / cellSize).floor();
-    final maxY = (rect.bottom / cellSize).floor();
-    for (int gx = minX; gx <= maxX; gx++) {
-      for (int gy = minY; gy <= maxY; gy++) {
-        final key = Point<int>(gx, gy);
-        final bucket = _grid.putIfAbsent(key, () => <String>{});
-        bucket.add(id);
-      }
-    }
-  }
-
-  Set<String> queryPoint(Offset p) {
-    final gx = (p.dx / cellSize).floor();
-    final gy = (p.dy / cellSize).floor();
-    return _grid[Point<int>(gx, gy)] ?? const <String>{};
-  }
-
-  Set<String> queryRect(Rect r) {
-    final minX = (r.left / cellSize).floor();
-    final maxX = (r.right / cellSize).floor();
-    final minY = (r.top / cellSize).floor();
-    final maxY = (r.bottom / cellSize).floor();
-    final result = <String>{};
-    for (int gx = minX; gx <= maxX; gx++) {
-      for (int gy = minY; gy <= maxY; gy++) {
-        final key = Point<int>(gx, gy);
-        final bucket = _grid[key];
-        if (bucket != null) result.addAll(bucket);
-      }
-    }
-    return result;
-  }
-}
-
 class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
   String? _hoveredEdgeId;
   String? _lastDownEdgeId;
 
-  // Geometry cache and spatial index
+  // Geometry cache
   final Map<String, _EdgeGeom> _edgeCache = {};
-  final _SimpleGridIndex _edgeIndex = _SimpleGridIndex(256);
   Rect? _lastViewportRect;
 
   // Throttle
@@ -146,7 +100,7 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
       ).inflate(64);
 
       if (_lastViewportRect == null || _lastViewportRect != viewportRect) {
-        _rebuildIndex(fullState, orderedEdges.map((e) => e.key));
+        _rebuildCache(fullState, orderedEdges.map((e) => e.key));
         _lastViewportRect = viewportRect;
       } else {
         _refreshCacheForChangedEdges(fullState, orderedEdges.map((e) => e.key));
@@ -265,14 +219,9 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     });
   }
 
-  void _rebuildIndex(FlowCanvasState state, Iterable<String> edgeIds) {
-    _edgeIndex.clear();
+  void _rebuildCache(FlowCanvasState state, Iterable<String> edgeIds) {
     for (final id in edgeIds) {
       _ensureEdgeGeom(state, id);
-      final g = _edgeCache[id];
-      if (g != null) {
-        _edgeIndex.insert(id, g.bounds);
-      }
     }
   }
 
@@ -297,9 +246,25 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
         : null;
     if (sourceHandle == null || targetHandle == null) return;
 
-    final start = sourceNode.position + sourceHandle.position;
-    final end = targetNode.position + targetHandle.position;
-    final path = EdgePathCreator.createPath(edge.pathType, start, end);
+    final options = ref.read(flowOptionsProvider);
+    final coordinateConverter = CanvasCoordinateConverter(
+      canvasWidth: options.canvasWidth,
+      canvasHeight: options.canvasHeight,
+    );
+
+    // Convert node positions from Cartesian to render coordinates (same as nodes)
+    final sourceNodeRender =
+        coordinateConverter.cartesianToRender(sourceNode.position);
+    final targetNodeRender =
+        coordinateConverter.cartesianToRender(targetNode.position);
+
+    // Calculate handle positions in render coordinates
+    final sourceHandleRender = sourceNodeRender + sourceHandle.position;
+    final targetHandleRender = targetNodeRender + targetHandle.position;
+
+    // Create path using render coordinates (same coordinate system as positioned nodes)
+    final path = EdgePathCreator.createPath(
+        edge.pathType, sourceHandleRender, targetHandleRender);
     final bounds = path.getBounds().inflate(8);
 
     // Sample polyline for fast distance checks
@@ -326,11 +291,12 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     const double baseTolerance = 8.0;
 
     // Query grid for candidate edges by point
-    final candidateEdgeIds = _edgeIndex.queryPoint(localPos);
-    if (candidateEdgeIds.isEmpty) return null;
+    // final candidateEdgeIds = _edgeIndex.queryPoint(localPos); // Removed
+    // if (candidateEdgeIds.isEmpty) return null; // Removed
 
     // Narrow phase: distance to sampled polyline
-    for (final edgeId in candidateEdgeIds) {
+    for (final edgeId in precomputed.keys) {
+      // Iterate over precomputed keys
       final geom = _edgeCache[edgeId];
       if (geom == null) continue;
       final tolerance =
