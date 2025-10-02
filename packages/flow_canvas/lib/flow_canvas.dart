@@ -74,4 +74,4 @@ export 'src/features/canvas/presentation/widgets/flow_handle.dart';
 export 'src/features/canvas/presentation/widgets/flow_background.dart';
 
 // --- Utility ---
-export 'src/features/canvas/presentation/utility/flow_positioned.dart';
+export 'src/features/canvas/presentation/widgets/flow_positioned.dart';

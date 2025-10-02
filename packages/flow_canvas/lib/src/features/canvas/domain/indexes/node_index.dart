@@ -153,7 +153,11 @@ class NodeIndex {
     }
 
     for (final handle in node.handles.values) {
-      final handlePosition = node.position + handle.position;
+      final handlePosition = node.position +
+          Offset(
+            handle.position.dx,
+            -handle.position.dy,
+          );
       final handleCellKey = _getCellKey(handlePosition, cellSize);
       handleGrid
           .putIfAbsent(handleCellKey, () => {})
@@ -172,7 +176,11 @@ class NodeIndex {
     }
 
     for (final handle in node.handles.values) {
-      final handlePosition = node.position + handle.position;
+      final handlePosition = node.position +
+          Offset(
+            handle.position.dx,
+            -handle.position.dy,
+          );
       final handleCellKey = _getCellKey(handlePosition, cellSize);
       _removeFromGrid(handleGrid, handleCellKey, '${node.id}/${handle.id}');
     }

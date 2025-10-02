@@ -90,6 +90,25 @@ class _ExampleState extends State<Example> {
         'color': const Color(0xFF443a49), // Initial color for this node
       },
     ),
+
+    FlowNode.create(
+      id: '4',
+      position: const Offset(100, 300),
+      size: const Size(150, 150), // Match the card's size
+      type: 'colorPicker',
+      handles: [
+        const NodeHandle(
+          id: '4-both-1',
+          type: HandleType.target,
+          position: Offset(75, 40),
+        ),
+      ],
+      data: {
+        'label': 'Color Node',
+        'color': const Color.fromARGB(
+            255, 166, 87, 206), // Initial color for this node
+      },
+    ),
   ];
 
   // 2. Define initial edges (connections) for the canvas.
@@ -175,6 +194,8 @@ class _ExampleState extends State<Example> {
             onCanvasCreated: (controller) =>
                 setState(() => _controller = controller),
             options: const FlowOptions(
+              canvasHeight: 1000,
+              canvasWidth: 1000,
               viewportOptions: ViewportOptions(
                 maxZoom: 3.0,
                 minZoom: 0.3,

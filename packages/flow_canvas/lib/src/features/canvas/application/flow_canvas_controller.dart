@@ -38,6 +38,7 @@ import 'streams/node_change_stream.dart';
 import 'streams/pane_change_stream.dart';
 import 'streams/viewport_change_stream.dart';
 import 'events/viewport_change_event.dart';
+// import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_transform_utils.dart';
 
 /// The central state management hub for the Flow Canvas.
 ///
@@ -68,6 +69,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   late final EdgeQueryService _edgeQueryService;
   late final NodeQueryService _nodeQueryService;
   late final KeyboardActionService _keyboardActionService;
+  late final CanvasCoordinateConverter coordinateConverter;
 
   FlowCanvasController(
     this.ref, {
@@ -88,6 +90,9 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     _edgeQueryService = ref.read(edgeQueryServiceProvider);
     _nodeQueryService = ref.read(nodeQueryServiceProvider);
     _keyboardActionService = ref.read(keyboardActionServiceProvider);
+
+    // --- Utility ---
+    coordinateConverter = ref.read(coordinateConverterProvider);
 
     // Initialize services that depend on the initial state.
     _history.init(state);
@@ -247,13 +252,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void centerOnPosition(Offset canvasPosition) {
     if (state.viewportSize == null) return;
-
-    // Convert Cartesian position to render position for viewport calculations
-    final options = ref.read(flowOptionsProvider);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
     final renderPosition = coordinateConverter.toRenderPosition(canvasPosition);
 
     final newOffset = (renderPosition * state.viewport.zoom * -1) +
@@ -280,23 +278,12 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   Offset screenToCanvasPosition(Offset screenPosition) {
     final renderPosition =
         _viewportService.screenToCanvas(state, screenPosition);
-
-    final options = ref.read(flowOptionsProvider);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
     return coordinateConverter.toCartesianPosition(renderPosition);
   }
 
   /// Converts a point from the canvas's internal Cartesian coordinate system
   /// to a screen position.
   Offset canvasToScreenPosition(Offset cartesianPosition) {
-    final options = ref.read(flowOptionsProvider);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
     final renderPosition =
         coordinateConverter.toRenderPosition(cartesianPosition);
 
@@ -423,12 +410,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void dragSelectedBy(Offset screenDelta) {
     // This check is important to avoid updating state if not dragging.
     if (state.dragMode != DragMode.node) return;
-
-    final options = ref.read(flowOptionsProvider);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
     final cartesianDelta = coordinateConverter.toCartesianDelta(screenDelta);
 
     // --- KEY CHANGE ---
@@ -626,24 +607,17 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   // --- Connections ---
   // =================================================================================
 
-  void startConnection(
-      String nodeId, String handleId, Offset startScreenPosition) {
-    // 1. Look up the source node and handle from the current state.
+  void startConnection(String nodeId, String handleId) {
     final sourceNode = state.nodes[nodeId];
     final sourceHandle = sourceNode?.handles[handleId];
-
     if (sourceNode == null || sourceHandle == null) return;
 
-    // 2. Calculate the true Cartesian center of the handle.
-    // This ignores the inaccurate cursor position.
-    final handleCenterPosition = sourceNode.center + sourceHandle.center;
+    final handleCenterPosition = sourceNode.position + sourceHandle.position;
 
-    // Use a direct state update for the initial phase.
     state = _connectionService.startConnection(
-      state.copyWith(dragMode: DragMode.connection), // Also set the drag mode
+      state.copyWith(dragMode: DragMode.connection),
       fromNodeId: nodeId,
       fromHandleId: handleId,
-      // 3. Set BOTH the start and initial end points to the handle's center.
       startPosition: handleCenterPosition,
     );
 
@@ -655,36 +629,15 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     }
   }
 
-  // in flow_canvas_controller.dart
-
-  void updateConnection(Offset cursorScreenPosition) {
-    if (state.dragMode != DragMode.connection || state.connection == null)
+  void updateConnection(
+      Offset cursorScreenPosition, String nodeId, String handleId) {
+    if (state.dragMode != DragMode.connection || state.connection == null) {
       return;
+    }
 
-    // Find the RenderBox of the canvas using the GlobalKey.
-    final RenderBox? canvasRenderBox =
-        canvasKey.currentContext?.findRenderObject() as RenderBox?;
-    if (canvasRenderBox == null) return;
-
-    // --- START: THE FIX ---
-    // 1. Convert from global screen coordinates to local coordinates of the canvas widget.
-    final localPosition = canvasRenderBox.globalToLocal(cursorScreenPosition);
-
-    // 2. Convert from the local widget coordinates to the canvas's internal coordinates
-    //    (this accounts for pan and zoom).
-    final canvasRenderPosition =
-        _viewportService.screenToCanvas(state, localPosition);
-
-    // 3. Convert from the canvas's render coordinates (top-left origin) to
-    //    your Cartesian coordinates (center origin).
-    final options = ref.read(flowOptionsProvider);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
+    // Convert screen position to cartesian coordinates
     final cartesianPosition =
-        coordinateConverter.toCartesianPosition(canvasRenderPosition);
-    // --- END: THE FIX ---
+        coordinateConverter.toCartesianPosition(cursorScreenPosition);
 
     if (state.connection!.endPoint != cartesianPosition) {
       state = _connectionService.updateConnection(state, cartesianPosition);

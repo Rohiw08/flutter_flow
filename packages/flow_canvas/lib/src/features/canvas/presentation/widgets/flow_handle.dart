@@ -1,8 +1,6 @@
 import 'package:flow_canvas/flow_canvas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flow_canvas/src/shared/enums.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/components/handle_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 
@@ -86,15 +84,21 @@ class Handle extends ConsumerWidget {
             if (type == HandleType.target) return;
             final flowOptions = context.flowCanvasOptions;
             if (!flowOptions.enableConnectivity) return;
-            controller.startConnection(
-              nodeId,
-              handleId,
-              details.globalPosition,
-            );
+
+            controller.startConnection(nodeId, handleId);
           },
           onPanUpdate: (details) {
             if (type == HandleType.target) return;
-            controller.updateConnection(details.globalPosition);
+
+            final canvasKey = controller.canvasKey;
+            final canvasRenderBox =
+                canvasKey.currentContext?.findRenderObject() as RenderBox?;
+            if (canvasRenderBox == null) return;
+
+            final localPosition =
+                canvasRenderBox.globalToLocal(details.globalPosition);
+
+            controller.updateConnection(localPosition, nodeId, handleId);
           },
           onPanEnd: (details) {
             if (type == HandleType.target) return;

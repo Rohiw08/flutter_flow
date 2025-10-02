@@ -104,6 +104,8 @@ class ConnectionService {
       validator: validator,
     );
 
+    print("closestHandle: $closestHandle");
+
     if (closestHandle != null) {
       targetNodeId = closestHandle.nodeId;
       targetHandleId = closestHandle.handle.id;
@@ -241,7 +243,7 @@ class ConnectionService {
     final nearbyHandles = state.nodeIndex.queryHandlesNear(cursorPosition);
     ClosestHandleResult? closestHandle;
     double minDistance = double.infinity;
-
+    print("nearbyHandles: $nearbyHandles");
     for (final handleKey in nearbyHandles) {
       final keyParts = handleKey.split('/');
       final potentialTargetNodeId = keyParts[0];
@@ -258,8 +260,12 @@ class ConnectionService {
       }
       if (potentialTargetHandle.type == HandleType.source) continue;
 
-      final handleCenter =
-          potentialTargetNode.position + potentialTargetHandle.position;
+      // Convert handle's render-space offset to cartesian delta
+      final handleCartesianDelta = Offset(
+        potentialTargetHandle.position.dx,
+        -potentialTargetHandle.position.dy,
+      );
+      final handleCenter = potentialTargetNode.position + handleCartesianDelta;
       final distance = (cursorPosition - handleCenter).distance;
 
       if (distance <= snapRadius && distance < minDistance) {

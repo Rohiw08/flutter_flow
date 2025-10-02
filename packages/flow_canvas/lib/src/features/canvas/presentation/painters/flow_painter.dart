@@ -206,15 +206,15 @@ class FlowPainter extends CustomPainter {
 
     _connectionPaint.color = color;
     _connectionEndpointPaint.color = color;
-    final renderStartPoint = connection!.startPoint;
-    coordinateConverter.toRenderPosition(connection!.startPoint);
+    final renderStartPoint =
+        coordinateConverter.toRenderPosition(connection!.startPoint);
     final renderEndPoint =
         coordinateConverter.toRenderPosition(connection!.endPoint);
 
     final path = EdgePathCreator.createPath(
       style.connection.pathType,
-      renderStartPoint, // Use the converted point
-      renderEndPoint, // Use the converted point
+      renderStartPoint,
+      renderEndPoint,
     );
     canvas.drawPath(path, _connectionPaint);
     canvas.drawCircle(
