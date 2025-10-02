@@ -1,4 +1,5 @@
 import 'package:flow_canvas/flow_canvas.dart' show FlowOptions;
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
 import '../features/canvas/application/services/clipboard_service.dart';
@@ -58,6 +59,14 @@ final edgeRegistryProvider = Provider<EdgeRegistry>((ref) {
 
 final flowOptionsProvider = Provider<FlowOptions>((ref) {
   throw UnimplementedError('FlowOptionsProvider must be overridden');
+});
+
+final coordinateConverterProvider = Provider<CanvasCoordinateConverter>((ref) {
+  final options = ref.watch(flowOptionsProvider);
+  return CanvasCoordinateConverter(
+    canvasWidth: options.canvasWidth,
+    canvasHeight: options.canvasHeight,
+  );
 });
 
 // --- SERVICE PROVIDERS ---

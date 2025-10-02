@@ -154,6 +154,8 @@ class _FlowCanvasCore extends ConsumerWidget {
     final foregroundOverlays =
         overlays.where((w) => w is! FlowBackground).toList();
 
+    // print("built");
+
     return KeyboardAdapter(
       controller: controller,
       options: options,
@@ -164,7 +166,8 @@ class _FlowCanvasCore extends ConsumerWidget {
             (_) {
               if (context.mounted) {
                 controller.setViewportSize(
-                    Size(constraints.maxWidth, constraints.maxHeight));
+                  Size(constraints.maxWidth, constraints.maxHeight),
+                );
               }
             },
           );
@@ -185,6 +188,7 @@ class _FlowCanvasCore extends ConsumerWidget {
                   panEnabled: !isLocked && dragMode == DragMode.none,
                   scaleEnabled: !isLocked && dragMode == DragMode.none,
                   child: SizedBox(
+                    key: controller.canvasKey,
                     width: options.canvasWidth,
                     height: options.canvasHeight,
                     child: Stack(

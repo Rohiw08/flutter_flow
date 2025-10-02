@@ -1,3 +1,4 @@
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/flow_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
@@ -92,54 +93,70 @@ class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget>
       theme.maxHeight ?? double.infinity,
     );
 
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() => _isHovered = true);
-        if (!isDragging) {
-          _animationController.forward();
-        }
-      },
-      onExit: (_) {
-        setState(() => _isHovered = false);
-        if (!isDragging) {
-          _animationController.reverse();
-        }
-      },
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _isHovered && !isDragging ? _scaleAnimation.value : 1.0,
-            child: AnimatedContainer(
-              duration:
-                  theme.animationDuration ?? const Duration(milliseconds: 200),
-              curve: theme.animationCurve ?? Curves.easeInOut,
-              width: width,
-              height: height,
-              decoration: style.decoration.copyWith(
-                // Add hover shadow if hovering and not disabled
-                boxShadow: _isHovered && !isDisabled
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                        ...style.shadows,
-                      ]
-                    : style.shadows,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  padding: style.padding,
-                  child: _buildContent(style),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        MouseRegion(
+          onEnter: (_) {
+            setState(() => _isHovered = true);
+            if (!isDragging) {
+              _animationController.forward();
+            }
+          },
+          onExit: (_) {
+            setState(() => _isHovered = false);
+            if (!isDragging) {
+              _animationController.reverse();
+            }
+          },
+          child: AnimatedBuilder(
+            animation: _scaleAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _isHovered && !isDragging ? _scaleAnimation.value : 1.0,
+                child: AnimatedContainer(
+                  duration: theme.animationDuration ??
+                      const Duration(milliseconds: 200),
+                  curve: theme.animationCurve ?? Curves.easeInOut,
+                  width: width,
+                  height: height,
+                  decoration: style.decoration.copyWith(
+                    // Add hover shadow if hovering and not disabled
+                    boxShadow: _isHovered && !isDisabled
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                            ...style.shadows,
+                          ]
+                        : style.shadows,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      padding: style.padding,
+                      child: _buildContent(style),
+                    ),
+                  ),
                 ),
-              ),
+              );
+            },
+          ),
+        ),
+        ...widget.node.handles.values.map(
+          (handle) => Positioned(
+            left: handle.position.dx,
+            top: handle.position.dy,
+            child: Handle(
+              nodeId: widget.node.id,
+              handleId: handle.id,
+              type: handle.type,
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 

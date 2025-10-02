@@ -51,6 +51,7 @@ class SerializationService {
         'parentId': node.parentId,
         'data': node.data,
         'z': node.zIndex,
+        'hitTestPadding': node.hitTestPadding,
         'hidden': node.hidden,
         'draggable': node.draggable,
         'selectable': node.selectable,
@@ -64,7 +65,7 @@ class SerializationService {
     final handlesJson = (json['handles'] as List? ?? const []);
     final handles = {
       for (final h in handlesJson)
-        h['id'] as String: _handleFromJson(h as Map<String, dynamic>)
+        (h as Map<String, dynamic>)['id'] as String: _handleFromJson(h)
     };
 
     return FlowNode(
@@ -78,6 +79,7 @@ class SerializationService {
       data: (json['data'] as Map?)?.cast<String, dynamic>() ??
           <String, dynamic>{},
       zIndex: (json['z'] as num?)?.toInt() ?? 0,
+      hitTestPadding: (json['hitTestPadding'] as num?)?.toDouble() ?? 10.0,
       hidden: json['hidden'] as bool?,
       draggable: json['draggable'] as bool?,
       selectable: json['selectable'] as bool?,
@@ -85,7 +87,6 @@ class SerializationService {
       deletable: json['deletable'] as bool?,
       focusable: json['focusable'] as bool?,
       elevateNodeOnSelected: json['elevateNodeOnSelected'] as bool?,
-      hitTestPadding: json['hitTestPadding'] as double,
     );
   }
 
@@ -95,8 +96,7 @@ class SerializationService {
         'id': handle.id,
         'x': handle.position.dx,
         'y': handle.position.dy,
-        'w': handle.size.width,
-        'h': handle.size.height,
+        's': handle.size,
         'type': handle.type.name,
         'isConnectable': handle.isConnectable,
       };
@@ -105,8 +105,10 @@ class SerializationService {
         id: json['id'] as String,
         position: Offset(
             (json['x'] as num).toDouble(), (json['y'] as num).toDouble()),
-        size: Size((json['w'] as num?)?.toDouble() ?? 10.0,
-            (json['h'] as num?)?.toDouble() ?? 10.0),
+        // accept either compact 's' or verbose 'size'
+        size: (json['s'] as num?)?.toDouble() ??
+            (json['size'] as num?)?.toDouble() ??
+            10.0,
         type: HandleType.values.firstWhere(
           (e) => e.name == (json['type'] as String? ?? 'both'),
           orElse: () => HandleType.both,

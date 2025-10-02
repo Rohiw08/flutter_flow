@@ -1,5 +1,6 @@
 import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
+import 'package:flow_canvas/src/shared/utility/map_comparitor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/connection_change_event.dart';
@@ -50,6 +51,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   final TransformationController transformationController =
       TransformationController();
   final GlobalKey canvasKey = GlobalKey();
+  Map<String, Offset> _initialDragPositions = {};
 
   // --- Domain Services (read from providers) ---
   late final NodeRegistry nodeRegistry;
@@ -284,7 +286,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       canvasWidth: options.canvasWidth,
       canvasHeight: options.canvasHeight,
     );
-    return coordinateConverter.renderToCartesian(renderPosition);
+    return coordinateConverter.toCartesianPosition(renderPosition);
   }
 
   /// Converts a point from the canvas's internal Cartesian coordinate system
@@ -296,7 +298,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       canvasHeight: options.canvasHeight,
     );
     final renderPosition =
-        coordinateConverter.cartesianToRender(cartesianPosition);
+        coordinateConverter.toRenderPosition(cartesianPosition);
 
     return _viewportService.canvasToScreen(state, renderPosition);
   }
@@ -361,25 +363,67 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   }
 
   void updateNode(FlowNode node) {
+    final oldNode = state.nodes[node.id];
+    if (oldNode == null) return; // Or throw an error
+
     _mutate((s) => _nodeService.updateNode(s, node));
+
+    // After mutation, the state has been updated
+    final newNode = state.nodes[node.id]!;
+
+    // Create a change event and emit it
+    // You can make this more granular by comparing oldNode and newNode
+    // to see exactly what changed (e.g., position, size, data).
+    final event = NodeChangeEvent(
+      nodeId: node.id,
+      type: NodeChangeType.update, // A generic update type
+      oldValue: oldNode,
+      newValue: newNode,
+    );
+    _nodeStreams.emitChanges([event]);
   }
 
   /// Sets the drag mode to indicate a node is being dragged.
   void startNodeDrag() {
     if (state.dragMode != DragMode.node) {
       state = state.copyWith(dragMode: DragMode.node);
+
+      // Store the original positions of the selected nodes.
+      _initialDragPositions = {
+        for (var id in state.selectedNodes)
+          if (state.nodes.containsKey(id)) id: state.nodes[id]!.position,
+      };
     }
   }
 
   /// Resets the drag mode when the node drag ends.
   void endNodeDrag() {
     if (state.dragMode == DragMode.node) {
+      final oldPositions = _initialDragPositions;
+      final newPositions = {
+        for (var id in oldPositions.keys)
+          if (state.nodes.containsKey(id)) id: state.nodes[id]!.position,
+      };
+
+      if (oldPositions.isNotEmpty &&
+          newPositions.isNotEmpty &&
+          !areMapsEqual(oldPositions, newPositions)) {
+        _mutate((s) {
+          return s;
+        });
+      }
+
+      _initialDragPositions = {};
       state = state.copyWith(dragMode: DragMode.none);
     }
   }
 
+  /// Updates the state DIRECTLY for a smooth visual drag.
+  /// This method NO LONGER uses _mutate.
   void dragSelectedBy(Offset screenDelta) {
-    final oldState = state;
+    // This check is important to avoid updating state if not dragging.
+    if (state.dragMode != DragMode.node) return;
+
     final options = ref.read(flowOptionsProvider);
     final coordinateConverter = CanvasCoordinateConverter(
       canvasWidth: options.canvasWidth,
@@ -387,17 +431,20 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     );
     final cartesianDelta = coordinateConverter.toCartesianDelta(screenDelta);
 
-    _mutate((s) => _nodeService.dragSelectedNodes(s, cartesianDelta));
+    // --- KEY CHANGE ---
+    // Update the state directly without adding to history.
+    state = _nodeService.dragSelectedNodes(state, cartesianDelta);
 
-    final changes = oldState.selectedNodes
+    // The event stream can still be emitted for real-time updates.
+    final changes = state.selectedNodes
         .map((nodeId) {
-          final oldNode = oldState.nodes[nodeId];
+          final oldPosition = _initialDragPositions[nodeId];
           final newNode = state.nodes[nodeId];
-          if (oldNode != null && newNode != null) {
+          if (oldPosition != null && newNode != null) {
             return NodeChangeEvent(
               nodeId: nodeId,
               type: NodeChangeType.position,
-              oldValue: oldNode.position,
+              oldValue: oldPosition,
               newValue: newNode.position,
             );
           }
@@ -581,13 +628,23 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void startConnection(
       String nodeId, String handleId, Offset startScreenPosition) {
-    final cartesianPosition = screenToCanvasPosition(startScreenPosition);
-    // Use a direct state update for the initial phase, then mutate for the final result.
+    // 1. Look up the source node and handle from the current state.
+    final sourceNode = state.nodes[nodeId];
+    final sourceHandle = sourceNode?.handles[handleId];
+
+    if (sourceNode == null || sourceHandle == null) return;
+
+    // 2. Calculate the true Cartesian center of the handle.
+    // This ignores the inaccurate cursor position.
+    final handleCenterPosition = sourceNode.center + sourceHandle.center;
+
+    // Use a direct state update for the initial phase.
     state = _connectionService.startConnection(
-      state,
+      state.copyWith(dragMode: DragMode.connection), // Also set the drag mode
       fromNodeId: nodeId,
       fromHandleId: handleId,
-      startPosition: cartesianPosition,
+      // 3. Set BOTH the start and initial end points to the handle's center.
+      startPosition: handleCenterPosition,
     );
 
     if (state.connection != null) {
@@ -598,9 +655,40 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     }
   }
 
+  // in flow_canvas_controller.dart
+
   void updateConnection(Offset cursorScreenPosition) {
-    final cartesianPosition = screenToCanvasPosition(cursorScreenPosition);
-    state = _connectionService.updateConnection(state, cartesianPosition);
+    if (state.dragMode != DragMode.connection || state.connection == null)
+      return;
+
+    // Find the RenderBox of the canvas using the GlobalKey.
+    final RenderBox? canvasRenderBox =
+        canvasKey.currentContext?.findRenderObject() as RenderBox?;
+    if (canvasRenderBox == null) return;
+
+    // --- START: THE FIX ---
+    // 1. Convert from global screen coordinates to local coordinates of the canvas widget.
+    final localPosition = canvasRenderBox.globalToLocal(cursorScreenPosition);
+
+    // 2. Convert from the local widget coordinates to the canvas's internal coordinates
+    //    (this accounts for pan and zoom).
+    final canvasRenderPosition =
+        _viewportService.screenToCanvas(state, localPosition);
+
+    // 3. Convert from the canvas's render coordinates (top-left origin) to
+    //    your Cartesian coordinates (center origin).
+    final options = ref.read(flowOptionsProvider);
+    final coordinateConverter = CanvasCoordinateConverter(
+      canvasWidth: options.canvasWidth,
+      canvasHeight: options.canvasHeight,
+    );
+    final cartesianPosition =
+        coordinateConverter.toCartesianPosition(canvasRenderPosition);
+    // --- END: THE FIX ---
+
+    if (state.connection!.endPoint != cartesianPosition) {
+      state = _connectionService.updateConnection(state, cartesianPosition);
+    }
   }
 
   void endConnection() {

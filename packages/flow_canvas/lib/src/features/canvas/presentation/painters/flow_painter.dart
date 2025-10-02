@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/connection.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
@@ -21,6 +22,8 @@ class FlowPainter extends CustomPainter {
   final Rect? selectionRect;
   final FlowCanvasTheme style;
   final double zoom;
+  final double canvasHeight;
+  final double canvasWidth;
 
   // Optional precomputed paths to avoid recomputation.
   final Map<String, Path>? precomputedPaths;
@@ -42,6 +45,8 @@ class FlowPainter extends CustomPainter {
     required this.selectionRect,
     required this.style,
     required this.zoom,
+    required this.canvasHeight,
+    required this.canvasWidth,
     this.nodeStates = const {},
     this.edgeStates = const {},
     this.connectionState,
@@ -78,12 +83,20 @@ class FlowPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawEdges(canvas);
-    _drawConnection(canvas);
+    // Create the converter ONCE here for efficiency.
+    final coordinateConverter = CanvasCoordinateConverter(
+      canvasWidth: canvasWidth,
+      canvasHeight: canvasHeight,
+    );
+
+    // Pass the converter to the drawing methods.
+    _drawEdges(canvas, coordinateConverter);
+    _drawConnection(canvas, coordinateConverter);
     _drawSelectionRect(canvas);
   }
 
-  void _drawEdges(Canvas canvas) {
+  void _drawEdges(
+      Canvas canvas, CanvasCoordinateConverter coordinateConverter) {
     if (edges.isEmpty) return;
 
     for (final entry in edges.entries) {
@@ -105,8 +118,14 @@ class FlowPainter extends CustomPainter {
 
       if (sourceHandle == null || targetHandle == null) continue;
 
-      final start = sourceNode.position + sourceHandle.position;
-      final end = targetNode.position + targetHandle.position;
+      final sourceNodeRenderPos =
+          coordinateConverter.toRenderPosition(sourceNode.position);
+      final targetNodeRenderPos =
+          coordinateConverter.toRenderPosition(targetNode.position);
+
+      // 2. Add the handle's render-space offset to the node's render position
+      final start = sourceNodeRenderPos + sourceHandle.position;
+      final end = targetNodeRenderPos + targetHandle.position;
 
       // Edge runtime state
       final state = edgeStates[edgeId];
@@ -176,10 +195,10 @@ class FlowPainter extends CustomPainter {
     canvas.drawPath(arrowPath, arrowPaint);
   }
 
-  void _drawConnection(Canvas canvas) {
+  void _drawConnection(
+      Canvas canvas, CanvasCoordinateConverter coordinateConverter) {
     if (connection == null) return;
 
-    // This part is already correct! It properly uses connectionState.
     final isValid = connectionState?.isValid ?? false;
     final color = isValid
         ? style.connection.validTargetColor
@@ -187,17 +206,22 @@ class FlowPainter extends CustomPainter {
 
     _connectionPaint.color = color;
     _connectionEndpointPaint.color = color;
+    final renderStartPoint = connection!.startPoint;
+    coordinateConverter.toRenderPosition(connection!.startPoint);
+    final renderEndPoint =
+        coordinateConverter.toRenderPosition(connection!.endPoint);
 
     final path = EdgePathCreator.createPath(
       style.connection.pathType,
-      connection!.startPoint,
-      connection!.endPoint,
+      renderStartPoint, // Use the converted point
+      renderEndPoint, // Use the converted point
     );
     canvas.drawPath(path, _connectionPaint);
     canvas.drawCircle(
-        connection!.endPoint,
-        (style.handle.size ?? 10.0) / 2, // Use handle size for consistency
-        _connectionEndpointPaint);
+      renderEndPoint, // Use the converted point for the circle at the end
+      (style.handle.size ?? 10.0) / 2,
+      _connectionEndpointPaint,
+    );
   }
 
   void _drawSelectionRect(Canvas canvas) {

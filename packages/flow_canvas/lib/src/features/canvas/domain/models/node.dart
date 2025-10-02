@@ -92,6 +92,7 @@ abstract class FlowNode with _$FlowNode {
       data: data ?? <String, dynamic>{},
       handles: handlesMap,
       zIndex: zIndex,
+      hitTestPadding: hitTestPadding, // Add this line
       hidden: hidden,
       draggable: draggable,
       selectable: selectable,
@@ -103,9 +104,11 @@ abstract class FlowNode with _$FlowNode {
   }
 
   // Getters remain the same
-  Offset get center =>
-      Offset(position.dx + size.width / 2, position.dy + size.height / 2);
+  Offset get center => position;
+
+  Offset get topLeft =>
+      Offset(position.dx - size.width / 2, position.dy - size.height / 2);
 
   Rect get rect =>
-      Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+      Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
 }

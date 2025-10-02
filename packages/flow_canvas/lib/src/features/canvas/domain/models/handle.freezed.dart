@@ -18,7 +18,7 @@ mixin _$NodeHandle {
   HandleType get type;
   Offset get position;
   bool get isConnectable;
-  Size get size;
+  double get size;
 
   /// Create a copy of NodeHandle
   /// with the given fields replaced by the non-null parameter values.
@@ -62,7 +62,7 @@ abstract mixin class $NodeHandleCopyWith<$Res> {
       HandleType type,
       Offset position,
       bool isConnectable,
-      Size size});
+      double size});
 }
 
 /// @nodoc
@@ -103,7 +103,7 @@ class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
       size: null == size
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
-              as Size,
+              as double,
     ));
   }
 }
@@ -202,7 +202,7 @@ extension NodeHandlePatterns on NodeHandle {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)?
+            bool isConnectable, double size)?
         $default, {
     required TResult orElse(),
   }) {
@@ -232,7 +232,7 @@ extension NodeHandlePatterns on NodeHandle {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)
+            bool isConnectable, double size)
         $default,
   ) {
     final _that = this;
@@ -260,7 +260,7 @@ extension NodeHandlePatterns on NodeHandle {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)?
+            bool isConnectable, double size)?
         $default,
   ) {
     final _that = this;
@@ -276,13 +276,14 @@ extension NodeHandlePatterns on NodeHandle {
 
 /// @nodoc
 
-class _NodeHandle implements NodeHandle {
+class _NodeHandle extends NodeHandle {
   const _NodeHandle(
       {required this.id,
       required this.type,
       required this.position,
       this.isConnectable = true,
-      this.size = const Size(10, 10)});
+      this.size = 10})
+      : super._();
 
   @override
   final String id;
@@ -295,7 +296,7 @@ class _NodeHandle implements NodeHandle {
   final bool isConnectable;
   @override
   @JsonKey()
-  final Size size;
+  final double size;
 
   /// Create a copy of NodeHandle
   /// with the given fields replaced by the non-null parameter values.
@@ -342,7 +343,7 @@ abstract mixin class _$NodeHandleCopyWith<$Res>
       HandleType type,
       Offset position,
       bool isConnectable,
-      Size size});
+      double size});
 }
 
 /// @nodoc
@@ -383,7 +384,7 @@ class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
       size: null == size
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
-              as Size,
+              as double,
     ));
   }
 }

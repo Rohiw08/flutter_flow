@@ -1,5 +1,4 @@
-import 'package:flow_canvas/src/features/canvas/presentation/options/options_provider.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,16 +98,11 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
   Widget build(BuildContext context) {
     // Watch only the data for this specific node.
     final node = ref.watch(
-      internalControllerProvider.select((state) => state.nodes[widget.nodeId]!),
+      internalControllerProvider.select(
+        (state) => state.nodes[widget.nodeId]!,
+      ),
     );
     final controller = ref.read(internalControllerProvider.notifier);
-
-    final options = FlowCanvasOptionsProvider.of(context);
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
-    final renderPosition = coordinateConverter.cartesianToRender(node.position);
 
     // Resolve effective options (consider node overrides and global defaults)
     final resolved = NodeOptions.resolve(context);
@@ -118,118 +112,130 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
     final isFocusable = node.focusable ?? resolved.focusable;
     if (isHidden) return const SizedBox.shrink();
 
-    return Positioned(
-      left: renderPosition.dx,
-      top: renderPosition.dy,
-      width: node.size.width + node.hitTestPadding,
-      height: node.size.height + node.hitTestPadding,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.grab,
-        onEnter: (e) {
-          widget.nodeCallbacks.onMouseEnter(widget.nodeId, e);
-          controller.nodeStreams.emitEvent(NodeEvent(
-            nodeId: widget.nodeId,
-            type: NodeEventType.mouseEnter,
-            data: e,
-          ));
-        },
-        onHover: (e) {
-          widget.nodeCallbacks.onMouseMove(widget.nodeId, e);
-          controller.nodeStreams.emitEvent(NodeEvent(
-            nodeId: widget.nodeId,
-            type: NodeEventType.mouseMove,
-            data: e,
-          ));
-        },
-        onExit: (e) {
-          widget.nodeCallbacks.onMouseLeave(widget.nodeId, e);
-          controller.nodeStreams.emitEvent(NodeEvent(
-            nodeId: widget.nodeId,
-            type: NodeEventType.mouseLeave,
-            data: e,
-          ));
-        },
-        child: Focus(
-          focusNode: _focusNode,
-          canRequestFocus: isFocusable,
-          child: GestureDetector(
-            behavior: HitTestBehavior.deferToChild,
-            onTapDown: (details) {
-              if (isSelectable) {
-                controller.selectNode(widget.nodeId, addToSelection: false);
-              }
-              if (isFocusable) {
-                _focusNode.requestFocus();
-              }
-              widget.nodeCallbacks.onClick(widget.nodeId, details);
-              controller.nodeStreams.emitEvent(NodeEvent(
-                nodeId: widget.nodeId,
-                type: NodeEventType.click,
-                data: details,
-              ));
-            },
-            onDoubleTap: () {
-              widget.nodeCallbacks.onDoubleClick(widget.nodeId);
-              controller.nodeStreams.emitEvent(NodeEvent(
-                nodeId: widget.nodeId,
-                type: NodeEventType.doubleClick,
-              ));
-            },
-            onLongPressStart: (details) {
-              widget.nodeCallbacks.onContextMenu(widget.nodeId, details);
-              controller.nodeStreams.emitEvent(NodeEvent(
-                nodeId: widget.nodeId,
-                type: NodeEventType.contextMenu,
-                data: details,
-              ));
-            },
+    final maxHandleSize = node.handles.values
+        .map((h) => h.size)
+        .fold<double>(0, (max, size) => size > max ? size : max);
 
-            // Dragging
-            onPanStart: isDraggable
-                ? (details) {
-                    controller.startNodeDrag();
-                    widget.nodeCallbacks.onDragStart(widget.nodeId, details);
-                    controller.nodeStreams.emitEvent(NodeEvent(
-                      nodeId: widget.nodeId,
-                      type: NodeEventType.dragStart,
-                      data: details,
-                    ));
-                  }
-                : null,
-            onPanUpdate: isDraggable
-                ? (details) {
-                    final adjustedDelta = details.delta * 2;
+    final hitTestPadding = node.hitTestPadding > maxHandleSize
+        ? node.hitTestPadding
+        : maxHandleSize;
 
-                    if (isSelectable) {
-                      controller.selectNode(widget.nodeId,
-                          addToSelection: false);
+    return FlowPositioned(
+      dx: node.position.dx,
+      dy: node.position.dy,
+      child: SizedBox(
+        width: node.size.width + hitTestPadding,
+        height: node.size.height + hitTestPadding,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.grab,
+          onEnter: (e) {
+            widget.nodeCallbacks.onMouseEnter(widget.nodeId, e);
+            controller.nodeStreams.emitEvent(
+              NodeEvent(
+                nodeId: widget.nodeId,
+                type: NodeEventType.mouseEnter,
+                data: e,
+              ),
+            );
+          },
+          onHover: (e) {
+            widget.nodeCallbacks.onMouseMove(widget.nodeId, e);
+            controller.nodeStreams.emitEvent(NodeEvent(
+              nodeId: widget.nodeId,
+              type: NodeEventType.mouseMove,
+              data: e,
+            ));
+          },
+          onExit: (e) {
+            widget.nodeCallbacks.onMouseLeave(widget.nodeId, e);
+            controller.nodeStreams.emitEvent(NodeEvent(
+              nodeId: widget.nodeId,
+              type: NodeEventType.mouseLeave,
+              data: e,
+            ));
+          },
+          child: Focus(
+            focusNode: _focusNode,
+            canRequestFocus: isFocusable,
+            child: GestureDetector(
+              behavior: HitTestBehavior.deferToChild,
+              onTapDown: (details) {
+                if (isSelectable) {
+                  controller.selectNode(widget.nodeId, addToSelection: false);
+                }
+                if (isFocusable) {
+                  _focusNode.requestFocus();
+                }
+                widget.nodeCallbacks.onClick(widget.nodeId, details);
+                controller.nodeStreams.emitEvent(NodeEvent(
+                  nodeId: widget.nodeId,
+                  type: NodeEventType.click,
+                  data: details,
+                ));
+              },
+              onDoubleTap: () {
+                widget.nodeCallbacks.onDoubleClick(widget.nodeId);
+                controller.nodeStreams.emitEvent(NodeEvent(
+                  nodeId: widget.nodeId,
+                  type: NodeEventType.doubleClick,
+                ));
+              },
+              onLongPressStart: (details) {
+                widget.nodeCallbacks.onContextMenu(widget.nodeId, details);
+                controller.nodeStreams.emitEvent(NodeEvent(
+                  nodeId: widget.nodeId,
+                  type: NodeEventType.contextMenu,
+                  data: details,
+                ));
+              },
+
+              // Dragging
+              onPanStart: isDraggable
+                  ? (details) {
+                      controller.startNodeDrag();
+                      widget.nodeCallbacks.onDragStart(widget.nodeId, details);
+                      controller.nodeStreams.emitEvent(NodeEvent(
+                        nodeId: widget.nodeId,
+                        type: NodeEventType.dragStart,
+                        data: details,
+                      ));
                     }
+                  : null,
+              onPanUpdate: isDraggable
+                  ? (details) {
+                      final adjustedDelta = details.delta * 2;
 
-                    // Pass the reliable screenDelta to the controller.
-                    controller.dragSelectedBy(adjustedDelta);
+                      if (isSelectable) {
+                        controller.selectNode(widget.nodeId,
+                            addToSelection: false);
+                      }
 
-                    widget.nodeCallbacks.onDrag(widget.nodeId, details);
-                    controller.nodeStreams.emitEvent(NodeEvent(
-                      nodeId: widget.nodeId,
-                      type: NodeEventType.drag,
-                      data: details,
-                    ));
-                  }
-                : null,
-            onPanEnd: isDraggable
-                ? (details) {
-                    controller.endNodeDrag();
-                    widget.nodeCallbacks.onDragStop(widget.nodeId, details);
-                    controller.nodeStreams.emitEvent(NodeEvent(
-                      nodeId: widget.nodeId,
-                      type: NodeEventType.dragStop,
-                      data: details,
-                    ));
-                  }
-                : null,
+                      // Pass the reliable screenDelta to the controller.
+                      controller.dragSelectedBy(adjustedDelta);
 
-            // Build the user-defined widget for the node.
-            child: widget.nodeRegistry.buildWidget(node),
+                      widget.nodeCallbacks.onDrag(widget.nodeId, details);
+                      controller.nodeStreams.emitEvent(NodeEvent(
+                        nodeId: widget.nodeId,
+                        type: NodeEventType.drag,
+                        data: details,
+                      ));
+                    }
+                  : null,
+              onPanEnd: isDraggable
+                  ? (details) {
+                      controller.endNodeDrag();
+                      widget.nodeCallbacks.onDragStop(widget.nodeId, details);
+                      controller.nodeStreams.emitEvent(NodeEvent(
+                        nodeId: widget.nodeId,
+                        type: NodeEventType.dragStop,
+                        data: details,
+                      ));
+                    }
+                  : null,
+
+              // Build the user-defined widget for the node.
+              child: widget.nodeRegistry.buildWidget(node),
+            ),
           ),
         ),
       ),

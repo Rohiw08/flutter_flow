@@ -26,13 +26,16 @@ class CanvasCoordinateConverter {
     renderCenter = Offset(canvasWidth / 2, canvasHeight / 2);
   }
 
-  // =================================================================================
-  // --- USER-FACING API (React Flow-like coordinate system) ---
-  // =================================================================================
-
-  /// Converts a Cartesian position (React Flow style) to Flutter render position.
+  /// Converts a Cartesian position to a Flutter render position.
   ///
-  /// Example: Cartesian (100, 100) -> places node 100px right and 100px up from center
+  /// This is the bridge between the logical coordinate system used for defining layouts
+  /// (where the origin `(0,0)` is at the center and the **+y axis points up**)
+  /// and the absolute pixel coordinates required by Flutter's layout and painting systems
+  /// (where the origin `(0,0)` is at the top-left and the **+y axis points down**).
+  ///
+  /// For example, on a 1000x1000 canvas, the `renderCenter` is `(500, 500)`.
+  /// A `cartesianPosition` of `(100, 100)` (100px right and 100px up from the center)
+  /// would be converted to a render position of `(600, 400)`.
   Offset toRenderPosition(Offset cartesianPosition) {
     final double renderX = cartesianPosition.dx + renderCenter.dx;
     final double renderY = -cartesianPosition.dy + renderCenter.dy;
@@ -118,20 +121,4 @@ class CanvasCoordinateConverter {
       Offset(bottomRight.dx, topLeft.dy), // Cartesian bottom-right
     );
   }
-
-  // =================================================================================
-  // --- LEGACY API (for backward compatibility) ---
-  // =================================================================================
-
-  /// @deprecated Use [toRenderPosition] instead
-  Offset cartesianToRender(Offset cartesianPosition) =>
-      toRenderPosition(cartesianPosition);
-
-  /// @deprecated Use [toCartesianPosition] instead
-  Offset renderToCartesian(Offset renderPosition) =>
-      toCartesianPosition(renderPosition);
-
-  /// @deprecated Use [toCartesianDelta] instead
-  Offset renderDeltaToCartesianDelta(Offset renderDelta) =>
-      toCartesianDelta(renderDelta);
 }

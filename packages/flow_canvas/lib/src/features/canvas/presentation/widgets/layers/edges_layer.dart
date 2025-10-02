@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_provider.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flow_canvas/src/features/canvas/application/callbacks/edge_callbacks.dart';
+
 import '../../../../../shared/providers.dart';
+import '../../../application/callbacks/edge_callbacks.dart';
 import '../../../application/callbacks/pane_callbacks.dart';
 import '../../../domain/flow_canvas_state.dart';
 import '../../../domain/models/connection.dart';
@@ -14,8 +16,6 @@ import '../../painters/flow_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/edge_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/edge_path_creator.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/edge_change_event.dart';
-
-import '../../theme/theme_provider.dart';
 
 class FlowEdgeLayer extends ConsumerStatefulWidget {
   final EdgeCallbacks edgeCallbacks;
@@ -44,7 +44,6 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
 
   // Geometry cache
   final Map<String, _EdgeGeom> _edgeCache = {};
-  Rect? _lastViewportRect;
 
   // Throttle
   int _lastMoveMs = 0;
@@ -55,9 +54,6 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     final controller = ref.read(internalControllerProvider.notifier);
     final theme = FlowCanvasThemeProvider.of(context);
 
-    // Read registry from provider
-    // final edgeRegistry = ref.read(edgeRegistryProvider); // No longer needed
-
     // Get full state for spatial indexing
     final fullState = ref.watch(internalControllerProvider);
 
@@ -65,6 +61,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     final paintState = ref.watch(internalControllerProvider.select(
       (s) => PainterState.fromState(s),
     ));
+
+    final options = ref.read(flowOptionsProvider);
 
     // Respect hidden edges option globally by filtering before painting
     final visibleEntries = paintState.edges.entries.where(
@@ -88,33 +86,22 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     // Defer viewport sizing and hit-index updates to LayoutBuilder to avoid
     // accessing context.size during build (which throws in tests / first build).
     return LayoutBuilder(builder: (context, constraints) {
-      final viewport = fullState.viewport;
-      final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0;
-      final height =
-          constraints.maxHeight.isFinite ? constraints.maxHeight : 0.0;
-      final viewportRect = Rect.fromLTWH(
-        viewport.offset.dx,
-        viewport.offset.dy,
-        width / (viewport.zoom == 0 ? 1 : viewport.zoom),
-        height / (viewport.zoom == 0 ? 1 : viewport.zoom),
-      ).inflate(64);
-
-      if (_lastViewportRect == null || _lastViewportRect != viewportRect) {
-        _rebuildCache(fullState, orderedEdges.map((e) => e.key));
-        _lastViewportRect = viewportRect;
-      } else {
-        _refreshCacheForChangedEdges(fullState, orderedEdges.map((e) => e.key));
-      }
+      // Rebuild cache when needed
+      double handleSize = theme.handle.size!;
+      Offset edgePointOffset = Offset(handleSize, handleSize);
+      _refreshCacheForChangedEdges(
+          fullState, orderedEdges.map((e) => e.key), edgePointOffset);
 
       final edgesForPainter = <String, FlowEdge>{};
       final precomputed = <String, Path>{};
 
+      // No culling - render all edges
       for (final entry in orderedEdges) {
         final id = entry.key;
         final edge = entry.value;
         final geom = _edgeCache[id];
         if (geom == null) continue; // not ready yet
-        if (!geom.bounds.overlaps(viewportRect)) continue; // cull offscreen
+
         edgesForPainter[id] = edge;
         precomputed[id] = geom.path;
       }
@@ -126,6 +113,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
         selectionRect: paintState.selectionRect,
         style: theme,
         zoom: paintState.zoom,
+        canvasHeight: options.canvasHeight,
+        canvasWidth: options.canvasWidth,
         nodeStates: fullState.nodeStates,
         edgeStates: fullState.edgeStates,
         connectionState: fullState.connectionState,
@@ -219,20 +208,14 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
     });
   }
 
-  void _rebuildCache(FlowCanvasState state, Iterable<String> edgeIds) {
-    for (final id in edgeIds) {
-      _ensureEdgeGeom(state, id);
-    }
-  }
-
   void _refreshCacheForChangedEdges(
-      FlowCanvasState state, Iterable<String> edgeIds) {
+      FlowCanvasState state, Iterable<String> edgeIds, Offset handleOffset) {
     for (final id in edgeIds) {
-      _ensureEdgeGeom(state, id);
+      _ensureEdgeGeom(state, id, handleOffset);
     }
   }
 
-  void _ensureEdgeGeom(FlowCanvasState state, String edgeId) {
+  void _ensureEdgeGeom(FlowCanvasState state, String edgeId, Offset offset) {
     final edge = state.edges[edgeId];
     if (edge == null) return;
     final sourceNode = state.nodes[edge.sourceNodeId];
@@ -251,20 +234,15 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
       canvasWidth: options.canvasWidth,
       canvasHeight: options.canvasHeight,
     );
-
-    // Convert node positions from Cartesian to render coordinates (same as nodes)
-    final sourceNodeRender =
-        coordinateConverter.cartesianToRender(sourceNode.position);
-    final targetNodeRender =
-        coordinateConverter.cartesianToRender(targetNode.position);
-
-    // Calculate handle positions in render coordinates
-    final sourceHandleRender = sourceNodeRender + sourceHandle.position;
-    final targetHandleRender = targetNodeRender + targetHandle.position;
+    // Convert node positions from Cartesian to render coordinates
+    final sourceHandlePosition = coordinateConverter
+        .toRenderPosition(sourceNode.center + sourceHandle.center);
+    final targetHandlePosition = coordinateConverter
+        .toRenderPosition(targetNode.center + targetHandle.center);
 
     // Create path using render coordinates (same coordinate system as positioned nodes)
     final path = EdgePathCreator.createPath(
-        edge.pathType, sourceHandleRender, targetHandleRender);
+        edge.pathType, sourceHandlePosition, targetHandlePosition);
     final bounds = path.getBounds().inflate(8);
 
     // Sample polyline for fast distance checks
@@ -290,13 +268,8 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
   ) {
     const double baseTolerance = 8.0;
 
-    // Query grid for candidate edges by point
-    // final candidateEdgeIds = _edgeIndex.queryPoint(localPos); // Removed
-    // if (candidateEdgeIds.isEmpty) return null; // Removed
-
     // Narrow phase: distance to sampled polyline
     for (final edgeId in precomputed.keys) {
-      // Iterate over precomputed keys
       final geom = _edgeCache[edgeId];
       if (geom == null) continue;
       final tolerance =

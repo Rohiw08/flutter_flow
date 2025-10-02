@@ -95,3 +95,9 @@ enum KeyboardAction {
   undo,
   redo,
 }
+
+enum DefaultNodeType {
+  defaultNode,
+  inputNode,
+  outputNode,
+}

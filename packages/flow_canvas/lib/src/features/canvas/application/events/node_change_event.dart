@@ -5,6 +5,7 @@ enum NodeChangeType {
   data,
   add,
   remove,
+  update,
 }
 
 class NodeChangeEvent {

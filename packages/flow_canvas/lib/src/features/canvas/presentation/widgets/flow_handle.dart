@@ -1,3 +1,4 @@
+import 'package:flow_canvas/flow_canvas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
@@ -26,6 +27,7 @@ class Handle extends ConsumerWidget {
   final String nodeId;
   final String handleId;
   final HandleType type;
+  final Offset position;
 
   /// An optional builder to render a completely custom widget for the handle.
   final HandleBuilder? builder;
@@ -38,6 +40,7 @@ class Handle extends ConsumerWidget {
     super.key,
     required this.nodeId,
     required this.handleId,
+    this.position = Offset.zero,
     this.type = HandleType.both,
     this.builder,
     this.handleStyle,
@@ -70,40 +73,44 @@ class Handle extends ConsumerWidget {
             theme: theme,
           );
 
-    return MouseRegion(
-      onEnter: (_) => controller.setHandleHover(handleKey, true),
-      onExit: (_) => controller.setHandleHover(handleKey, false),
-      cursor: SystemMouseCursors.precise,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onPanStart: (details) {
-          if (type == HandleType.target) return;
-          final flowOptions = context.flowCanvasOptions;
-          if (!flowOptions.enableConnectivity) return;
-          controller.startConnection(
-            nodeId,
-            handleId,
-            details.globalPosition,
-          );
-        },
-        onPanUpdate: (details) {
-          if (type == HandleType.target) return;
-          controller.updateConnection(details.globalPosition);
-        },
-        onPanEnd: (details) {
-          if (type == HandleType.target) return;
-          controller.endConnection();
-        },
-        child: AnimatedContainer(
-          duration: theme.enableAnimations ?? true
-              ? const Duration(milliseconds: 150)
-              : Duration.zero,
-          transformAlignment: Alignment.center,
-          transform: Matrix4.identity()..scale(scale),
-          width: (theme.size ?? 10.0) * 3,
-          height: (theme.size ?? 10.0) * 3,
-          color: Colors.transparent,
-          child: Center(child: handleCore),
+    return FlowPositioned(
+      dx: position.dx,
+      dy: position.dy,
+      child: MouseRegion(
+        onEnter: (_) => controller.setHandleHover(handleKey, true),
+        onExit: (_) => controller.setHandleHover(handleKey, false),
+        cursor: SystemMouseCursors.precise,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanStart: (details) {
+            if (type == HandleType.target) return;
+            final flowOptions = context.flowCanvasOptions;
+            if (!flowOptions.enableConnectivity) return;
+            controller.startConnection(
+              nodeId,
+              handleId,
+              details.globalPosition,
+            );
+          },
+          onPanUpdate: (details) {
+            if (type == HandleType.target) return;
+            controller.updateConnection(details.globalPosition);
+          },
+          onPanEnd: (details) {
+            if (type == HandleType.target) return;
+            controller.endConnection();
+          },
+          child: AnimatedContainer(
+            duration: theme.enableAnimations!
+                ? const Duration(milliseconds: 150)
+                : Duration.zero,
+            transformAlignment: Alignment.center,
+            transform: Matrix4.identity()..scale(scale),
+            width: theme.size!,
+            height: theme.size!,
+            color: Colors.transparent,
+            child: Center(child: handleCore),
+          ),
         ),
       ),
     );
@@ -111,18 +118,18 @@ class Handle extends ConsumerWidget {
 
   Color _getHandleColor(FlowHandleStyle theme, HandleRuntimeState state) {
     if (state.isActive) {
-      return theme.activeColor ?? Colors.blue;
+      return theme.activeColor!;
     }
     if (state.isInvalidTarget) {
-      return theme.invalidTargetColor ?? Colors.redAccent;
+      return theme.invalidTargetColor!;
     }
     if (state.isValidTarget) {
-      return theme.validTargetColor ?? Colors.green;
+      return theme.validTargetColor!;
     }
     if (state.isHovered) {
-      return theme.hoverColor ?? Colors.blueGrey;
+      return theme.hoverColor!;
     }
-    return theme.idleColor ?? Colors.grey;
+    return theme.idleColor!;
   }
 }
 
@@ -136,16 +143,16 @@ class _DefaultHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: theme.size ?? 10.0,
-      height: theme.size ?? 10.0,
+      width: theme.size,
+      height: theme.size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
         border: Border.all(
-          color: theme.borderColor ?? Colors.white,
-          width: theme.borderWidth ?? 1.5,
+          color: theme.borderColor!,
+          width: theme.borderWidth!,
         ),
-        boxShadow: theme.shadows,
+        boxShadow: theme.shadows!,
       ),
     );
   }
