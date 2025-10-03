@@ -45,10 +45,6 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
   // Geometry cache
   final Map<String, _EdgeGeom> _edgeCache = {};
 
-  // Throttle
-  int _lastMoveMs = 0;
-  static const int _moveThrottleMs = 8; // ~120 Hz
-
   @override
   Widget build(BuildContext context) {
     final controller = ref.read(internalControllerProvider.notifier);
@@ -123,10 +119,6 @@ class _FlowEdgeLayerState extends ConsumerState<FlowEdgeLayer> {
 
       return Listener(
         onPointerHover: (event) {
-          final now = DateTime.now().millisecondsSinceEpoch;
-          if (now - _lastMoveMs < _moveThrottleMs) return;
-          _lastMoveMs = now;
-
           final box = context.findRenderObject() as RenderBox?;
           if (box == null) return;
           final local = box.globalToLocal(event.position);

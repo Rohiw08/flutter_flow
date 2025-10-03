@@ -136,15 +136,8 @@ class SelectionService {
   // --- GLOBAL SELECTION ---
 
   /// Selects all items on the canvas, with options to specify what to select.
-  FlowCanvasState selectAll(
-    FlowCanvasState state, {
-    bool nodes = true,
-    bool edges = true,
-  }) {
-    final newSelectedNodes =
-        nodes ? state.nodes.keys.toSet() : state.selectedNodes;
-    final newSelectedEdges =
-        edges ? state.edges.keys.toSet() : state.selectedEdges;
+  FlowCanvasState selectAll(FlowCanvasState state) {
+    final newSelectedNodes = state.nodes.keys.toSet();
 
     // Update all runtime states
     final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
@@ -153,18 +146,10 @@ class SelectionService {
           (newNodeStates[nodeId] ?? const NodeRuntimeState())
               .copyWith(selected: newSelectedNodes.contains(nodeId));
     }
-    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
-    for (final edgeId in state.edges.keys) {
-      newEdgeStates[edgeId] =
-          (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
-              .copyWith(selected: newSelectedEdges.contains(edgeId));
-    }
 
     return state.copyWith(
       selectedNodes: newSelectedNodes,
-      selectedEdges: newSelectedEdges,
       nodeStates: newNodeStates,
-      edgeStates: newEdgeStates,
     );
   }
 

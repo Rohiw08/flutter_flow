@@ -24,7 +24,6 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     @Default({}) Map<String, FlowEdge> edges,
     @Default({}) Map<String, NodeRuntimeState> nodeStates,
     @Default({}) Map<String, EdgeRuntimeState> edgeStates,
-    // ADDED: State management for handles
     @Default({}) Map<String, HandleRuntimeState> handleStates,
     @Default({}) Set<String> selectedNodes,
     @Default({}) Set<String> selectedEdges,

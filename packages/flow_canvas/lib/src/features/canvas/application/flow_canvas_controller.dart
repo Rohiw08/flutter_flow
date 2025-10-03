@@ -548,14 +548,13 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     ));
   }
 
-  void selectAll({bool nodes = true, bool edges = true}) {
-    _mutate((s) => _selectionService.selectAll(s, nodes: nodes, edges: edges));
+  void selectAll() {
+    _mutate((s) => _selectionService.selectAll(s));
     _selectionStreams.emit(SelectionChangeEvent(
       selectedNodeIds: state.selectedNodes,
       selectedEdgeIds: state.selectedEdges,
       state: state,
     ));
-    // Emitting events for a full selectAll can be noisy; consumers can use selectionStreams
   }
 
   void startSelection(Offset position) =>

@@ -130,13 +130,11 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
           cursor: SystemMouseCursors.grab,
           onEnter: (e) {
             widget.nodeCallbacks.onMouseEnter(widget.nodeId, e);
-            controller.nodeStreams.emitEvent(
-              NodeEvent(
-                nodeId: widget.nodeId,
-                type: NodeEventType.mouseEnter,
-                data: e,
-              ),
-            );
+            controller.nodeStreams.emitEvent(NodeEvent(
+              nodeId: widget.nodeId,
+              type: NodeEventType.mouseEnter,
+              data: e,
+            ));
           },
           onHover: (e) {
             widget.nodeCallbacks.onMouseMove(widget.nodeId, e);
@@ -188,7 +186,6 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
                   data: details,
                 ));
               },
-
               // Dragging
               onPanStart: isDraggable
                   ? (details) {
@@ -203,15 +200,14 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
                   : null,
               onPanUpdate: isDraggable
                   ? (details) {
-                      final adjustedDelta = details.delta * 2;
-
-                      if (isSelectable) {
+                      if (isSelectable &&
+                          !controller.currentState.selectedNodes
+                              .contains(widget.nodeId)) {
                         controller.selectNode(widget.nodeId,
                             addToSelection: false);
                       }
-
                       // Pass the reliable screenDelta to the controller.
-                      controller.dragSelectedBy(adjustedDelta);
+                      controller.dragSelectedBy(details.delta);
 
                       widget.nodeCallbacks.onDrag(widget.nodeId, details);
                       controller.nodeStreams.emitEvent(NodeEvent(

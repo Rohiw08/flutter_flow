@@ -155,8 +155,6 @@ class _FlowCanvasCore extends ConsumerWidget {
     final foregroundOverlays =
         overlays.where((w) => w is! FlowBackground).toList();
 
-    // print("built");
-
     return KeyboardAdapter(
       controller: controller,
       options: options,

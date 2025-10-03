@@ -67,44 +67,48 @@ class NodeService {
     );
   }
 
-  /// Removes a node and all of its connected edges.
   FlowCanvasState removeNodesAndConnections(
       FlowCanvasState state, List<String> nodeIds) {
     if (nodeIds.isEmpty) return state;
 
-    final newNodes = Map<String, FlowNode>.from(state.nodes);
-    final newEdges = Map<String, FlowEdge>.from(state.edges);
-    NodeIndex newNodeIndex = state.nodeIndex;
-    EdgeIndex newEdgeIndex = state.edgeIndex;
-    final newSelectedNodes = Set<String>.from(state.selectedNodes);
+    final nodeIdSet = nodeIds.toSet();
 
     final edgeQuery = EdgeQueryService();
-    Set<String> allEdgeIdsToRemove = {};
+    final Set<String> edgeIdsToRemove = {};
+    for (final nodeId in nodeIdSet) {
+      edgeIdsToRemove.addAll(edgeQuery.getEdgesForNode(state, nodeId));
+    }
+
+    final newNodes = Map<String, FlowNode>.from(state.nodes);
+    final newEdges = Map<String, FlowEdge>.from(state.edges);
+    final newSelectedNodes = Set<String>.from(state.selectedNodes);
+    final newSelectedEdges = Set<String>.from(state.selectedEdges);
+
+    NodeIndex newNodeIndex = state.nodeIndex;
+    EdgeIndex newEdgeIndex = state.edgeIndex;
+
+    for (final edgeId in edgeIdsToRemove) {
+      final removedEdge = newEdges.remove(edgeId);
+      if (removedEdge != null) {
+        newEdgeIndex = newEdgeIndex.removeEdge(edgeId, removedEdge);
+        newSelectedEdges.remove(edgeId);
+      }
+    }
+
     List<FlowNode> removedNodes = [];
-    for (final nodeId in nodeIds) {
+    for (final nodeId in nodeIdSet) {
       final removedNode = newNodes.remove(nodeId);
       if (removedNode != null) {
         removedNodes.add(removedNode);
-        allEdgeIdsToRemove.addAll(edgeQuery.getEdgesForNode(state, nodeId));
-        newNodeIndex = newNodeIndex
-            .removeNode(removedNode); // FIX 1: Pass the FlowNode object
+        newNodeIndex = newNodeIndex.removeNode(removedNode);
         newSelectedNodes.remove(nodeId);
       }
     }
 
-    for (final edgeId in allEdgeIdsToRemove) {
-      final edge = newEdges.remove(edgeId);
-      if (edge != null) {
-        newEdgeIndex = newEdgeIndex.removeEdge(edgeId, edge);
-      }
-    }
-
-    // Recalculate z-index efficiently once at the end
     int newMinZ = state.minZIndex;
     int newMaxZ = state.maxZIndex;
-    final wasBoundaryNodeRemoved = removedNodes
-        .any((n) => n.zIndex == state.minZIndex || n.zIndex == state.maxZIndex);
-    if (wasBoundaryNodeRemoved) {
+    if (removedNodes.any(
+        (n) => n.zIndex == state.minZIndex || n.zIndex == state.maxZIndex)) {
       if (newNodes.isNotEmpty) {
         final zIndexes = newNodes.values.map((n) => n.zIndex);
         newMinZ = zIndexes.reduce((min, z) => z < min ? z : min);
@@ -119,6 +123,7 @@ class NodeService {
       nodes: newNodes,
       edges: newEdges,
       selectedNodes: newSelectedNodes,
+      selectedEdges: newSelectedEdges,
       nodeIndex: newNodeIndex,
       edgeIndex: newEdgeIndex,
       minZIndex: newMinZ,
@@ -137,12 +142,10 @@ class NodeService {
 
     for (final id in state.selectedNodes) {
       final node = newNodes[id];
-      // Use the provided boolean properties directly, with a fallback to true
       if (node != null && (node.draggable ?? true)) {
         final newPosition = node.position + delta;
         final newNode = node.copyWith(position: newPosition);
         newNodes[id] = newNode;
-        // FIX 2: Call the correct updateNode method
         newNodeIndex = newNodeIndex.updateNode(node, newNode);
       }
     }

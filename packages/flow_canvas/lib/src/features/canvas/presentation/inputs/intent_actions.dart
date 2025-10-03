@@ -70,10 +70,7 @@ Map<Type, Action<Intent>> buildActions(
     ),
     SelectAllIntent: CallbackAction<SelectAllIntent>(
       onInvoke: (intent) {
-        controller.selectAll(
-          nodes: intent.selectNodes,
-          edges: intent.selectEdges,
-        );
+        controller.selectAll();
         return null;
       },
     ),
