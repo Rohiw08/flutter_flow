@@ -1,3 +1,4 @@
+import 'package:flow_canvas/flow_canvas.dart' show FlowPositioned;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
@@ -206,6 +207,16 @@ class _FlowCanvasCore extends ConsumerWidget {
                         FlowNodesLayer(
                           nodeCallbacks: nodeCallbacks,
                         ),
+
+                        FlowPositioned(
+                          dx: 0,
+                          dy: 0,
+                          child: Container(
+                            height: 20,
+                            width: 20,
+                            color: Colors.red,
+                          ),
+                        )
                       ],
                     ),
                   ),

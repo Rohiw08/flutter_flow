@@ -635,6 +635,8 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       return;
     }
 
+    // BUG: cursorScreenPosition is in RENDER space (from canvas RenderBox)
+    // but queryHandlesNear expects CARTESIAN space
     // Convert screen position to cartesian coordinates
     final cartesianPosition =
         coordinateConverter.toCartesianPosition(cursorScreenPosition);

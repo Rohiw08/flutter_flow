@@ -3,7 +3,13 @@ import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 
 typedef CellKey = String;
 
-/// Highly optimized, immutable index for nodes and their handles.
+/// Highly optimized, immutable spatial index for nodes and their handles.
+///
+/// **Coordinate System**: All positions use Cartesian coordinates where:
+/// - Origin (0,0) is at the canvas center
+/// - +X goes right, -X goes left
+/// - +Y goes UP, -Y goes DOWN
+/// - This matches the coordinate system used by FlowNode.position
 class NodeIndex {
   static const double _defaultCellSize = 200.0;
 
@@ -56,6 +62,8 @@ class NodeIndex {
 
   Iterable<FlowNode> get allNodes => _nodes.values;
 
+  /// Queries nodes that intersect with the given rectangle.
+  /// The rect parameter should be in Cartesian coordinates.
   List<FlowNode> queryNodesInRect(Rect rect) {
     final resultIds = <String>{};
     final cells = _getCellsInRect(rect, _cellSize);
@@ -67,7 +75,6 @@ class NodeIndex {
       }
     }
 
-    // The final filter is no longer needed because the grid is more accurate
     return resultIds
         .map((id) => _nodes[id])
         .where((node) => node != null)
@@ -75,11 +82,14 @@ class NodeIndex {
         .toList();
   }
 
+  /// Queries handles near the given position (within adjacent grid cells).
+  /// The position parameter should be in Cartesian coordinates.
   Set<String> queryHandlesNear(Offset position) {
     final gridX = (position.dx / _cellSize).floor();
     final gridY = (position.dy / _cellSize).floor();
     final nearbyHandles = <String>{};
 
+    // Check the cell and all 8 adjacent cells
     for (int x = -1; x <= 1; x++) {
       for (int y = -1; y <= 1; y++) {
         final key = '${gridX + x}:${gridY + y}';
@@ -145,19 +155,23 @@ class NodeIndex {
 
   // --- PRIVATE HELPERS ---
 
-  static void _addNodeToGrids(FlowNode node, Map<CellKey, Set<String>> nodeGrid,
-      Map<CellKey, Set<String>> handleGrid, double cellSize) {
+  static void _addNodeToGrids(
+    FlowNode node,
+    Map<CellKey, Set<String>> nodeGrid,
+    Map<CellKey, Set<String>> handleGrid,
+    double cellSize,
+  ) {
+    // Add node to spatial grid based on its bounding rectangle
     final cells = _getCellsInRect(node.rect, cellSize);
     for (final cellKey in cells) {
       nodeGrid.putIfAbsent(cellKey, () => {}).add(node.id);
     }
 
+    // Add each handle to the spatial grid
+    // Handle positions are relative to node center in Cartesian coordinates
     for (final handle in node.handles.values) {
-      final handlePosition = node.position +
-          Offset(
-            handle.position.dx,
-            -handle.position.dy,
-          );
+      // Calculate absolute handle position in Cartesian coordinates
+      final handlePosition = node.position + handle.position;
       final handleCellKey = _getCellKey(handlePosition, cellSize);
       handleGrid
           .putIfAbsent(handleCellKey, () => {})
@@ -166,28 +180,30 @@ class NodeIndex {
   }
 
   static void _removeNodeFromGrids(
-      FlowNode node,
-      Map<CellKey, Set<String>> nodeGrid,
-      Map<CellKey, Set<String>> handleGrid,
-      double cellSize) {
+    FlowNode node,
+    Map<CellKey, Set<String>> nodeGrid,
+    Map<CellKey, Set<String>> handleGrid,
+    double cellSize,
+  ) {
+    // Remove node from spatial grid
     final cells = _getCellsInRect(node.rect, cellSize);
     for (final cellKey in cells) {
       _removeFromGrid(nodeGrid, cellKey, node.id);
     }
 
+    // Remove handles from spatial grid
     for (final handle in node.handles.values) {
-      final handlePosition = node.position +
-          Offset(
-            handle.position.dx,
-            -handle.position.dy,
-          );
+      final handlePosition = node.position + handle.position;
       final handleCellKey = _getCellKey(handlePosition, cellSize);
       _removeFromGrid(handleGrid, handleCellKey, '${node.id}/${handle.id}');
     }
   }
 
   static void _removeFromGrid(
-      Map<CellKey, Set<String>> grid, CellKey key, String id) {
+    Map<CellKey, Set<String>> grid,
+    CellKey key,
+    String id,
+  ) {
     final cell = grid[key];
     if (cell != null) {
       cell.remove(id);
@@ -197,8 +213,11 @@ class NodeIndex {
     }
   }
 
+  /// Gets all grid cells that intersect with the given rectangle.
+  /// Works correctly in Cartesian coordinates.
   static Set<CellKey> _getCellsInRect(Rect rect, double cellSize) {
     final cells = <CellKey>{};
+
     final minX = (rect.left / cellSize).floor();
     final maxX = (rect.right / cellSize).floor();
     final minY = (rect.top / cellSize).floor();
@@ -212,6 +231,7 @@ class NodeIndex {
     return cells;
   }
 
+  /// Calculates which grid cell contains the given position.
   static CellKey _getCellKey(Offset pos, double cellSize) {
     final cx = (pos.dx / cellSize).floor();
     final cy = (pos.dy / cellSize).floor();

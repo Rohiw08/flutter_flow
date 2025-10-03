@@ -4,37 +4,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'node.freezed.dart';
 
-/// Represents a single node in the flow canvas.
-///
-/// required String type
-///
-/// required String id
-///
-/// required Offset position
-///
-/// required Size size
-///
-/// String? parentId
-///
-/// @Default({}) Map<String, NodeHandle> handles
-///
-/// @Default({}) Map<String, dynamic> data
-///
-/// @Default(0) int zIndex
-///
-/// bool? hidden
-///
-/// bool? draggable
-///
-/// bool? selectable
-///
-/// bool? connectable
-///
-/// bool? deletable
-///
-/// bool? focusable
-///
-/// bool? elevateNodeOnSelected
 @freezed
 abstract class FlowNode with _$FlowNode {
   const FlowNode._();

@@ -194,8 +194,6 @@ class _ExampleState extends State<Example> {
             onCanvasCreated: (controller) =>
                 setState(() => _controller = controller),
             options: const FlowOptions(
-              canvasHeight: 1000,
-              canvasWidth: 1000,
               viewportOptions: ViewportOptions(
                 maxZoom: 3.0,
                 minZoom: 0.3,

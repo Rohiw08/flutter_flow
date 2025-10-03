@@ -37,8 +37,8 @@ class CanvasCoordinateConverter {
   /// A `cartesianPosition` of `(100, 100)` (100px right and 100px up from the center)
   /// would be converted to a render position of `(600, 400)`.
   Offset toRenderPosition(Offset cartesianPosition) {
-    final double renderX = cartesianPosition.dx + renderCenter.dx;
-    final double renderY = -cartesianPosition.dy + renderCenter.dy;
+    final double renderX = renderCenter.dx + cartesianPosition.dx;
+    final double renderY = renderCenter.dy - cartesianPosition.dy;
     return Offset(renderX, renderY);
   }
 
@@ -47,9 +47,15 @@ class CanvasCoordinateConverter {
   /// Example: Screen tap -> Cartesian position relative to center
   Offset toCartesianPosition(Offset renderPosition) {
     final double cartesianX = renderPosition.dx - renderCenter.dx;
-    final double cartesianY = -(renderPosition.dy - renderCenter.dy);
+    final double cartesianY = -renderPosition.dy + renderCenter.dy;
     return Offset(cartesianX, cartesianY);
   }
+
+  // Offset fromRenderCentreToCartisionPosition(Offset renderPosition) {
+  //   final double cartesianX = renderCenter.dx + renderPosition.dx;
+  //   final double cartesianY = renderCenter.dy - renderPosition.dy;
+  //   return Offset(cartesianX, cartesianY);
+  // }
 
   /// Converts a movement delta from Flutter space to Cartesian space.
   ///
