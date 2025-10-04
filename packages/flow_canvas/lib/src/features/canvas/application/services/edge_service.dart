@@ -126,7 +126,7 @@ class EdgeService {
   }
 
   /// Imports a list of edges, skipping any that already exist or are invalid.
-  FlowCanvasState importEdges(FlowCanvasState state, List<FlowEdge> edges) {
+  FlowCanvasState addEdges(FlowCanvasState state, List<FlowEdge> edges) {
     if (edges.isEmpty) return state;
 
     Map<String, FlowEdge> newEdges = Map.from(state.edges);

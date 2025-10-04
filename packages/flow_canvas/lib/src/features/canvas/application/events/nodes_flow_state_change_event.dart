@@ -9,14 +9,8 @@ enum NodeLifecycleType {
 
 class NodeLifecycleEvent {
   final NodeLifecycleType type;
-
-  /// Snapshot of the entire canvas after the change.
   final FlowCanvasState state;
-
-  /// The node ID this event is about (if applicable).
   final String? nodeId;
-
-  /// Extra payload (e.g., new FlowNode object, diff data).
   final dynamic data;
 
   final DateTime timestamp;

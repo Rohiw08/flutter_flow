@@ -15,16 +15,11 @@ class ViewportStreams {
   // --- Filtered Convenience Streams ---
 
   /// A stream that emits events only when the viewport's pan or zoom changes.
-  Stream<ViewportEvent> get panEvents =>
-      events.where((event) => event.type == ViewportEventType.pan);
+  Stream<ViewportEvent> get transformEvents =>
+      events.where((event) => event.type == ViewportEventType.transform);
 
-  Stream<ViewportEvent> get zoomEvents =>
-      events.where((event) => event.type == ViewportEventType.zoom);
-
-  /// A stream that emits events only when the canvas widget itself is resized.
   Stream<ViewportEvent> get resizeEvents =>
       events.where((event) => event.type == ViewportEventType.resize);
-
   // --- Throttling Logic ---
 
   ViewportEvent? _pendingEvent;

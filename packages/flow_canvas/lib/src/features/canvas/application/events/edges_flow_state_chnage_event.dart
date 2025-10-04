@@ -10,9 +10,9 @@ enum EdgeLifecycleType {
 
 class EdgeLifecycleEvent {
   final EdgeLifecycleType type;
-  final FlowCanvasState state; // snapshot of canvas at the moment
-  final String? edgeId; // optional: may be null for bulk updates
-  final dynamic data; // e.g., the new FlowEdge object, diff info
+  final FlowCanvasState state;
+  final String? edgeId;
+  final dynamic data;
   final DateTime timestamp;
 
   EdgeLifecycleEvent({

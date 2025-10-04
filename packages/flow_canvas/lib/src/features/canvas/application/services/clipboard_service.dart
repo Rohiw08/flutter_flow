@@ -77,8 +77,7 @@ class ClipboardService {
     // This ensures the indexes are updated correctly.
     FlowCanvasState newState = state;
     newState = nodeService.addNodes(newState, newNodes);
-    newState = edgeService.importEdges(newState, newEdges);
-
+    newState = edgeService.addEdges(newState, newEdges);
     return newState;
   }
 }

@@ -1,38 +1,57 @@
-import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
-import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flutter/gestures.dart';
 
 enum PaneEventType {
   moveStart,
   move,
   moveEnd,
-  click,
-  doubleClick,
-  scroll,
+  tap,
   contextMenu,
-  mouseEnter,
-  mouseMove,
-  mouseLeave,
+  scroll,
 }
 
-/// Represents a user interaction event that occurs on the canvas pane itself.
-class PaneEvent {
+abstract class PaneEvent {
   final PaneEventType type;
-  final FlowCanvasState state;
-  final Offset? canvasPosition;
-  final dynamic details;
+  final DateTime timestamp;
 
-  PaneEvent({
-    required this.type,
-    required this.state,
-    this.canvasPosition,
-    this.details,
-  });
+  PaneEvent({required this.type, DateTime? timestamp})
+      : timestamp = timestamp ?? DateTime.now();
+}
 
-  FlowViewport get viewport => state.viewport;
+class PaneMoveStartEvent extends PaneEvent {
+  final DragStartDetails details;
+  PaneMoveStartEvent({required this.details})
+      : super(type: PaneEventType.moveStart);
+}
 
-  @override
-  String toString() {
-    return 'PaneEvent{type: $type, canvasPosition: $canvasPosition, viewport: $viewport}';
-  }
+class PaneMoveEvent extends PaneEvent {
+  final Offset position;
+  final Offset delta;
+  final DragUpdateDetails details;
+  PaneMoveEvent({
+    required this.position,
+    required this.delta,
+    required this.details,
+  }) : super(type: PaneEventType.move);
+}
+
+class PaneMoveEndEvent extends PaneEvent {
+  final DragEndDetails details;
+  PaneMoveEndEvent({required this.details})
+      : super(type: PaneEventType.moveEnd);
+}
+
+class PaneTapEvent extends PaneEvent {
+  final TapDownDetails details;
+  PaneTapEvent({required this.details}) : super(type: PaneEventType.tap);
+}
+
+class PaneContextMenuEvent extends PaneEvent {
+  final LongPressStartDetails details;
+  PaneContextMenuEvent({required this.details})
+      : super(type: PaneEventType.contextMenu);
+}
+
+class PaneScrollEvent extends PaneEvent {
+  final PointerScrollEvent details;
+  PaneScrollEvent({required this.details}) : super(type: PaneEventType.scroll);
 }

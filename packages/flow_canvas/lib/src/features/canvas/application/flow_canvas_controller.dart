@@ -1,14 +1,17 @@
-import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
-import 'package:flow_canvas/src/shared/utility/map_comparitor.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/edge_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/pane_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/viewport_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/connection_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/edge_change_event.dart';
+import 'package:flow_canvas/src/features/canvas/application/events/edges_flow_state_chnage_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/node_change_event.dart';
+import 'package:flow_canvas/src/features/canvas/application/events/nodes_flow_state_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/selection_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/clipboard_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/connection_service.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_geometry_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/history_service.dart';
@@ -19,26 +22,30 @@ import 'package:flow_canvas/src/features/canvas/application/services/selection_s
 import 'package:flow_canvas/src/features/canvas/application/services/serialization_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/viewport_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/z_index_service.dart';
+import 'package:flow_canvas/src/features/canvas/application/streams/edges_flow_state_change_stream.dart';
+import 'package:flow_canvas/src/features/canvas/application/streams/nodes_flow_state_change_stream.dart';
 import 'package:flow_canvas/src/features/canvas/application/streams/selection_change_stream.dart';
+import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/registries/edge_registry.dart';
 import 'package:flow_canvas/src/features/canvas/domain/registries/node_registry.dart';
-import 'package:flow_canvas/src/shared/providers.dart';
-import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/fitview_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/keyboard_options.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
+import 'package:flow_canvas/src/shared/providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'events/pane_change.dart';
+import 'events/viewport_change_event.dart';
 import 'streams/connection_change_stream.dart';
 import 'streams/edge_change_stream.dart';
 import 'streams/node_change_stream.dart';
 import 'streams/pane_change_stream.dart';
 import 'streams/viewport_change_stream.dart';
-import 'events/viewport_change_event.dart';
-// import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_transform_utils.dart';
 
 /// The central state management hub for the Flow Canvas.
 ///
@@ -52,7 +59,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   final TransformationController transformationController =
       TransformationController();
   final GlobalKey canvasKey = GlobalKey();
-  Map<String, Offset> _initialDragPositions = {};
+  Map<String, dynamic>? _clipboardPayload;
 
   // --- Domain Services (read from providers) ---
   late final NodeRegistry nodeRegistry;
@@ -70,6 +77,16 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   late final NodeQueryService _nodeQueryService;
   late final KeyboardActionService _keyboardActionService;
   late final CanvasCoordinateConverter coordinateConverter;
+  late final EdgeGeometryService edgeGeometryService;
+
+  // Callbacks provided by the user
+  late final NodeInteractionCallbacks nodeInteractionCallbacks;
+  late final NodeStateCallbacks nodeStateCallbacks;
+  late final EdgeInteractionCallbacks edgeInteractionCallbacks;
+  late final EdgeStateCallbacks edgeStateCallbacks;
+  late final ConnectionCallbacks connectionCallbacks;
+  late final PaneCallbacks paneCallbacks;
+  late final ViewportCallbacks viewportCallbacks;
 
   FlowCanvasController(
     this.ref, {
@@ -90,9 +107,19 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     _edgeQueryService = ref.read(edgeQueryServiceProvider);
     _nodeQueryService = ref.read(nodeQueryServiceProvider);
     _keyboardActionService = ref.read(keyboardActionServiceProvider);
+    edgeGeometryService = ref.read(edgeGeometryServiceProvider);
 
     // --- Utility ---
     coordinateConverter = ref.read(coordinateConverterProvider);
+
+    // --- Callbacks ---
+    nodeInteractionCallbacks = ref.read(nodeCallbacksProvider);
+    nodeStateCallbacks = ref.read(nodesStateCallbacksProvider);
+    edgeInteractionCallbacks = ref.read(edgeCallbacksProvider);
+    edgeStateCallbacks = ref.read(edgesStateCallbacksProvider);
+    connectionCallbacks = ref.read(connectionCallbacksProvider);
+    paneCallbacks = ref.read(paneCallbacksProvider);
+    viewportCallbacks = ref.read(viewportCallbacksProvider);
 
     // Initialize services that depend on the initial state.
     _history.init(state);
@@ -101,21 +128,26 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
     // Listen to our own state changes to keep the TransformationController in sync.
     addListener((newState) {
+      edgeGeometryService.updateCache(newState, newState.edges.keys);
       _updateTransformationController();
     });
   }
 
   // --- Streams ---
-  final NodeStreams _nodeStreams = NodeStreams();
-  final EdgeStreams _edgeStreams = EdgeStreams();
+  final NodeInteractionStreams _nodeStreams = NodeInteractionStreams();
+  final NodesStateStreams _nodesStateStreams = NodesStateStreams();
+  final EdgeInteractionStreams _edgeStreams = EdgeInteractionStreams();
+  final EdgesStateStreams _edgesStateStreams = EdgesStateStreams();
   final ConnectionStreams _connectionStreams = ConnectionStreams();
   final PaneStreams _paneStreams = PaneStreams();
   final SelectionStreams _selectionStreams = SelectionStreams();
   final ViewportStreams _viewportStreams = ViewportStreams();
 
   // Expose the streams publicly for the developer to listen to
-  NodeStreams get nodeStreams => _nodeStreams;
-  EdgeStreams get edgeStreams => _edgeStreams;
+  NodeInteractionStreams get nodeStreams => _nodeStreams;
+  NodesStateStreams get nodesStateStreams => _nodesStateStreams;
+  EdgeInteractionStreams get edgeStreams => _edgeStreams;
+  EdgesStateStreams get edgesStateStream => _edgesStateStreams;
   ConnectionStreams get connectionStreams => _connectionStreams;
   PaneStreams get paneStreams => _paneStreams;
   SelectionStreams get selectionStreams => _selectionStreams;
@@ -137,8 +169,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       ..translate(viewport.offset.dx, viewport.offset.dy)
       ..scale(viewport.zoom);
 
-    // If the controller's matrix already matches our state, do nothing.
-    // This is the key to breaking the feedback loop.
     if (transformationController.value == stateMatrix) {
       return;
     }
@@ -146,7 +176,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     transformationController.value = stateMatrix;
   }
 
-  /// [NEW] Add this method to listen for changes from the InteractiveViewer.
   void _onTransformationChanged() {
     final matrix = transformationController.value;
     final newOffset =
@@ -155,8 +184,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
     final newViewport = FlowViewport(offset: newOffset, zoom: newZoom);
 
-    // This is a direct state update reflecting the current view.
-    // It does not go into the undo/redo history.
     if (state.viewport != newViewport) {
       state = state.copyWith(viewport: newViewport);
     }
@@ -165,7 +192,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   // =================================================================================
   // --- canvas State ---
   // =================================================================================
-  /// Get the current state (public accessor for the facade)
   FlowCanvasState get currentState => state;
 
   // =================================================================================
@@ -175,7 +201,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void setViewportSize(Size size) {
     if (state.viewportSize != size) {
       _mutate((s) => s.copyWith(viewportSize: size));
-      _viewportStreams.emit(ViewportEvent(
+      _viewportStreams.emitEvent(ViewportEvent(
         type: ViewportEventType.resize,
         viewport: state.viewport,
         viewportSize: size,
@@ -183,12 +209,12 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     }
   }
 
-  void pan(Offset delta) {
+  /// Pans the viewport by a given screen-space delta.
+  /// Use this for programmatic panning where DragUpdateDetails are not available.
+  void panBy(Offset delta) {
     _mutate((s) => _viewportService.pan(s, delta));
-    final evt = PaneEvent(type: PaneEventType.move, viewport: state.viewport);
-    _paneStreams.emitEvent(evt);
-    _viewportStreams.emit(ViewportEvent(
-      type: ViewportEventType.change,
+    _viewportStreams.emitEvent(ViewportEvent(
+      type: ViewportEventType.transform,
       viewport: state.viewport,
       viewportSize: state.viewportSize,
     ));
@@ -196,18 +222,13 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void toggleLock() {
     _mutate((s) => s.copyWith(isPanZoomLocked: !s.isPanZoomLocked));
-    _viewportStreams.emit(ViewportEvent(
-      type: ViewportEventType.change,
-      viewport: state.viewport,
-      viewportSize: state.viewportSize,
-    ));
   }
 
-  void zoom(
-    double zoomFactor, {
+  void zoom({
     required Offset focalPoint,
     required double minZoom,
     required double maxZoom,
+    required double zoomFactor,
   }) {
     _mutate((s) => _viewportService.zoom(
           s,
@@ -216,11 +237,9 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
           minZoom: minZoom,
           maxZoom: maxZoom,
         ));
-    final evt = PaneEvent(type: PaneEventType.move, viewport: state.viewport);
-    _paneStreams.emitEvent(evt);
-    _viewportStreams.emit(
+    _viewportStreams.emitEvent(
       ViewportEvent(
-        type: ViewportEventType.change,
+        type: ViewportEventType.transform,
         viewport: state.viewport,
         viewportSize: state.viewportSize,
       ),
@@ -229,22 +248,22 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void fitView({FitViewOptions options = const FitViewOptions()}) {
     _mutate((s) => _viewportService.fitView(s, options: options));
-    _viewportStreams.emit(ViewportEvent(
-      type: ViewportEventType.change,
+    _viewportStreams.emitEvent(ViewportEvent(
+      type: ViewportEventType.transform,
       viewport: state.viewport,
       viewportSize: state.viewportSize,
     ));
   }
 
-  void centerView() {
+  void centerOnOrigin() {
     if (state.viewportSize == null) return;
     centerOnPosition(Offset.zero);
   }
 
   void resetView() {
     _mutate((s) => s.copyWith(viewport: const FlowViewport()));
-    _viewportStreams.emit(ViewportEvent(
-      type: ViewportEventType.change,
+    _viewportStreams.emitEvent(ViewportEvent(
+      type: ViewportEventType.transform,
       viewport: state.viewport,
       viewportSize: state.viewportSize,
     ));
@@ -258,31 +277,25 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         Offset(state.viewportSize!.width / 2, state.viewportSize!.height / 2);
     _mutate(
         (s) => s.copyWith(viewport: s.viewport.copyWith(offset: newOffset)));
-    _viewportStreams.emit(ViewportEvent(
-      type: ViewportEventType.change,
+    _viewportStreams.emitEvent(ViewportEvent(
+      type: ViewportEventType.transform,
       viewport: state.viewport,
       viewportSize: state.viewportSize,
     ));
   }
 
-  /// Converts a point from screen coordinates to canvas coordinates.
   Offset screenToCanvas(Offset screenPosition) =>
       _viewportService.screenToCanvas(state, screenPosition);
 
-  /// Converts a point from canvas coordinates to screen coordinates.
   Offset canvasToScreen(Offset canvasPosition) =>
       _viewportService.canvasToScreen(state, canvasPosition);
 
-  /// Converts a point from the screen (e.g., a mouse click) to the canvas's
-  /// internal Cartesian coordinate system.
   Offset screenToCanvasPosition(Offset screenPosition) {
     final renderPosition =
         _viewportService.screenToCanvas(state, screenPosition);
     return coordinateConverter.toCartesianPosition(renderPosition);
   }
 
-  /// Converts a point from the canvas's internal Cartesian coordinate system
-  /// to a screen position.
   Offset canvasToScreenPosition(Offset cartesianPosition) {
     final renderPosition =
         coordinateConverter.toRenderPosition(cartesianPosition);
@@ -299,9 +312,13 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       throw ArgumentError('Node with id ${node.id} already exists');
     }
     _mutate((s) => _nodeService.addNode(s, node));
-    final event = NodeChangeEvent(
-        nodeId: node.id, type: NodeChangeType.add, newValue: node);
-    _nodeStreams.emitChanges([event]);
+    final event = NodeLifecycleEvent(
+      type: NodeLifecycleType.add,
+      state: state,
+      nodeId: node.id,
+      data: node,
+    );
+    _nodesStateStreams.emitEvent(event);
   }
 
   void addNodes(List<FlowNode> nodes) {
@@ -312,10 +329,14 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     }
     _mutate((s) => _nodeService.addNodes(s, nodes));
     final events = nodes
-        .map((n) => NodeChangeEvent(
-            nodeId: n.id, type: NodeChangeType.add, newValue: n))
+        .map((n) => NodeLifecycleEvent(
+              type: NodeLifecycleType.add,
+              state: state,
+              nodeId: n.id,
+              data: n,
+            ))
         .toList();
-    _nodeStreams.emitChanges(events);
+    _nodesStateStreams.emitBulk(events);
   }
 
   void removeSelectedNodes() {
@@ -323,119 +344,122 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     if (oldState.selectedNodes.isEmpty) return;
 
     final removedNodeIds = Set<String>.from(oldState.selectedNodes);
-    final removedEdgeIds = oldState.edges.values
-        .where((edge) =>
-            removedNodeIds.contains(edge.sourceNodeId) ||
-            removedNodeIds.contains(edge.targetNodeId))
-        .map((edge) => edge.id)
-        .toSet();
 
     _mutate((s) =>
         _nodeService.removeNodesAndConnections(s, removedNodeIds.toList()));
 
     final nodeEvents = removedNodeIds
-        .map((id) => NodeChangeEvent(nodeId: id, type: NodeChangeType.remove))
+        .map((id) => NodeLifecycleEvent(
+              type: NodeLifecycleType.remove,
+              state: state,
+              nodeId: id,
+            ))
         .toList();
-    _nodeStreams.emitChanges(nodeEvents);
-
-    // Emit NodeEvent.delete for each removed node (interaction-level event)
-    for (final id in removedNodeIds) {
-      _nodeStreams.emitEvent(NodeEvent(nodeId: id, type: NodeEventType.delete));
-    }
-
-    final edgeEvents = removedEdgeIds
-        .map((id) => EdgeChangeEvent(edgeId: id, type: EdgeEventType.delete))
-        .toList();
-    _edgeStreams.emitChanges(edgeEvents);
+    _nodesStateStreams.emitBulk(nodeEvents);
   }
 
   void updateNode(FlowNode node) {
     final oldNode = state.nodes[node.id];
-    if (oldNode == null) return; // Or throw an error
+    if (oldNode == null) return;
 
     _mutate((s) => _nodeService.updateNode(s, node));
 
-    // After mutation, the state has been updated
     final newNode = state.nodes[node.id]!;
-
-    // Create a change event and emit it
-    // You can make this more granular by comparing oldNode and newNode
-    // to see exactly what changed (e.g., position, size, data).
-    final event = NodeChangeEvent(
+    final event = NodeLifecycleEvent(
+      type: NodeLifecycleType.update,
+      state: state,
       nodeId: node.id,
-      type: NodeChangeType.update, // A generic update type
-      oldValue: oldNode,
-      newValue: newNode,
+      data: {'old': oldNode, 'new': newNode},
     );
-    _nodeStreams.emitChanges([event]);
+    _nodesStateStreams.emitEvent(event);
   }
 
-  /// Sets the drag mode to indicate a node is being dragged.
-  void startNodeDrag() {
+  void onNodeTap(String nodeId, TapDownDetails details, bool isSelectable,
+      FocusNode focusNode, bool isFocusable) {
+    if (isSelectable) {
+      selectNode(nodeId, addToSelection: false);
+    }
+    if (isFocusable) {
+      focusNode.requestFocus();
+    }
+    nodeInteractionCallbacks.onClick(nodeId, details);
+    _nodeStreams.emitEvent(NodeClickEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeDoubleClick(String nodeId) {
+    nodeInteractionCallbacks.onDoubleClick(nodeId);
+    _nodeStreams.emitEvent(NodeDoubleClickEvent(nodeId: nodeId));
+  }
+
+  void onNodeContextMenu(String nodeId, LongPressStartDetails details) {
+    nodeInteractionCallbacks.onContextMenu(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeContextMenuEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeDragStart(String nodeId, DragStartDetails details) {
     if (state.dragMode != DragMode.node) {
-      state = state.copyWith(dragMode: DragMode.node);
-
-      // Store the original positions of the selected nodes.
-      _initialDragPositions = {
-        for (var id in state.selectedNodes)
-          if (state.nodes.containsKey(id)) id: state.nodes[id]!.position,
-      };
+      _mutate((s) => s.copyWith(dragMode: DragMode.node));
     }
+    nodeInteractionCallbacks.onDragStart(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeDragStartEvent(nodeId: nodeId, details: details));
   }
 
-  /// Resets the drag mode when the node drag ends.
-  void endNodeDrag() {
-    if (state.dragMode == DragMode.node) {
-      final oldPositions = _initialDragPositions;
-      final newPositions = {
-        for (var id in oldPositions.keys)
-          if (state.nodes.containsKey(id)) id: state.nodes[id]!.position,
-      };
-
-      if (oldPositions.isNotEmpty &&
-          newPositions.isNotEmpty &&
-          !areMapsEqual(oldPositions, newPositions)) {
-        _mutate((s) {
-          return s;
-        });
-      }
-
-      _initialDragPositions = {};
-      state = state.copyWith(dragMode: DragMode.none);
+  void onNodeDragUpdate(
+      String nodeId, DragUpdateDetails details, bool isSelectable) {
+    if (isSelectable && !currentState.selectedNodes.contains(nodeId)) {
+      selectNode(nodeId, addToSelection: false);
     }
+    moveSelectedNodesBy(details.delta, details);
+    nodeInteractionCallbacks.onDrag(nodeId, details);
+  }
+
+  void onNodeDragEnd(String nodeId, DragEndDetails details) {
+    if (state.dragMode == DragMode.node) {
+      _mutate((s) => s.copyWith(dragMode: DragMode.none));
+    }
+    nodeInteractionCallbacks.onDragStop(nodeId, details);
+    _nodeStreams.emitEvent(NodeDragStopEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeMouseEnter(String nodeId, PointerEvent details) {
+    nodeInteractionCallbacks.onMouseEnter(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseEnterEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeMouseLeave(String nodeId, PointerEvent details) {
+    nodeInteractionCallbacks.onMouseLeave(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseLeaveEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeMouseMove(String nodeId, PointerEvent details) {
+    nodeInteractionCallbacks.onMouseMove(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseMoveEvent(nodeId: nodeId, details: details));
   }
 
   /// Updates the state DIRECTLY for a smooth visual drag.
-  /// This method NO LONGER uses _mutate.
-  void dragSelectedBy(Offset screenDelta) {
-    // This check is important to avoid updating state if not dragging.
+  void moveSelectedNodesBy(Offset screenDelta, DragUpdateDetails details) {
     if (state.dragMode != DragMode.node) return;
     final cartesianDelta = coordinateConverter.toCartesianDelta(screenDelta);
 
-    // --- KEY CHANGE ---
-    // Update the state directly without adding to history.
+    // Directly mutate state for smooth UI, without using the history service.
     state = _nodeService.dragSelectedNodes(state, cartesianDelta);
 
-    // The event stream can still be emitted for real-time updates.
-    final changes = state.selectedNodes
-        .map((nodeId) {
-          final oldPosition = _initialDragPositions[nodeId];
-          final newNode = state.nodes[nodeId];
-          if (oldPosition != null && newNode != null) {
-            return NodeChangeEvent(
-              nodeId: nodeId,
-              type: NodeChangeType.position,
-              oldValue: oldPosition,
-              newValue: newNode.position,
-            );
-          }
-          return null;
-        })
-        .whereType<NodeChangeEvent>()
-        .toList();
-
-    if (changes.isNotEmpty) {
-      _nodeStreams.emitChanges(changes);
+    // Emit drag events for all selected nodes.
+    for (final nodeId in state.selectedNodes) {
+      final node = state.nodes[nodeId];
+      if (node != null) {
+        _nodeStreams.emitEvent(NodeDragEvent(
+          nodeId: nodeId,
+          position: node.position,
+          delta: cartesianDelta,
+          details: details,
+        ));
+      }
     }
   }
 
@@ -445,9 +469,26 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void addEdge(FlowEdge edge) {
     _mutate((s) => _edgeService.addEdge(s, edge));
-    final event = EdgeChangeEvent(
-        edgeId: edge.id, type: EdgeEventType.change, data: edge);
-    _edgeStreams.emitChanges([event]);
+    final event = EdgeLifecycleEvent(
+      type: EdgeLifecycleType.add,
+      state: state, // Pass the correct, new state snapshot
+      edgeId: edge.id,
+      data: edge,
+    );
+    _edgesStateStreams.emitEvent(event);
+  }
+
+  void addEdges(List<FlowEdge> edges) {
+    _mutate((s) => _edgeService.addEdges(s, edges));
+    final events = edges
+        .map((e) => EdgeLifecycleEvent(
+              type: EdgeLifecycleType.add,
+              state: state,
+              edgeId: e.id,
+              data: e,
+            ))
+        .toList();
+    _edgesStateStreams.emitBulk(events);
   }
 
   void removeSelectedEdges() {
@@ -456,12 +497,15 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
     _mutate((s) => _edgeService.removeEdges(s, edgesToRemove));
     final events = edgesToRemove
-        .map((id) => EdgeChangeEvent(edgeId: id, type: EdgeEventType.delete))
+        .map((id) => EdgeLifecycleEvent(
+              type: EdgeLifecycleType.remove,
+              state: state,
+              edgeId: id,
+            ))
         .toList();
-    _edgeStreams.emitChanges(events);
+    _edgesStateStreams.emitBulk(events);
   }
 
-  /// Updates the data payload of a specific edge.
   void updateEdgeData(String edgeId, EdgeDataUpdater updater) {
     final oldEdge = state.edges[edgeId];
     if (oldEdge == null) return;
@@ -469,17 +513,17 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     _mutate((s) => _edgeService.updateEdgeData(s, edgeId, updater));
 
     final newEdge = state.edges[edgeId];
-    final event = EdgeChangeEvent(
+    final event = EdgeLifecycleEvent(
+      type: EdgeLifecycleType.update,
+      state: state,
       edgeId: edgeId,
-      type: EdgeEventType.change,
       data: {'old': oldEdge.data, 'new': newEdge?.data},
     );
-    _edgeStreams.emitChanges([event]);
+    _edgesStateStreams.emitEvent(event);
   }
 
-  /// Reconnects an edge to a new source or target handle.
-  void reconnectEdge(
-    String edgeId, {
+  void reconnectEdge({
+    required String edgeId,
     String? newSourceNodeId,
     String? newSourceHandleId,
     String? newTargetNodeId,
@@ -491,19 +535,85 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         newTargetNodeId: newTargetNodeId,
         newTargetHandleId: newTargetHandleId));
 
-    final event =
-        EdgeChangeEvent(edgeId: edgeId, type: EdgeEventType.reconnect);
-    _edgeStreams.emitEvent(event);
+    final event = EdgeLifecycleEvent(
+      type: EdgeLifecycleType.reconnect,
+      state: state,
+      edgeId: edgeId,
+    );
+    _edgesStateStreams.emitEvent(event);
   }
 
-  /// Imports a list of edges, skipping any that already exist or are invalid.
-  void importEdges(List<FlowEdge> edges) {
-    _mutate((s) => _edgeService.importEdges(s, edges));
-    final events = edges
-        .map((e) =>
-            EdgeChangeEvent(edgeId: e.id, type: EdgeEventType.change, data: e))
-        .toList();
-    _edgeStreams.emitChanges(events);
+  void onEdgePointerHover(PointerEvent event, Offset localPosition) {
+    final hit = edgeGeometryService.hitTestEdgeAt(
+        localPosition, state, state.viewport.zoom);
+
+    final currentHoveredId = state.hoveredEdgeId;
+    if (hit != currentHoveredId) {
+      // Update the hovered state via mutation
+      _mutate((s) => s.copyWith(hoveredEdgeId: hit));
+
+      // Emit leave event for the old edge
+      if (currentHoveredId != null) {
+        edgeInteractionCallbacks.onMouseLeave(currentHoveredId, event);
+        _edgeStreams.emitEvent(
+            EdgeMouseLeaveEvent(edgeId: currentHoveredId, details: event));
+      }
+      // Emit enter event for the new edge
+      if (hit != null) {
+        edgeInteractionCallbacks.onMouseEnter(hit, event);
+        _edgeStreams
+            .emitEvent(EdgeMouseEnterEvent(edgeId: hit, details: event));
+      }
+    }
+
+    // Always emit mouse move for the currently hovered edge
+    if (hit != null) {
+      edgeInteractionCallbacks.onMouseMove(hit, event);
+      _edgeStreams.emitEvent(EdgeMouseMoveEvent(edgeId: hit, details: event));
+    }
+  }
+
+  /// Handles tap down events on an edge or the pane.
+  void onEdgeTapDown(TapDownDetails details, Offset localPosition) {
+    final hit = edgeGeometryService.hitTestEdgeAt(
+        localPosition, state, state.viewport.zoom);
+
+    // Update the last clicked edge ID in the state
+    _mutate((s) => s.copyWith(lastClickedEdgeId: hit));
+
+    if (hit != null) {
+      // Check selectable property from the edge model, not context
+      if (state.edges[hit]?.selectable ?? true) {
+        selectEdge(hit, addToSelection: false);
+      }
+      edgeInteractionCallbacks.onClick(hit, details);
+      _edgeStreams.emitEvent(EdgeClickEvent(edgeId: hit, details: details));
+    } else {
+      // If no edge was hit, treat it as a pane tap
+      deselectAll();
+      paneCallbacks.onTap(details);
+    }
+  }
+
+  /// Handles double tap events on an edge.
+  void onEdgeDoubleTap() {
+    final lastDownEdgeId = state.lastClickedEdgeId;
+    if (lastDownEdgeId != null) {
+      edgeInteractionCallbacks.onDoubleClick(lastDownEdgeId);
+      _edgeStreams.emitEvent(EdgeDoubleClickEvent(edgeId: lastDownEdgeId));
+    }
+  }
+
+  /// Handles long press events for showing a context menu on an edge.
+  void onEdgeLongPressStart(
+      LongPressStartDetails details, Offset localPosition) {
+    final hit = edgeGeometryService.hitTestEdgeAt(
+        localPosition, state, state.viewport.zoom);
+    if (hit != null) {
+      edgeInteractionCallbacks.onContextMenu(hit, details);
+      _edgeStreams
+          .emitEvent(EdgeContextMenuEvent(edgeId: hit, details: details));
+    }
   }
 
   // =================================================================================
@@ -512,45 +622,42 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void selectNode(String nodeId, {bool addToSelection = false}) {
     final wasSelected = state.selectedNodes.contains(nodeId);
+
     _mutate((s) => _selectionService.toggleNodeSelection(s, nodeId,
         addToSelection: addToSelection));
+
     final isSelected = state.selectedNodes.contains(nodeId);
 
+    // Only emit an event if the selection state actually changed.
     if (wasSelected != isSelected) {
-      final event = NodeChangeEvent(
-          nodeId: nodeId, type: NodeChangeType.selection, newValue: isSelected);
-      _nodeStreams.emitChanges([event]);
+      // Emit a single, global event describing the new selection state.
+      _selectionStreams.emitEvent(SelectionChangeEvent(
+        selectedNodeIds: state.selectedNodes,
+        selectedEdgeIds: state.selectedEdges,
+        state: state,
+      ));
     }
-    _selectionStreams.emit(SelectionChangeEvent(
-      selectedNodeIds: state.selectedNodes,
-      selectedEdgeIds: state.selectedEdges,
-      state: state,
-    ));
   }
 
   void selectEdge(String edgeId, {bool addToSelection = false}) {
     final wasSelected = state.selectedEdges.contains(edgeId);
+    // Mutate the selection state using the selection service
     _mutate((s) => _selectionService.toggleEdgeSelection(s, edgeId,
         addToSelection: addToSelection));
     final isSelected = state.selectedEdges.contains(edgeId);
 
     if (wasSelected != isSelected) {
-      final event = EdgeChangeEvent(
-          edgeId: edgeId,
-          type: EdgeEventType.change,
-          data: {'selected': isSelected});
-      _edgeStreams.emitChanges([event]);
+      _selectionStreams.emitEvent(SelectionChangeEvent(
+        selectedNodeIds: state.selectedNodes,
+        selectedEdgeIds: state.selectedEdges,
+        state: state,
+      ));
     }
-    _selectionStreams.emit(SelectionChangeEvent(
-      selectedNodeIds: state.selectedNodes,
-      selectedEdgeIds: state.selectedEdges,
-      state: state,
-    ));
   }
 
   void selectAll() {
     _mutate((s) => _selectionService.selectAll(s));
-    _selectionStreams.emit(SelectionChangeEvent(
+    _selectionStreams.emitEvent(SelectionChangeEvent(
       selectedNodeIds: state.selectedNodes,
       selectedEdgeIds: state.selectedEdges,
       state: state,
@@ -567,7 +674,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void endSelection() {
     _mutate((s) => _selectionService.endBoxSelection(s));
-    _selectionStreams.emit(SelectionChangeEvent(
+    _selectionStreams.emitEvent(SelectionChangeEvent(
       selectedNodeIds: state.selectedNodes,
       selectedEdgeIds: state.selectedEdges,
       state: state,
@@ -576,26 +683,22 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void deselectAll() {
     _mutate((s) => _selectionService.deselectAll(s));
-    _selectionStreams.emit(SelectionChangeEvent(
+    _selectionStreams.emitEvent(SelectionChangeEvent(
       selectedNodeIds: state.selectedNodes,
       selectedEdgeIds: state.selectedEdges,
       state: state,
     ));
   }
 
-// =================================================================================
+  // =================================================================================
   // --- Handle State ---
   // =================================================================================
 
-  /// Updates the hover state of a specific handle.
   void setHandleHover(String handleKey, bool isHovered) {
-    // This is a direct UI state update and should not create a history entry.
-    // It's a transient visual state.
     final currentStates =
         Map<String, HandleRuntimeState>.from(state.handleStates);
     final currentState = currentStates[handleKey] ?? const HandleRuntimeState();
 
-    // Avoid unnecessary state updates
     if (currentState.isHovered == isHovered) return;
 
     currentStates[handleKey] = currentState.copyWith(isHovered: isHovered);
@@ -634,9 +737,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       return;
     }
 
-    // BUG: cursorScreenPosition is in RENDER space (from canvas RenderBox)
-    // but queryHandlesNear expects CARTESIAN space
-    // Convert screen position to cartesian coordinates
     final cartesianPosition =
         coordinateConverter.toCartesianPosition(cursorScreenPosition);
 
@@ -655,7 +755,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     final wasSuccessful = state.edges.length > oldState.edges.length;
 
     if (wasSuccessful) {
-      // Reconstruct the successful connection object for the event
       final newEdge = state.edges.values
           .firstWhere((e) => !oldState.edges.containsKey(e.id));
       final finalConnection = pendingConnection.copyWith(
@@ -680,11 +779,9 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   void sendSelectionToBack() =>
       _mutate((s) => _zIndexService.sendSelectedToBack(s));
 
-  /// Brings a single, specific node to the front.
   void bringNodeToFront(String nodeId) =>
       _mutate((s) => _zIndexService.bringToFront(s, nodeId));
 
-  /// Sends a single, specific node to the back.
   void sendNodeToBack(String nodeId) =>
       _mutate((s) => _zIndexService.sendToBack(s, nodeId));
 
@@ -710,42 +807,57 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   // --- Clipboard ---
   // =================================================================================
 
+  /// Copies the currently selected nodes and edges to the internal clipboard.
   void copySelection() {
-    _clipboardService.copy(state);
+    // The copy service returns a payload that we store in the controller.
+    _clipboardPayload = _clipboardService.copy(state);
   }
 
+  /// Pastes the content from the internal clipboard onto the canvas.
   void paste({Offset? positionOffset}) {
+    // Do nothing if the clipboard is empty.
+    if (_clipboardPayload == null) return;
+
     final oldState = state;
     _mutate((s) {
-      final payload = _clipboardService.copy(s);
-      // NOTE: This assumes your ClipboardService has been updated to accept
-      // the node and edge services to properly update the indexes.
+      // Use the stored payload instead of re-copying.
       return _clipboardService.paste(
         s,
-        payload,
+        _clipboardPayload!,
         positionOffset: positionOffset ?? const Offset(20, 20),
         nodeService: _nodeService,
         edgeService: _edgeService,
       );
     });
 
-    // Diff the state to find out what was added
+    // Find the newly added elements by comparing the state before and after.
     final newNodes =
         state.nodes.values.where((n) => !oldState.nodes.containsKey(n.id));
     final newEdges =
         state.edges.values.where((e) => !oldState.edges.containsKey(e.id));
 
+    // Emit bulk lifecycle events for the newly pasted nodes and edges.
     if (newNodes.isNotEmpty) {
-      _nodeStreams.emitChanges(newNodes
-          .map((n) => NodeChangeEvent(
-              nodeId: n.id, type: NodeChangeType.add, newValue: n))
-          .toList());
+      final nodeEvents = newNodes
+          .map((n) => NodeLifecycleEvent(
+                type: NodeLifecycleType.add,
+                state: state,
+                nodeId: n.id,
+                data: n,
+              ))
+          .toList();
+      _nodesStateStreams.emitBulk(nodeEvents);
     }
     if (newEdges.isNotEmpty) {
-      _edgeStreams.emitChanges(newEdges
-          .map((e) => EdgeChangeEvent(
-              edgeId: e.id, type: EdgeEventType.change, data: e))
-          .toList());
+      final edgeEvents = newEdges
+          .map((e) => EdgeLifecycleEvent(
+                type: EdgeLifecycleType.add,
+                state: state,
+                edgeId: e.id,
+                data: e,
+              ))
+          .toList();
+      _edgesStateStreams.emitBulk(edgeEvents);
     }
   }
 
@@ -780,15 +892,14 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
 
   void fromJson(Map<String, dynamic> json) {
     _mutate((s) => _serializationService.fromJson(s, json));
-    _history.clear(); // Clear history after loading a new state
+    _history.clear();
     _history.init(state);
   }
 
   // =================================================================================
-  // --- QUERIES (Read-only operations) ---
+  // --- QUERIES ---
   // =================================================================================
 
-  // -- Node Queries --
   List<FlowNode> findNodesInRect(Rect rect) =>
       _nodeQueryService.queryInRect(state, rect);
   List<FlowNode> findNodesNearPoint(Offset point, double radius) =>
@@ -802,7 +913,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       _viewportService.getNodeBounds(state,
           nodeIds: nodeIds, includeHidden: includeHidden);
 
-  // -- Edge Queries --
   Set<String> getEdgesForNode(String nodeId) =>
       _edgeQueryService.getEdgesForNode(state, nodeId);
   Set<String> getEdgesForHandle(String nodeId, String handleId) =>

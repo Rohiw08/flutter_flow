@@ -1,26 +1,31 @@
-import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
-import 'package:flutter/material.dart';
+import 'dart:ui';
+
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
 
 enum ViewportEventType {
-  pan, // For pan and zoom
-  zoom,
-  resize, // For when the widget size changes
+  /// Event for pan (translate) and zoom changes.
+  transform,
+
+  /// Event for when the canvas widget itself is resized.
+  resize,
 }
 
 class ViewportEvent {
   final ViewportEventType type;
-  final FlowCanvasState state;
+
+  /// The new state of the viewport after the event.
+  final FlowViewport viewport;
+
+  /// The size of the canvas widget.
+  final Size? viewportSize;
   final DateTime timestamp;
 
   ViewportEvent({
     required this.type,
-    required this.state,
+    required this.viewport,
+    this.viewportSize,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
-
-  FlowViewport get viewport => state.viewport;
-  Size? get viewportSize => state.viewportSize;
 
   @override
   String toString() =>

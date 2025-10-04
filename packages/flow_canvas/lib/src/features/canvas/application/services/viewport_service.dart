@@ -44,11 +44,7 @@ class ViewportService {
     final newZoom = (state.viewport.zoom * zoomFactor).clamp(minZoom, maxZoom);
 
     if (newZoom == state.viewport.zoom) return state;
-
-    // Calculate the point on the canvas under the focal point (e.g., cursor)
     final canvasPoint = screenToCanvas(state, focalPoint);
-
-    // Calculate the new offset to keep the canvas point stationary under the focal point
     final newOffset = focalPoint - (canvasPoint * newZoom);
 
     return state.copyWith(
