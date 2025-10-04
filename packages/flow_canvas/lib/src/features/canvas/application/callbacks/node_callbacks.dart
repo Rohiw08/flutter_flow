@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flow_canvas/src/features/canvas/application/streams/node_change_stream.dart';
-import '../events/node_change_event.dart';
+import '../streams/node_change_stream.dart';
+import '../streams/nodes_flow_state_change_stream.dart';
+import '../events/nodes_flow_state_change_event.dart';
 
+/// --- Interaction Callbacks ---
 typedef NodeClickCallback = void Function(
     String nodeId, TapDownDetails details);
 typedef NodeDoubleClickCallback = void Function(String nodeId);
@@ -13,18 +14,16 @@ typedef NodeDragCallback = void Function(
 typedef NodeDragStopCallback = void Function(
     String nodeId, DragEndDetails details);
 typedef NodeMouseEnterCallback = void Function(
-    String nodeId, PointerEnterEvent event);
+    String nodeId, PointerEvent event);
 typedef NodeMouseMoveCallback = void Function(
-    String nodeId, PointerHoverEvent event);
+    String nodeId, PointerEvent event);
 typedef NodeMouseLeaveCallback = void Function(
-    String nodeId, PointerExitEvent event);
+    String nodeId, PointerEvent event);
 typedef NodeContextMenuCallback = void Function(
     String nodeId, LongPressStartDetails details);
-typedef NodesDeleteCallback = void Function(List<String> nodeIds);
-typedef NodesChangeCallback = void Function(List<NodeChangeEvent> changes);
 
 @immutable
-class NodeCallbacks {
+class NodeInteractionCallbacks {
   final NodeClickCallback onClick;
   final NodeDoubleClickCallback onDoubleClick;
   final NodeDragStartCallback onDragStart;
@@ -34,11 +33,9 @@ class NodeCallbacks {
   final NodeMouseMoveCallback onMouseMove;
   final NodeMouseLeaveCallback onMouseLeave;
   final NodeContextMenuCallback onContextMenu;
-  final NodesDeleteCallback onNodesDelete;
-  final NodesChangeCallback onNodesChange;
-  final NodeStreams? streams;
+  final NodeInteractionStreams? streams;
 
-  const NodeCallbacks({
+  const NodeInteractionCallbacks({
     this.onClick = _defaultOnClick,
     this.onDoubleClick = _defaultOnDoubleClick,
     this.onDragStart = _defaultOnDragStart,
@@ -48,26 +45,21 @@ class NodeCallbacks {
     this.onMouseMove = _defaultOnMouseMove,
     this.onMouseLeave = _defaultOnMouseLeave,
     this.onContextMenu = _defaultOnContextMenu,
-    this.onNodesDelete = _defaultOnNodesDelete,
-    this.onNodesChange = _defaultOnNodesChange,
     this.streams,
   });
 
-  // Default implementations (do nothing)
   static void _defaultOnClick(String nodeId, TapDownDetails details) {}
   static void _defaultOnDoubleClick(String nodeId) {}
   static void _defaultOnDragStart(String nodeId, DragStartDetails details) {}
   static void _defaultOnDrag(String nodeId, DragUpdateDetails details) {}
   static void _defaultOnDragStop(String nodeId, DragEndDetails details) {}
-  static void _defaultOnMouseEnter(String nodeId, PointerEnterEvent event) {}
-  static void _defaultOnMouseMove(String nodeId, PointerHoverEvent event) {}
-  static void _defaultOnMouseLeave(String nodeId, PointerExitEvent event) {}
+  static void _defaultOnMouseEnter(String nodeId, PointerEvent event) {}
+  static void _defaultOnMouseMove(String nodeId, PointerEvent event) {}
+  static void _defaultOnMouseLeave(String nodeId, PointerEvent event) {}
   static void _defaultOnContextMenu(
       String nodeId, LongPressStartDetails details) {}
-  static void _defaultOnNodesDelete(List<String> nodeIds) {}
-  static void _defaultOnNodesChange(List<NodeChangeEvent> changes) {}
 
-  NodeCallbacks copyWith({
+  NodeInteractionCallbacks copyWith({
     NodeClickCallback? onClick,
     NodeDoubleClickCallback? onDoubleClick,
     NodeDragStartCallback? onDragStart,
@@ -77,11 +69,9 @@ class NodeCallbacks {
     NodeMouseMoveCallback? onMouseMove,
     NodeMouseLeaveCallback? onMouseLeave,
     NodeContextMenuCallback? onContextMenu,
-    NodesDeleteCallback? onNodesDelete,
-    NodesChangeCallback? onNodesChange,
-    NodeStreams? streams,
+    NodeInteractionStreams? streams,
   }) {
-    return NodeCallbacks(
+    return NodeInteractionCallbacks(
       onClick: onClick ?? this.onClick,
       onDoubleClick: onDoubleClick ?? this.onDoubleClick,
       onDragStart: onDragStart ?? this.onDragStart,
@@ -91,45 +81,45 @@ class NodeCallbacks {
       onMouseMove: onMouseMove ?? this.onMouseMove,
       onMouseLeave: onMouseLeave ?? this.onMouseLeave,
       onContextMenu: onContextMenu ?? this.onContextMenu,
-      onNodesDelete: onNodesDelete ?? this.onNodesDelete,
-      onNodesChange: onNodesChange ?? this.onNodesChange,
       streams: streams ?? this.streams,
     );
   }
+}
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is NodeCallbacks &&
-        other.onClick == onClick &&
-        other.onDoubleClick == onDoubleClick &&
-        other.onDragStart == onDragStart &&
-        other.onDrag == onDrag &&
-        other.onDragStop == onDragStop &&
-        other.onMouseEnter == onMouseEnter &&
-        other.onMouseMove == onMouseMove &&
-        other.onMouseLeave == onMouseLeave &&
-        other.onContextMenu == onContextMenu &&
-        other.onNodesDelete == onNodesDelete &&
-        other.onNodesChange == onNodesChange &&
-        other.streams == streams;
-  }
+/// --- Node State Change Callbacks ---
+typedef NodeAddCallback = void Function(NodeLifecycleEvent event);
+typedef NodeUpdateCallback = void Function(NodeLifecycleEvent event);
+typedef NodeRemoveCallback = void Function(NodeLifecycleEvent event);
 
-  @override
-  int get hashCode {
-    return Object.hash(
-      onClick,
-      onDoubleClick,
-      onDragStart,
-      onDrag,
-      onDragStop,
-      onMouseEnter,
-      onMouseMove,
-      onMouseLeave,
-      onContextMenu,
-      onNodesDelete,
-      onNodesChange,
-      streams,
+@immutable
+class NodeStateCallbacks {
+  final NodeAddCallback onNodeAdd;
+  final NodeUpdateCallback onNodeUpdate;
+  final NodeRemoveCallback onNodeRemove;
+  final NodesStateStreams? streams;
+
+  const NodeStateCallbacks({
+    this.onNodeAdd = _defaultOnNodeAdd,
+    this.onNodeUpdate = _defaultOnNodeUpdate,
+    this.onNodeRemove = _defaultOnNodeRemove,
+    this.streams,
+  });
+
+  static void _defaultOnNodeAdd(NodeLifecycleEvent event) {}
+  static void _defaultOnNodeUpdate(NodeLifecycleEvent event) {}
+  static void _defaultOnNodeRemove(NodeLifecycleEvent event) {}
+
+  NodeStateCallbacks copyWith({
+    NodeAddCallback? onNodeAdd,
+    NodeUpdateCallback? onNodeUpdate,
+    NodeRemoveCallback? onNodeRemove,
+    NodesStateStreams? streams,
+  }) {
+    return NodeStateCallbacks(
+      onNodeAdd: onNodeAdd ?? this.onNodeAdd,
+      onNodeUpdate: onNodeUpdate ?? this.onNodeUpdate,
+      onNodeRemove: onNodeRemove ?? this.onNodeRemove,
+      streams: streams ?? this.streams,
     );
   }
 }

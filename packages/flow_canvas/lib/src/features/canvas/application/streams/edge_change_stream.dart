@@ -1,46 +1,34 @@
 import 'dart:async';
-
 import 'package:flow_canvas/src/features/canvas/application/events/edge_change_event.dart';
 
-class EdgeStreams {
-  final StreamController<EdgeChangeEvent> _edgeChangeEventController =
-      StreamController<EdgeChangeEvent>.broadcast();
-  final StreamController<List<EdgeChangeEvent>> _edgeChangeController =
-      StreamController<List<EdgeChangeEvent>>.broadcast();
+/// Streams for edge interaction events (click, hover, reconnect, etc.)
+class EdgeInteractionStreams {
+  final StreamController<EdgeInteractionEvent> _controller =
+      StreamController<EdgeInteractionEvent>.broadcast();
 
-  Stream<EdgeChangeEvent> get events => _edgeChangeEventController.stream;
-  Stream<List<EdgeChangeEvent>> get changes => _edgeChangeController.stream;
+  Stream<EdgeInteractionEvent> get events => _controller.stream;
 
-  // Filtered streams for specific event types
-  Stream<EdgeChangeEvent> get clickEvents =>
-      events.where((event) => event.type == EdgeEventType.click);
-  Stream<EdgeChangeEvent> get doubleClickEvents =>
-      events.where((event) => event.type == EdgeEventType.doubleClick);
-  Stream<EdgeChangeEvent> get mouseEvents => events.where((event) =>
-      event.type == EdgeEventType.mouseEnter ||
-      event.type == EdgeEventType.mouseMove ||
-      event.type == EdgeEventType.mouseLeave);
-  Stream<EdgeChangeEvent> get contextMenuEvents =>
-      events.where((event) => event.type == EdgeEventType.contextMenu);
-  Stream<EdgeChangeEvent> get deleteEvents =>
-      events.where((event) => event.type == EdgeEventType.delete);
-  Stream<EdgeChangeEvent> get reconnectEvents =>
-      events.where((event) => event.type == EdgeEventType.reconnect);
+  // Filtered streams
+  Stream<EdgeInteractionEvent> get clickEvents =>
+      events.where((e) => e.type == EdgeInteractionType.click);
+  Stream<EdgeInteractionEvent> get doubleClickEvents =>
+      events.where((e) => e.type == EdgeInteractionType.doubleClick);
+  Stream<EdgeInteractionEvent> get mouseEnterEvents =>
+      events.where((e) => e.type == EdgeInteractionType.mouseEnter);
+  Stream<EdgeInteractionEvent> get mouseMoveEvents =>
+      events.where((e) => e.type == EdgeInteractionType.mouseMove);
+  Stream<EdgeInteractionEvent> get mouseLeaveEvents =>
+      events.where((e) => e.type == EdgeInteractionType.mouseLeave);
+  Stream<EdgeInteractionEvent> get contextMenuEvents =>
+      events.where((e) => e.type == EdgeInteractionType.contextMenu);
 
-  void emitEvent(EdgeChangeEvent event) {
-    if (!_edgeChangeEventController.isClosed) {
-      _edgeChangeEventController.add(event);
-    }
-  }
-
-  void emitChanges(List<EdgeChangeEvent> changes) {
-    if (!_edgeChangeController.isClosed && changes.isNotEmpty) {
-      _edgeChangeController.add(changes);
+  void emitEvent(EdgeInteractionEvent event) {
+    if (!_controller.isClosed) {
+      _controller.add(event);
     }
   }
 
   void dispose() {
-    _edgeChangeEventController.close();
-    _edgeChangeController.close();
+    _controller.close();
   }
 }

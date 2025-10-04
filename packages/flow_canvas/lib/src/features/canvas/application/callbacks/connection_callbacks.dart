@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/models/connection.dart';
 import '../../domain/models/handle.dart';
 import '../../domain/models/node.dart';
 import '../streams/connection_change_stream.dart';
 
-/// Called when a valid connection is successfully created.
 typedef ConnectCallback = void Function(FlowConnection connection);
-
-/// Called when a connection gesture starts (drag from a handle begins).
 typedef ConnectStartCallback = void Function(FlowConnection pendingConnection);
-
-/// Called when a connection gesture ends, whether successful or cancelled.
-typedef ConnectEndCallback = void Function(FlowConnection? connection);
-
-/// Validation function to decide if a proposed connection is allowed.
+typedef ConnectEndCallback = void Function(FlowConnection pendingConnection);
 typedef ConnectionValidator = bool Function({
   required FlowNode sourceNode,
   required NodeHandle sourceHandle,
@@ -24,19 +16,10 @@ typedef ConnectionValidator = bool Function({
 
 @immutable
 class ConnectionCallbacks {
-  /// Fires when a valid connection is successfully created.
   final ConnectCallback onConnect;
-
-  /// Fires when a connection gesture starts.
   final ConnectStartCallback onConnectStart;
-
-  /// Fires when a connection gesture ends (successfully or not).
   final ConnectEndCallback onConnectEnd;
-
-  /// Custom validation for proposed connections.
   final ConnectionValidator isValidConnection;
-
-  /// Optional event stream for external listeners.
   final ConnectionStreams? streams;
 
   const ConnectionCallbacks({
@@ -50,16 +33,15 @@ class ConnectionCallbacks {
   // ---- Default no-op implementations ----
   static void _defaultOnConnect(FlowConnection connection) {}
   static void _defaultOnConnectStart(FlowConnection pendingConnection) {}
-  static void _defaultOnConnectEnd(FlowConnection? connection) {}
+  static void _defaultOnConnectEnd(FlowConnection pendingConnection) {}
   static bool _defaultIsValidConnection({
     required FlowNode sourceNode,
     required NodeHandle sourceHandle,
     required FlowNode targetNode,
     required NodeHandle targetHandle,
   }) =>
-      true; // Default allows all connections.
+      true;
 
-  /// Creates a copy with any subset of callbacks replaced.
   ConnectionCallbacks copyWith({
     ConnectCallback? onConnect,
     ConnectStartCallback? onConnectStart,

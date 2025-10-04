@@ -1,31 +1,38 @@
+import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
+import 'package:flutter/gestures.dart';
 
 enum PaneEventType {
-  move,
   moveStart,
+  move,
   moveEnd,
   click,
-  contextMenu,
+  doubleClick,
   scroll,
-  mouseMove,
+  contextMenu,
   mouseEnter,
+  mouseMove,
   mouseLeave,
 }
 
+/// Represents a user interaction event that occurs on the canvas pane itself.
 class PaneEvent {
   final PaneEventType type;
-  final FlowViewport? viewport;
+  final FlowCanvasState state;
+  final Offset? canvasPosition;
   final dynamic details;
 
   PaneEvent({
     required this.type,
-    this.viewport,
+    required this.state,
+    this.canvasPosition,
     this.details,
-    DateTime? timestamp,
   });
+
+  FlowViewport get viewport => state.viewport;
 
   @override
   String toString() {
-    return 'PaneEvent{type: $type, viewport: $viewport, details: $details}';
+    return 'PaneEvent{type: $type, canvasPosition: $canvasPosition, viewport: $viewport}';
   }
 }

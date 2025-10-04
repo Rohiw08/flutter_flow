@@ -5,7 +5,7 @@ class SelectionStreams {
   final _controller = StreamController<SelectionChangeEvent>.broadcast();
   Stream<SelectionChangeEvent> get events => _controller.stream;
 
-  void emit(SelectionChangeEvent event) {
+  void emitEvent(SelectionChangeEvent event) {
     _controller.add(event);
   }
 

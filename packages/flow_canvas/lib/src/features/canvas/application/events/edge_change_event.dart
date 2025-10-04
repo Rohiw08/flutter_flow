@@ -1,22 +1,20 @@
-enum EdgeEventType {
+/// User interaction events specific to one edge.
+enum EdgeInteractionType {
   click,
   doubleClick,
   mouseEnter,
   mouseMove,
   mouseLeave,
   contextMenu,
-  delete,
-  change,
-  reconnect,
 }
 
-class EdgeChangeEvent {
+class EdgeInteractionEvent {
   final String edgeId;
-  final EdgeEventType type;
-  final dynamic data;
+  final EdgeInteractionType type;
+  final dynamic data; // e.g., gesture details, pointer position
   final DateTime timestamp;
 
-  EdgeChangeEvent({
+  EdgeInteractionEvent({
     required this.edgeId,
     required this.type,
     this.data,
@@ -24,7 +22,6 @@ class EdgeChangeEvent {
   }) : timestamp = timestamp ?? DateTime.now();
 
   @override
-  String toString() {
-    return 'EdgeChangeEvent{edgeId: $edgeId, type: $type, data: $data, timestamp: $timestamp}';
-  }
+  String toString() =>
+      'EdgeInteractionEvent{edgeId: $edgeId, type: $type, data: $data, timestamp: $timestamp}';
 }

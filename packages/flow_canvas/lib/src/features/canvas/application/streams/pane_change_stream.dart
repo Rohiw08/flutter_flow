@@ -17,6 +17,8 @@ class PaneStreams {
       events.where((event) => event.type == PaneEventType.moveEnd);
   Stream<PaneEvent> get clickEvents =>
       events.where((event) => event.type == PaneEventType.click);
+  Stream<PaneEvent> get doubleClickEvents =>
+      events.where((event) => event.type == PaneEventType.doubleClick);
   Stream<PaneEvent> get contextMenuEvents =>
       events.where((event) => event.type == PaneEventType.contextMenu);
   Stream<PaneEvent> get scrollEvents =>

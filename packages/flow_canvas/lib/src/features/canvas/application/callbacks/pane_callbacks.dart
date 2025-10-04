@@ -5,41 +5,25 @@ import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart
 import '../../../../shared/enums.dart';
 import '../streams/pane_change_stream.dart';
 
-/// Called when the viewport is moved (panned or zoomed).
 typedef PaneMoveCallback = void Function(
   FlowViewport viewport,
   DragDetails? details,
 );
-
-/// Called when a viewport move gesture starts.
 typedef PaneMoveStartCallback = void Function(
   FlowViewport viewport,
   DragDetails? details,
 );
-
-/// Called when a viewport move gesture ends.
 typedef PaneMoveEndCallback = void Function(
   FlowViewport viewport,
   DragDetails? details,
 );
-
-/// Called when the user taps the empty pane area.
 typedef PaneTapCallback = void Function(TapDownDetails details);
-
-/// Called when the user opens a context menu (long-press) on the pane.
 typedef PaneContextMenuCallback = void Function(LongPressStartDetails details);
-
-/// Called when the user scrolls inside the pane (e.g., for zoom).
 typedef PaneScrollCallback = void Function(PointerScrollEvent event);
-
-/// Called when the mouse moves over the pane.
-typedef PaneMouseMoveCallback = void Function(PointerHoverEvent event);
-
-/// Called when the mouse enters the pane.
-typedef PaneMouseEnterCallback = void Function(PointerEnterEvent event);
-
-/// Called when the mouse leaves the pane.
-typedef PaneMouseLeaveCallback = void Function(PointerExitEvent event);
+// UPDATED: Standardized to PointerEvent for consistency
+typedef PaneMouseMoveCallback = void Function(PointerEvent event);
+typedef PaneMouseEnterCallback = void Function(PointerEvent event);
+typedef PaneMouseLeaveCallback = void Function(PointerEvent event);
 
 @immutable
 class PaneCallbacks {
@@ -75,11 +59,11 @@ class PaneCallbacks {
   static void _defaultOnTap(TapDownDetails details) {}
   static void _defaultOnContextMenu(LongPressStartDetails details) {}
   static void _defaultOnScroll(PointerScrollEvent event) {}
-  static void _defaultOnMouseMove(PointerHoverEvent event) {}
-  static void _defaultOnMouseEnter(PointerEnterEvent event) {}
-  static void _defaultOnMouseLeave(PointerExitEvent event) {}
+  // UPDATED: Standardized to PointerEvent
+  static void _defaultOnMouseMove(PointerEvent event) {}
+  static void _defaultOnMouseEnter(PointerEvent event) {}
+  static void _defaultOnMouseLeave(PointerEvent event) {}
 
-  /// Returns a copy with selectively overridden callbacks/streams.
   PaneCallbacks copyWith({
     PaneMoveCallback? onMove,
     PaneMoveStartCallback? onMoveStart,
@@ -143,16 +127,18 @@ class DragDetails {
   final Offset localPosition;
   final Offset globalPosition;
   final Offset delta;
+  final Offset canvasPosition;
 
   const DragDetails({
     required this.dragMode,
     required this.localPosition,
     required this.globalPosition,
     required this.delta,
+    required this.canvasPosition,
   });
 
   @override
   String toString() =>
       'DragDetails(dragMode: $dragMode, local: $localPosition, '
-      'global: $globalPosition, delta: $delta)';
+      'global: $globalPosition, delta: $delta, canvas: $canvasPosition)';
 }
