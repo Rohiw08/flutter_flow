@@ -1,4 +1,4 @@
-import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
+import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,44 +58,18 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
   Widget build(BuildContext context) {
     final controller = ref.watch(internalControllerProvider.notifier);
     final state = ref.watch(internalControllerProvider);
-    final options = ref.read(flowOptionsProvider);
     final style = _resolvedStyle;
 
-    // Create coordinate converter
-    final coordinateConverter = CanvasCoordinateConverter(
-      canvasWidth: options.canvasWidth,
-      canvasHeight: options.canvasHeight,
-    );
-
-    final viewportSize = state.viewportSize ?? Size.zero;
-    final viewportRect = Rect.fromLTWH(
-      -state.viewport.offset.dx / state.viewport.zoom,
-      -state.viewport.offset.dy / state.viewport.zoom,
-      viewportSize.width / state.viewport.zoom,
-      viewportSize.height / state.viewport.zoom,
-    );
-
-    // Convert viewport from render coordinates to cartesian coordinates
-    final cartesianViewportRect =
-        coordinateConverter.renderRectToCartesianRect(viewportRect);
-
-    // Convert nodes from render coordinates to cartesian coordinates
+    // The nodes in the state are already in the correct Cartesian coordinate system.
+    // We can pass them directly to the painter.
     final nodes = state.nodes.values.toList();
-    final cartesianNodes = nodes.map((node) {
-      final cartesianRect =
-          coordinateConverter.renderRectToCartesianRect(node.rect);
-      return FlowNode(
-        id: node.id,
-        position: cartesianRect.topLeft,
-        size: cartesianRect.size,
-        hitTestPadding: node.hitTestPadding,
-        data: node.data,
-        type: node.type,
-        draggable: node.draggable,
-        selectable: node.selectable,
-        deletable: node.deletable,
-      );
-    }).toList();
+
+    // CORRECTLY calculate the viewport rectangle in Cartesian coordinates.
+    final viewportSize = state.viewportSize ?? Size.zero;
+    final topLeft = controller.screenToCanvasPosition(Offset.zero);
+    final bottomRight = controller.screenToCanvasPosition(
+        Offset(viewportSize.width, viewportSize.height));
+    final cartesianViewportRect = Rect.fromPoints(topLeft, bottomRight);
 
     return Align(
       alignment: widget.alignment,
@@ -121,18 +95,17 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: widget.pannable
-                  ? (details) => _onTapUp(details, cartesianNodes, style,
-                      controller, coordinateConverter)
+                  ? (details) => _onTapUp(details, nodes, style, controller)
                   : null,
               onPanUpdate: widget.pannable
-                  ? (details) => _onPanUpdate(details, cartesianNodes, style,
-                      controller, coordinateConverter)
+                  ? (details) => _onPanUpdate(
+                      details, nodes, style, controller, state.viewport.zoom)
                   : null,
               child: RepaintBoundary(
                 child: CustomPaint(
                   painter: MiniMapPainter(
-                    nodes: cartesianNodes, // Use converted nodes
-                    viewport: cartesianViewportRect, // Use converted viewport
+                    nodes: nodes, // Use original nodes
+                    viewport: cartesianViewportRect, // Use corrected viewport
                     theme: style,
                   ),
                   size: Size(widget.width, widget.height),
@@ -147,49 +120,44 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
 
   void _onTapUp(
     TapUpDetails details,
-    List<FlowNode> cartesianNodes,
+    List<FlowNode> nodes,
     FlowMinimapStyle style,
-    dynamic controller,
-    CanvasCoordinateConverter coordinateConverter,
+    FlowCanvasController controller,
   ) {
     final transform = MiniMapPainter.calculateTransform(
-      _getBounds(cartesianNodes),
+      _getBounds(nodes),
       Size(widget.width, widget.height),
       style,
     );
     if (transform.scale <= 0) return;
 
-    // Get position in cartesian space from minimap click
     final cartesianPosition =
         MiniMapPainter.fromMiniMapToCanvas(details.localPosition, transform);
 
-    // Pass the cartesian position directly to the controller
-    // The controller should handle coordinate conversion internally if needed
     controller.centerOnPosition(cartesianPosition);
   }
 
   void _onPanUpdate(
     DragUpdateDetails details,
-    List<FlowNode> cartesianNodes,
+    List<FlowNode> nodes,
     FlowMinimapStyle style,
-    dynamic controller,
-    CanvasCoordinateConverter coordinateConverter,
+    FlowCanvasController controller,
+    double mainCanvasZoom,
   ) {
     final transform = MiniMapPainter.calculateTransform(
-      _getBounds(cartesianNodes),
+      _getBounds(nodes),
       Size(widget.width, widget.height),
       style,
     );
     if (transform.scale <= 0) return;
 
-    // Convert the pan delta to cartesian space
-    final cartesianDelta = details.delta / transform.scale;
+    // Convert the drag delta from minimap pixels to canvas pixels
+    final canvasDelta = details.delta / transform.scale;
+    // Convert canvas pixels to screen pixels for the main view
+    final screenDelta = canvasDelta * mainCanvasZoom;
 
-    // Convert to render delta for the controller
-    final renderDelta = coordinateConverter.toRenderDelta(cartesianDelta);
-
-    // Apply the pan with correct delta
-    controller.pan(-renderDelta);
+    // Call the new panBy method with the inverted delta
+    controller.panBy(-screenDelta);
   }
 
   Rect _getBounds(List<FlowNode> nodes) {
@@ -199,11 +167,17 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
         .reduce((value, element) => value.expandToInclude(element));
   }
 
-  void _onPointerSignal(PointerSignalEvent event, dynamic controller) {
+  void _onPointerSignal(
+      PointerSignalEvent event, FlowCanvasController controller) {
     if (event is PointerScrollEvent) {
+      final options = ref.read(flowOptionsProvider);
       final zoomDelta = -event.scrollDelta.dy * 0.001;
-      controller.zoom(zoomDelta,
-          focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0);
+      controller.zoom(
+        zoomFactor: zoomDelta,
+        focalPoint: event.position,
+        minZoom: options.viewportOptions.minZoom,
+        maxZoom: options.viewportOptions.maxZoom,
+      );
     }
   }
 }

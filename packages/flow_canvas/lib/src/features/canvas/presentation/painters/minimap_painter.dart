@@ -61,59 +61,74 @@ class MiniMapPainter extends CustomPainter {
         Rect.fromLTWH(0, 0, size.width, size.height), _backgroundPaint);
 
     // Draw nodes
-    _drawNodes(canvas, transform);
+    _drawNodes(canvas, transform, size); // Pass size for Y-flipping
 
     // Draw viewport indicator
-    _drawViewport(canvas, transform);
+    _drawViewport(canvas, transform, size); // Pass size for Y-flipping
 
     canvas.restore();
   }
 
-  void _drawNodes(Canvas canvas, MiniMapTransform transform) {
+  void _drawNodes(Canvas canvas, MiniMapTransform transform, Size minimapSize) {
     for (final node in nodes) {
-      final nodeRect = fromCanvasToMiniMap(node.rect, transform);
+      final transformedRect = fromCanvasToMiniMap(node.rect, transform);
+
+      // --- FIX: Flip the Y-coordinate ---
+      // The transform calculates the position assuming a top-left origin.
+      // We flip it vertically to match the Cartesian system.
+      final flippedTop = minimapSize.height - transformedRect.bottom;
+      final finalRect = Rect.fromLTWH(
+        transformedRect.left,
+        flippedTop,
+        transformedRect.width,
+        transformedRect.height,
+      );
+
       // Make sure nodes are visible even when very small
       const minSize = 2.0;
       final adjustedRect = Rect.fromLTWH(
-        nodeRect.left,
-        nodeRect.top,
-        math.max(nodeRect.width, minSize),
-        math.max(nodeRect.height, minSize),
+        finalRect.left,
+        finalRect.top,
+        math.max(finalRect.width, minSize),
+        math.max(finalRect.height, minSize),
       );
       canvas.drawRect(adjustedRect, _nodePaint);
     }
   }
 
-  void _drawViewport(Canvas canvas, MiniMapTransform transform) {
+  void _drawViewport(
+      Canvas canvas, MiniMapTransform transform, Size minimapSize) {
     if (viewport.isEmpty) return;
 
-    final viewportInMiniMap = fromCanvasToMiniMap(viewport, transform);
+    final transformedRect = fromCanvasToMiniMap(viewport, transform);
 
-    // Draw viewport fill (semi-transparent)
-    canvas.drawRect(viewportInMiniMap, _viewportFillPaint);
+    // --- FIX: Flip the Y-coordinate ---
+    final flippedTop = minimapSize.height - transformedRect.bottom;
+    final finalRect = Rect.fromLTWH(
+      transformedRect.left,
+      flippedTop,
+      transformedRect.width,
+      transformedRect.height,
+    );
 
-    // Draw viewport border
-    canvas.drawRect(viewportInMiniMap, _viewportStrokePaint);
+    canvas.drawRect(finalRect, _viewportFillPaint);
+    canvas.drawRect(finalRect, _viewportStrokePaint);
   }
 
-  // FIXED: Calculate bounds that include both nodes AND viewport
   Rect _getCombinedBounds(List<FlowNode> nodes, Rect viewport) {
     if (nodes.isEmpty && viewport.isEmpty) return Rect.zero;
 
     Rect? combinedBounds;
 
-    // Include all node bounds
     if (nodes.isNotEmpty) {
       combinedBounds =
           nodes.map((node) => node.rect).reduce((a, b) => a.expandToInclude(b));
     }
 
-    // Include viewport bounds
     if (!viewport.isEmpty) {
       combinedBounds = combinedBounds?.expandToInclude(viewport) ?? viewport;
     }
 
-    // Add some padding to ensure everything is visible
     if (combinedBounds != null && !combinedBounds.isEmpty) {
       final padding =
           math.max(combinedBounds.width, combinedBounds.height) * 0.1;
@@ -123,7 +138,7 @@ class MiniMapPainter extends CustomPainter {
     return combinedBounds ?? Rect.zero;
   }
 
-  // --- STATIC UTILITY METHODS ---
+  // --- STATIC UTILITY METHODS (No changes needed here) ---
 
   static MiniMapTransform calculateTransform(
       Rect contentBounds, Size minimapSize, FlowMinimapStyle theme) {

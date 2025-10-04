@@ -18,8 +18,7 @@ mixin _$FlowCanvasState {
   Map<String, FlowNode> get nodes;
   Map<String, FlowEdge> get edges;
   Map<String, NodeRuntimeState> get nodeStates;
-  Map<String, EdgeRuntimeState>
-      get edgeStates; // ADDED: State management for handles
+  Map<String, EdgeRuntimeState> get edgeStates;
   Map<String, HandleRuntimeState> get handleStates;
   Set<String> get selectedNodes;
   Set<String> get selectedEdges;
@@ -35,6 +34,8 @@ mixin _$FlowCanvasState {
   FlowConnectionRuntimeState? get connectionState;
   Rect? get selectionRect;
   DragMode get dragMode;
+  String? get hoveredEdgeId;
+  String? get lastClickedEdgeId;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -84,7 +85,11 @@ mixin _$FlowCanvasState {
             (identical(other.selectionRect, selectionRect) ||
                 other.selectionRect == selectionRect) &&
             (identical(other.dragMode, dragMode) ||
-                other.dragMode == dragMode));
+                other.dragMode == dragMode) &&
+            (identical(other.hoveredEdgeId, hoveredEdgeId) ||
+                other.hoveredEdgeId == hoveredEdgeId) &&
+            (identical(other.lastClickedEdgeId, lastClickedEdgeId) ||
+                other.lastClickedEdgeId == lastClickedEdgeId));
   }
 
   @override
@@ -108,12 +113,14 @@ mixin _$FlowCanvasState {
         connection,
         connectionState,
         selectionRect,
-        dragMode
+        dragMode,
+        hoveredEdgeId,
+        lastClickedEdgeId
       ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
   }
 }
 
@@ -142,7 +149,9 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       FlowConnection? connection,
       FlowConnectionRuntimeState? connectionState,
       Rect? selectionRect,
-      DragMode dragMode});
+      DragMode dragMode,
+      String? hoveredEdgeId,
+      String? lastClickedEdgeId});
 
   $FlowViewportCopyWith<$Res> get viewport;
   $FlowConnectionCopyWith<$Res>? get connection;
@@ -181,6 +190,8 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? connectionState = freezed,
     Object? selectionRect = freezed,
     Object? dragMode = null,
+    Object? hoveredEdgeId = freezed,
+    Object? lastClickedEdgeId = freezed,
   }) {
     return _then(_self.copyWith(
       nodes: null == nodes
@@ -259,6 +270,14 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.dragMode
           : dragMode // ignore: cast_nullable_to_non_nullable
               as DragMode,
+      hoveredEdgeId: freezed == hoveredEdgeId
+          ? _self.hoveredEdgeId
+          : hoveredEdgeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastClickedEdgeId: freezed == lastClickedEdgeId
+          ? _self.lastClickedEdgeId
+          : lastClickedEdgeId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 
@@ -414,7 +433,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             FlowConnection? connection,
             FlowConnectionRuntimeState? connectionState,
             Rect? selectionRect,
-            DragMode dragMode)?
+            DragMode dragMode,
+            String? hoveredEdgeId,
+            String? lastClickedEdgeId)?
         $default, {
     required TResult orElse(),
   }) {
@@ -440,7 +461,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.connection,
             _that.connectionState,
             _that.selectionRect,
-            _that.dragMode);
+            _that.dragMode,
+            _that.hoveredEdgeId,
+            _that.lastClickedEdgeId);
       case _:
         return orElse();
     }
@@ -480,7 +503,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             FlowConnection? connection,
             FlowConnectionRuntimeState? connectionState,
             Rect? selectionRect,
-            DragMode dragMode)
+            DragMode dragMode,
+            String? hoveredEdgeId,
+            String? lastClickedEdgeId)
         $default,
   ) {
     final _that = this;
@@ -505,7 +530,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.connection,
             _that.connectionState,
             _that.selectionRect,
-            _that.dragMode);
+            _that.dragMode,
+            _that.hoveredEdgeId,
+            _that.lastClickedEdgeId);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -544,7 +571,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             FlowConnection? connection,
             FlowConnectionRuntimeState? connectionState,
             Rect? selectionRect,
-            DragMode dragMode)?
+            DragMode dragMode,
+            String? hoveredEdgeId,
+            String? lastClickedEdgeId)?
         $default,
   ) {
     final _that = this;
@@ -569,7 +598,9 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.connection,
             _that.connectionState,
             _that.selectionRect,
-            _that.dragMode);
+            _that.dragMode,
+            _that.hoveredEdgeId,
+            _that.lastClickedEdgeId);
       case _:
         return null;
     }
@@ -598,7 +629,9 @@ class _FlowCanvasState extends FlowCanvasState {
       this.connection,
       this.connectionState,
       this.selectionRect,
-      this.dragMode = DragMode.none})
+      this.dragMode = DragMode.none,
+      this.hoveredEdgeId,
+      this.lastClickedEdgeId})
       : _nodes = nodes,
         _edges = edges,
         _nodeStates = nodeStates,
@@ -647,9 +680,7 @@ class _FlowCanvasState extends FlowCanvasState {
     return EqualUnmodifiableMapView(_edgeStates);
   }
 
-// ADDED: State management for handles
   final Map<String, HandleRuntimeState> _handleStates;
-// ADDED: State management for handles
   @override
   @JsonKey()
   Map<String, HandleRuntimeState> get handleStates {
@@ -716,6 +747,10 @@ class _FlowCanvasState extends FlowCanvasState {
   @override
   @JsonKey()
   final DragMode dragMode;
+  @override
+  final String? hoveredEdgeId;
+  @override
+  final String? lastClickedEdgeId;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -765,7 +800,11 @@ class _FlowCanvasState extends FlowCanvasState {
             (identical(other.selectionRect, selectionRect) ||
                 other.selectionRect == selectionRect) &&
             (identical(other.dragMode, dragMode) ||
-                other.dragMode == dragMode));
+                other.dragMode == dragMode) &&
+            (identical(other.hoveredEdgeId, hoveredEdgeId) ||
+                other.hoveredEdgeId == hoveredEdgeId) &&
+            (identical(other.lastClickedEdgeId, lastClickedEdgeId) ||
+                other.lastClickedEdgeId == lastClickedEdgeId));
   }
 
   @override
@@ -789,12 +828,14 @@ class _FlowCanvasState extends FlowCanvasState {
         connection,
         connectionState,
         selectionRect,
-        dragMode
+        dragMode,
+        hoveredEdgeId,
+        lastClickedEdgeId
       ]);
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, dragMode: $dragMode, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
   }
 }
 
@@ -825,7 +866,9 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       FlowConnection? connection,
       FlowConnectionRuntimeState? connectionState,
       Rect? selectionRect,
-      DragMode dragMode});
+      DragMode dragMode,
+      String? hoveredEdgeId,
+      String? lastClickedEdgeId});
 
   @override
   $FlowViewportCopyWith<$Res> get viewport;
@@ -867,6 +910,8 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? connectionState = freezed,
     Object? selectionRect = freezed,
     Object? dragMode = null,
+    Object? hoveredEdgeId = freezed,
+    Object? lastClickedEdgeId = freezed,
   }) {
     return _then(_FlowCanvasState(
       nodes: null == nodes
@@ -945,6 +990,14 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.dragMode
           : dragMode // ignore: cast_nullable_to_non_nullable
               as DragMode,
+      hoveredEdgeId: freezed == hoveredEdgeId
+          ? _self.hoveredEdgeId
+          : hoveredEdgeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastClickedEdgeId: freezed == lastClickedEdgeId
+          ? _self.lastClickedEdgeId
+          : lastClickedEdgeId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 

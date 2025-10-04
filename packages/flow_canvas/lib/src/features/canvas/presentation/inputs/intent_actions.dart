@@ -50,15 +50,25 @@ Map<Type, Action<Intent>> buildActions(
   return <Type, Action<Intent>>{
     ZoomInIntent: CallbackAction<ZoomInIntent>(
       onInvoke: (intent) {
-        controller.zoom(0.2,
-            focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0);
+        controller.zoom(
+          zoomFactor: 0.2,
+          minZoom: options.viewportOptions.minZoom,
+          maxZoom: options.viewportOptions.minZoom,
+          // TODO: check for implementation of screens centre
+          focalPoint: controller.currentState.viewport.offset,
+        );
         return null;
       },
     ),
     ZoomOutIntent: CallbackAction<ZoomOutIntent>(
       onInvoke: (intent) {
-        controller.zoom(-0.2,
-            focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0);
+        controller.zoom(
+          zoomFactor: -0.2,
+          minZoom: options.viewportOptions.minZoom,
+          maxZoom: options.viewportOptions.minZoom,
+          // TODO: check for implementation of screens centre
+          focalPoint: controller.currentState.viewport.offset,
+        );
         return null;
       },
     ),
@@ -76,11 +86,11 @@ Map<Type, Action<Intent>> buildActions(
     ),
     DeleteIntent: CallbackAction<DeleteIntent>(
       onInvoke: (intent) {
-        // Guard deletions by deletable flags (model override -> global options)
         final state = controller.currentState;
 
         // Nodes
         final defaultNodeDeletable = options.nodeOptions.deletable;
+
         final deletableNodeIds = state.selectedNodes.where((id) {
           final n = state.nodes[id];
           if (n == null) return false;
@@ -96,6 +106,7 @@ Map<Type, Action<Intent>> buildActions(
         }
 
         // Edges (remaining selection might have changed; recompute)
+
         final refreshed = controller.currentState;
         final defaultEdgeDeletable = options.edgeOptions.deletable;
         final deletableEdgeIds = refreshed.selectedEdges.where((id) {

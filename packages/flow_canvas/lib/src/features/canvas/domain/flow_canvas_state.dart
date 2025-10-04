@@ -47,6 +47,8 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     FlowConnectionRuntimeState? connectionState,
     Rect? selectionRect,
     @Default(DragMode.none) DragMode dragMode,
+    String? hoveredEdgeId,
+    String? lastClickedEdgeId,
   }) = _FlowCanvasState;
 
   factory FlowCanvasState.initial() => FlowCanvasState(
@@ -56,7 +58,6 @@ abstract class FlowCanvasState with _$FlowCanvasState {
         selectedEdges: {},
         nodeStates: {},
         edgeStates: {},
-        // ADDED: Initial empty map for handle states
         handleStates: {},
         spatialHash: {},
         edgeIndex: EdgeIndex.empty(),

@@ -1,4 +1,13 @@
-import 'package:flow_canvas/flow_canvas.dart' show FlowOptions;
+import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
+import 'package:flow_canvas/flow_canvas.dart'
+    show
+        EdgeInteractionCallbacks,
+        EdgeStateCallbacks,
+        FlowOptions,
+        PaneCallbacks;
+import 'package:flow_canvas/src/features/canvas/application/callbacks/viewport_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_geometry_service.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
@@ -20,16 +29,16 @@ import '../features/canvas/domain/registries/node_registry.dart';
 
 /// The central provider for the FlowCanvas state and controller.
 ///
-/// This is a `StateNotifierProvider.family` which allows us to pass in the
-/// user-defined registries when the controller is first created. This is the
-/// primary way the UI will interact with the canvas's state.
+/// This provider must be overridden at the root of the FlowCanvas widget tree.
+/// It is responsible for creating the main controller instance.
 final flowControllerProvider =
     StateNotifierProvider<FlowCanvasController, FlowCanvasState>(
   (ref) {
-    // Create the controller
-    return FlowCanvasController(
-      ref,
-    );
+    // This base implementation should never be called. The provider is
+    // overridden in the `FlowCanvas` widget to properly initialize the
+    // controller with an initial state and user-provided callbacks.
+    throw UnimplementedError(
+        'flowControllerProvider must be overridden at the FlowCanvas root.');
   },
 );
 
@@ -57,6 +66,39 @@ final edgeRegistryProvider = Provider<EdgeRegistry>((ref) {
   throw UnimplementedError('EdgeRegistryProvider must be overridden');
 });
 
+// --- Callbacks Provides ---
+
+/// Provider for the user-defined NodeCallbacks.
+/// This should be overridden in the FlowCanvas widget.
+final nodeCallbacksProvider = Provider<NodeInteractionCallbacks>((ref) {
+  throw UnimplementedError('NodeInteractionCallbacks must be overridden');
+});
+
+final nodesStateCallbacksProvider = Provider<NodeStateCallbacks>((ref) {
+  throw UnimplementedError('NodeStateCallbacks must be overridden');
+});
+
+final edgeCallbacksProvider = Provider<EdgeInteractionCallbacks>((ref) {
+  throw UnimplementedError('EdgeInteractionCallbacks must be overridden');
+});
+
+final edgesStateCallbacksProvider = Provider<EdgeStateCallbacks>((ref) {
+  throw UnimplementedError('EdgeStateCallbacks must be overridden');
+});
+
+final paneCallbacksProvider = Provider<PaneCallbacks>((ref) {
+  throw UnimplementedError('PaneCallbacks must be overridden');
+});
+
+final connectionCallbacksProvider = Provider<ConnectionCallbacks>((ref) {
+  throw UnimplementedError('ConnectionCallbacks must be overridden');
+});
+
+final viewportCallbacksProvider = Provider<ViewportCallbacks>((ref) {
+  throw UnimplementedError('ViewportCallbacks must be overridden');
+});
+
+// --- Options Provider ---
 final flowOptionsProvider = Provider<FlowOptions>((ref) {
   throw UnimplementedError('FlowOptionsProvider must be overridden');
 });
@@ -90,6 +132,10 @@ final edgeQueryServiceProvider =
     Provider<EdgeQueryService>((ref) => EdgeQueryService());
 final nodeQueryServiceProvider =
     Provider<NodeQueryService>((ref) => NodeQueryService());
+final edgeGeometryServiceProvider = Provider<EdgeGeometryService>((ref) {
+  final coordinateConverter = ref.watch(coordinateConverterProvider);
+  return EdgeGeometryService(coordinateConverter);
+});
 
 // This one is special as it depends on other services
 final keyboardActionServiceProvider = Provider<KeyboardActionService>((ref) {

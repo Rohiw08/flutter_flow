@@ -1,10 +1,10 @@
-import 'package:flow_canvas/flow_canvas.dart' show FlowPositioned;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/edge_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/pane_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/viewport_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
@@ -39,10 +39,13 @@ class FlowCanvas extends StatefulWidget {
 
   // --- CALLBACKS ---
   final FlowCanvasCreatedCallback? onCanvasCreated;
-  final NodeCallbacks nodeCallbacks;
-  final EdgeCallbacks edgeCallbacks;
+  final NodeInteractionCallbacks nodeInteractionCallbacks;
+  final NodeStateCallbacks nodeStateCallbacks;
+  final EdgeInteractionCallbacks edgeInteractionCallbacks;
+  final EdgeStateCallbacks edgeStateCallbacks;
   final ConnectionCallbacks connectionCallbacks;
   final PaneCallbacks paneCallbacks;
+  final ViewportCallbacks viewportCallbacks;
 
   // --- UI ---
   final List<Widget> overlays;
@@ -56,10 +59,13 @@ class FlowCanvas extends StatefulWidget {
     this.initialEdges,
     this.theme,
     this.options = const FlowOptions(),
-    this.nodeCallbacks = const NodeCallbacks(),
-    this.edgeCallbacks = const EdgeCallbacks(),
+    this.nodeInteractionCallbacks = const NodeInteractionCallbacks(),
+    this.nodeStateCallbacks = const NodeStateCallbacks(),
+    this.edgeInteractionCallbacks = const EdgeInteractionCallbacks(),
+    this.edgeStateCallbacks = const EdgeStateCallbacks(),
     this.connectionCallbacks = const ConnectionCallbacks(),
     this.paneCallbacks = const PaneCallbacks(),
+    this.viewportCallbacks = const ViewportCallbacks(),
     this.overlays = const [],
   });
 
@@ -85,8 +91,23 @@ class _FlowCanvasState extends State<FlowCanvas> {
         nodeRegistryProvider.overrideWithValue(widget.nodeRegistry),
         edgeRegistryProvider.overrideWithValue(widget.edgeRegistry),
         flowOptionsProvider.overrideWithValue(widget.options),
+        nodeCallbacksProvider
+            .overrideWithValue(widget.nodeInteractionCallbacks),
+        nodesStateCallbacksProvider
+            .overrideWithValue(widget.nodeStateCallbacks),
+        edgeCallbacksProvider
+            .overrideWithValue(widget.edgeInteractionCallbacks),
+        edgesStateCallbacksProvider
+            .overrideWithValue(widget.edgeStateCallbacks),
+        connectionCallbacksProvider
+            .overrideWithValue(widget.connectionCallbacks),
+        paneCallbacksProvider.overrideWithValue(widget.paneCallbacks),
+        viewportCallbacksProvider.overrideWithValue(widget.viewportCallbacks),
         flowControllerProvider.overrideWith(
-          (ref) => FlowCanvasController(ref, initialState: initialState),
+          (ref) => FlowCanvasController(
+            ref,
+            initialState: initialState,
+          ),
         ),
         internalControllerProvider.overrideWith(
           (ref) => ref.watch(flowControllerProvider.notifier),
@@ -116,9 +137,12 @@ class _FlowCanvasState extends State<FlowCanvas> {
           options: widget.options,
           child: _FlowCanvasCore(
             overlays: widget.overlays,
-            nodeCallbacks: widget.nodeCallbacks,
-            edgeCallbacks: widget.edgeCallbacks,
+            nodeInteractionCallbacks: widget.nodeInteractionCallbacks,
+            nodeStateCallbacks: widget.nodeStateCallbacks,
+            edgeInteractionCallbacks: widget.edgeInteractionCallbacks,
+            edgeStateCallbacks: widget.edgeStateCallbacks,
             paneCallbacks: widget.paneCallbacks,
+            viewportCallbacks: widget.viewportCallbacks,
           ),
         ),
       ),
@@ -128,15 +152,21 @@ class _FlowCanvasState extends State<FlowCanvas> {
 
 class _FlowCanvasCore extends ConsumerWidget {
   final List<Widget> overlays;
-  final NodeCallbacks nodeCallbacks;
+  final NodeInteractionCallbacks nodeInteractionCallbacks;
+  final NodeStateCallbacks nodeStateCallbacks;
+  final EdgeInteractionCallbacks edgeInteractionCallbacks;
+  final EdgeStateCallbacks edgeStateCallbacks;
   final PaneCallbacks paneCallbacks;
-  final EdgeCallbacks edgeCallbacks;
+  final ViewportCallbacks viewportCallbacks;
 
   const _FlowCanvasCore({
     required this.overlays,
-    required this.nodeCallbacks,
+    required this.nodeInteractionCallbacks,
+    required this.nodeStateCallbacks,
+    required this.edgeInteractionCallbacks,
+    required this.edgeStateCallbacks,
     required this.paneCallbacks,
-    required this.edgeCallbacks,
+    required this.viewportCallbacks,
   });
 
   @override
@@ -196,25 +226,10 @@ class _FlowCanvasCore extends ConsumerWidget {
                         // Background Layer
                         ...backgroundOverlays,
                         // Edges Layer
-                        FlowEdgeLayer(
-                          edgeCallbacks: edgeCallbacks,
-                          paneCallbacks: paneCallbacks,
-                        ),
+                        const FlowEdgeLayer(),
 
                         /// Nodes Layer
-                        FlowNodesLayer(
-                          nodeCallbacks: nodeCallbacks,
-                        ),
-
-                        FlowPositioned(
-                          dx: 0,
-                          dy: 0,
-                          child: Container(
-                            height: 20,
-                            width: 20,
-                            color: Colors.red,
-                          ),
-                        )
+                        const FlowNodesLayer(),
                       ],
                     ),
                   ),

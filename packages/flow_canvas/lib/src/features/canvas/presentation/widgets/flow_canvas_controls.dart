@@ -1,8 +1,9 @@
 import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/options/flow_options.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controller_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/control_button.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controller_theme.dart';
 
 import '../../../../shared/providers.dart';
 import '../theme/components/controller_button_theme.dart';
@@ -39,6 +40,9 @@ class FlowCanvasControls extends ConsumerWidget {
     // Resolve the final theme
     final theme = resolveControlTheme(context, controlsTheme);
     final controller = ref.read(internalControllerProvider.notifier);
+    final options = ref.read(flowOptionsProvider);
+    final viewportSize =
+        ref.watch(internalControllerProvider.select((s) => s.viewportSize));
     final isLocked = ref.watch(
       internalControllerProvider.select((s) => s.isPanZoomLocked),
     );
@@ -55,7 +59,14 @@ class FlowCanvasControls extends ConsumerWidget {
             direction: orientation,
             spacing: spacing ?? 0.0,
             mainAxisSize: MainAxisSize.min,
-            children: _buildButtons(context, theme, controller, isLocked),
+            children: _buildButtons(
+              context,
+              theme,
+              controller,
+              isLocked,
+              options,
+              viewportSize,
+            ),
           ),
         ),
       ),
@@ -67,20 +78,34 @@ class FlowCanvasControls extends ConsumerWidget {
     FlowCanvasControlsStyle theme,
     FlowCanvasController controller,
     bool isLocked,
+    FlowOptions options,
+    Size? viewportSize,
   ) {
+    final screenCenter = viewportSize != null
+        ? Offset(viewportSize.width / 2, viewportSize.height / 2)
+        : Offset.zero;
+
     return [
       if (showZoom) ...[
         ControlButton(
           icon: Icons.add,
           tooltip: 'Zoom In',
-          onPressed: () => controller.zoom(0.2,
-              focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0),
+          onPressed: () => controller.zoom(
+            zoomFactor: 0.2,
+            minZoom: options.viewportOptions.minZoom,
+            maxZoom: options.viewportOptions.maxZoom,
+            focalPoint: screenCenter,
+          ),
         ),
         ControlButton(
           icon: Icons.remove,
           tooltip: 'Zoom Out',
-          onPressed: () => controller.zoom(-0.2,
-              focalPoint: Offset.zero, minZoom: 0.1, maxZoom: 2.0),
+          onPressed: () => controller.zoom(
+            zoomFactor: -0.2,
+            minZoom: options.viewportOptions.minZoom,
+            maxZoom: options.viewportOptions.maxZoom,
+            focalPoint: screenCenter,
+          ),
         ),
       ],
       if (showFitView) ...[
@@ -92,7 +117,7 @@ class FlowCanvasControls extends ConsumerWidget {
         ControlButton(
           icon: Icons.center_focus_strong,
           tooltip: 'Center View',
-          onPressed: () => controller.centerView(),
+          onPressed: () => controller.centerOnOrigin(),
         ),
       ],
       if (showLock)

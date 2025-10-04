@@ -1,13 +1,8 @@
-import 'package:flow_canvas/src/features/canvas/presentation/widgets/flow_positioned.dart';
-import 'package:flow_canvas/src/shared/enums.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
+import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
-import 'package:flow_canvas/src/features/canvas/domain/registries/node_registry.dart';
-
-import '../../../../../shared/providers.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/node_options.dart';
-import 'package:flow_canvas/src/features/canvas/application/streams/node_change_stream.dart';
 
 /// A layer that renders all node widgets.
 ///
@@ -15,22 +10,15 @@ import 'package:flow_canvas/src/features/canvas/application/streams/node_change_
 /// changes (i.e., a node is added or removed), preventing unnecessary rebuilds
 /// when nodes are dragged or other canvas state changes occur.
 class FlowNodesLayer extends ConsumerWidget {
-  final NodeCallbacks nodeCallbacks;
-
   const FlowNodesLayer({
     super.key,
-    required this.nodeCallbacks,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch ONLY the list of node IDs.
     final nodeIds = ref.watch(
       internalControllerProvider.select((state) => state.nodes.keys.toList()),
     );
-
-    // Read registry from provider
-    final nodeRegistry = ref.read(nodeRegistryProvider);
 
     // Render order: zIndex then (optionally) elevate selected
     final opts = NodeOptions.resolve(context);
@@ -56,8 +44,6 @@ class FlowNodesLayer extends ConsumerWidget {
           .map((nodeId) => _NodeWidget(
                 key: ValueKey(nodeId),
                 nodeId: nodeId,
-                nodeRegistry: nodeRegistry,
-                nodeCallbacks: nodeCallbacks,
               ))
           .toList(),
     );
@@ -71,14 +57,10 @@ class FlowNodesLayer extends ConsumerWidget {
 /// rebuild. This is the core of the performance optimization.
 class _NodeWidget extends ConsumerStatefulWidget {
   final String nodeId;
-  final NodeRegistry nodeRegistry;
-  final NodeCallbacks nodeCallbacks;
 
   const _NodeWidget({
     super.key,
     required this.nodeId,
-    required this.nodeRegistry,
-    required this.nodeCallbacks,
   });
 
   @override
@@ -103,6 +85,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
       ),
     );
     final controller = ref.read(internalControllerProvider.notifier);
+    final nodeRegistry = ref.read(nodeRegistryProvider);
 
     // Resolve effective options (consider node overrides and global defaults)
     final resolved = NodeOptions.resolve(context);
@@ -124,113 +107,37 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
       dx: node.position.dx,
       dy: node.position.dy,
       child: SizedBox(
-        width: node.size.width + hitTestPadding,
         height: node.size.height + hitTestPadding,
+        width: node.size.width + hitTestPadding,
         child: MouseRegion(
           cursor: SystemMouseCursors.grab,
-          onEnter: (e) {
-            widget.nodeCallbacks.onMouseEnter(widget.nodeId, e);
-            controller.nodeStreams.emitEvent(NodeEvent(
-              nodeId: widget.nodeId,
-              type: NodeEventType.mouseEnter,
-              data: e,
-            ));
-          },
-          onHover: (e) {
-            widget.nodeCallbacks.onMouseMove(widget.nodeId, e);
-            controller.nodeStreams.emitEvent(NodeEvent(
-              nodeId: widget.nodeId,
-              type: NodeEventType.mouseMove,
-              data: e,
-            ));
-          },
-          onExit: (e) {
-            widget.nodeCallbacks.onMouseLeave(widget.nodeId, e);
-            controller.nodeStreams.emitEvent(NodeEvent(
-              nodeId: widget.nodeId,
-              type: NodeEventType.mouseLeave,
-              data: e,
-            ));
-          },
+          onEnter: (e) => controller.onNodeMouseEnter(widget.nodeId, e),
+          onHover: (e) => controller.onNodeMouseMove(widget.nodeId, e),
+          onExit: (e) => controller.onNodeMouseLeave(widget.nodeId, e),
           child: Focus(
             focusNode: _focusNode,
             canRequestFocus: isFocusable,
             child: GestureDetector(
               behavior: HitTestBehavior.deferToChild,
-              onTapDown: (details) {
-                if (isSelectable) {
-                  controller.selectNode(widget.nodeId, addToSelection: false);
-                }
-                if (isFocusable) {
-                  _focusNode.requestFocus();
-                }
-                widget.nodeCallbacks.onClick(widget.nodeId, details);
-                controller.nodeStreams.emitEvent(NodeEvent(
-                  nodeId: widget.nodeId,
-                  type: NodeEventType.click,
-                  data: details,
-                ));
-              },
-              onDoubleTap: () {
-                widget.nodeCallbacks.onDoubleClick(widget.nodeId);
-                controller.nodeStreams.emitEvent(NodeEvent(
-                  nodeId: widget.nodeId,
-                  type: NodeEventType.doubleClick,
-                ));
-              },
-              onLongPressStart: (details) {
-                widget.nodeCallbacks.onContextMenu(widget.nodeId, details);
-                controller.nodeStreams.emitEvent(NodeEvent(
-                  nodeId: widget.nodeId,
-                  type: NodeEventType.contextMenu,
-                  data: details,
-                ));
-              },
-              // Dragging
+              onTapDown: (details) => controller.onNodeTap(widget.nodeId,
+                  details, isSelectable, _focusNode, isFocusable),
+              onDoubleTap: () => controller.onNodeDoubleClick(widget.nodeId),
+              onLongPressStart: (details) =>
+                  controller.onNodeContextMenu(widget.nodeId, details),
               onPanStart: isDraggable
-                  ? (details) {
-                      controller.startNodeDrag();
-                      widget.nodeCallbacks.onDragStart(widget.nodeId, details);
-                      controller.nodeStreams.emitEvent(NodeEvent(
-                        nodeId: widget.nodeId,
-                        type: NodeEventType.dragStart,
-                        data: details,
-                      ));
-                    }
+                  ? (details) =>
+                      controller.onNodeDragStart(widget.nodeId, details)
                   : null,
               onPanUpdate: isDraggable
-                  ? (details) {
-                      if (isSelectable &&
-                          !controller.currentState.selectedNodes
-                              .contains(widget.nodeId)) {
-                        controller.selectNode(widget.nodeId,
-                            addToSelection: false);
-                      }
-                      // Pass the reliable screenDelta to the controller.
-                      controller.dragSelectedBy(details.delta);
-
-                      widget.nodeCallbacks.onDrag(widget.nodeId, details);
-                      controller.nodeStreams.emitEvent(NodeEvent(
-                        nodeId: widget.nodeId,
-                        type: NodeEventType.drag,
-                        data: details,
-                      ));
-                    }
+                  ? (details) => controller.onNodeDragUpdate(
+                      widget.nodeId, details, isSelectable)
                   : null,
               onPanEnd: isDraggable
-                  ? (details) {
-                      controller.endNodeDrag();
-                      widget.nodeCallbacks.onDragStop(widget.nodeId, details);
-                      controller.nodeStreams.emitEvent(NodeEvent(
-                        nodeId: widget.nodeId,
-                        type: NodeEventType.dragStop,
-                        data: details,
-                      ));
-                    }
+                  ? (details) =>
+                      controller.onNodeDragEnd(widget.nodeId, details)
                   : null,
-
               // Build the user-defined widget for the node.
-              child: widget.nodeRegistry.buildWidget(node),
+              child: nodeRegistry.buildWidget(node),
             ),
           ),
         ),
