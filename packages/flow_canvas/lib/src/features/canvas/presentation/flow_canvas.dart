@@ -1,3 +1,6 @@
+import 'package:flow_canvas/src/features/canvas/domain/indexes/edge_index.dart';
+import 'package:flow_canvas/src/features/canvas/domain/indexes/node_index.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/selection_layer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
@@ -81,9 +84,18 @@ class _FlowCanvasState extends State<FlowCanvas> {
   void initState() {
     super.initState();
 
+    final initialNodesMap = {
+      for (var n in widget.initialNodes ?? []) n.id as String: n as FlowNode
+    };
+    final initialEdgesMap = {
+      for (var e in widget.initialEdges ?? []) e.id as String: e as FlowEdge
+    };
+
     final initialState = FlowCanvasState.initial().copyWith(
-      nodes: {for (var n in widget.initialNodes ?? []) n.id: n},
-      edges: {for (var e in widget.initialEdges ?? []) e.id: e},
+      nodes: initialNodesMap,
+      edges: initialEdgesMap,
+      nodeIndex: NodeIndex.fromNodes(initialNodesMap.values),
+      edgeIndex: EdgeIndex.fromEdges(initialEdgesMap),
     );
 
     _providerContainer = ProviderContainer(
@@ -137,12 +149,6 @@ class _FlowCanvasState extends State<FlowCanvas> {
           options: widget.options,
           child: _FlowCanvasCore(
             overlays: widget.overlays,
-            nodeInteractionCallbacks: widget.nodeInteractionCallbacks,
-            nodeStateCallbacks: widget.nodeStateCallbacks,
-            edgeInteractionCallbacks: widget.edgeInteractionCallbacks,
-            edgeStateCallbacks: widget.edgeStateCallbacks,
-            paneCallbacks: widget.paneCallbacks,
-            viewportCallbacks: widget.viewportCallbacks,
           ),
         ),
       ),
@@ -150,40 +156,29 @@ class _FlowCanvasState extends State<FlowCanvas> {
   }
 }
 
-class _FlowCanvasCore extends ConsumerWidget {
+class _FlowCanvasCore extends ConsumerStatefulWidget {
   final List<Widget> overlays;
-  final NodeInteractionCallbacks nodeInteractionCallbacks;
-  final NodeStateCallbacks nodeStateCallbacks;
-  final EdgeInteractionCallbacks edgeInteractionCallbacks;
-  final EdgeStateCallbacks edgeStateCallbacks;
-  final PaneCallbacks paneCallbacks;
-  final ViewportCallbacks viewportCallbacks;
 
   const _FlowCanvasCore({
     required this.overlays,
-    required this.nodeInteractionCallbacks,
-    required this.nodeStateCallbacks,
-    required this.edgeInteractionCallbacks,
-    required this.edgeStateCallbacks,
-    required this.paneCallbacks,
-    required this.viewportCallbacks,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the globally defined internalControllerProvider
-    final controller = ref.watch(internalControllerProvider.notifier);
-    final options = FlowCanvasOptionsProvider.of(context);
-    final isLocked = ref.watch(
-      internalControllerProvider.select((state) => state.isPanZoomLocked),
-    );
-    final dragMode = ref.watch(
-      internalControllerProvider.select((state) => state.dragMode),
-    );
+  ConsumerState<_FlowCanvasCore> createState() => _FlowCanvasCoreState();
+}
 
-    final backgroundOverlays = overlays.whereType<FlowBackground>().toList();
+class _FlowCanvasCoreState extends ConsumerState<_FlowCanvasCore> {
+  bool _hasInitialized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ref.watch(internalControllerProvider.notifier);
+    final options = ref.read(flowOptionsProvider);
+
+    final backgroundOverlays =
+        widget.overlays.whereType<FlowBackground>().toList();
     final foregroundOverlays =
-        overlays.where((w) => w is! FlowBackground).toList();
+        widget.overlays.where((w) => w is! FlowBackground).toList();
 
     return KeyboardAdapter(
       controller: controller,
@@ -198,6 +193,10 @@ class _FlowCanvasCore extends ConsumerWidget {
                   Size(constraints.maxWidth, constraints.maxHeight),
                 );
               }
+              if (context.mounted && !_hasInitialized) {
+                controller.centerOnPosition(Offset.zero);
+                _hasInitialized = true;
+              }
             },
           );
 
@@ -205,40 +204,57 @@ class _FlowCanvasCore extends ConsumerWidget {
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
-              IgnorePointer(
-                ignoring: isLocked,
-                child: InteractiveViewer(
-                  transformationController: controller.transformationController,
-                  constrained: false,
-                  // panAxis: options.viewportOptions,
-                  // panEnabled: false,
-                  minScale: options.viewportOptions.minZoom,
-                  maxScale: options.viewportOptions.maxZoom,
-                  panEnabled: !isLocked && dragMode == DragMode.none,
-                  scaleEnabled: !isLocked && dragMode == DragMode.none,
-                  child: SizedBox(
-                    key: controller.canvasKey,
-                    width: options.canvasWidth,
-                    height: options.canvasHeight,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Background Layer
-                        ...backgroundOverlays,
-                        // Edges Layer
-                        const FlowEdgeLayer(),
-
-                        /// Nodes Layer
-                        const FlowNodesLayer(),
-                      ],
-                    ),
-                  ),
-                ),
+              _InteractiveViewerWrapper(
+                backgroundOverlays: backgroundOverlays,
               ),
               ...foregroundOverlays,
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _InteractiveViewerWrapper extends ConsumerWidget {
+  final List<FlowBackground> backgroundOverlays;
+
+  const _InteractiveViewerWrapper({
+    required this.backgroundOverlays,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(internalControllerProvider.notifier);
+    final options = ref.read(flowOptionsProvider);
+    final isLocked = ref.watch(
+      internalControllerProvider.select((state) => state.isPanZoomLocked),
+    );
+    final dragMode = ref.watch(
+      internalControllerProvider.select((state) => state.dragMode),
+    );
+
+    // --- SOLUTION IS HERE ---
+    return InteractiveViewer(
+      transformationController: controller.transformationController,
+      constrained: false,
+      minScale: options.viewportOptions.minZoom,
+      maxScale: options.viewportOptions.maxZoom,
+      panEnabled: !isLocked && dragMode != DragMode.selection,
+      scaleEnabled: !isLocked,
+      child: SizedBox(
+        key: controller.canvasKey,
+        width: options.canvasWidth,
+        height: options.canvasHeight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ...backgroundOverlays,
+            const FlowEdgeLayer(),
+            const FlowNodesLayer(),
+            const SelectionLayer(),
+          ],
+        ),
       ),
     );
   }

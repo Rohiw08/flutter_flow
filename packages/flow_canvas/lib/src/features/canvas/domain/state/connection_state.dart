@@ -7,5 +7,6 @@ abstract class FlowConnectionRuntimeState with _$FlowConnectionRuntimeState {
   const factory FlowConnectionRuntimeState({
     @Default(false) bool isAnimating,
     @Default(false) bool isValid,
+    String? potentialTargetHandleKey,
   }) = _FlowConnectionRuntimeState;
 }

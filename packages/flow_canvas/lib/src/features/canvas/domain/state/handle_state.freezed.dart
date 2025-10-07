@@ -18,7 +18,6 @@ mixin _$HandleRuntimeState {
   bool get isHovered;
   bool get isActive; // Currently being used for connection
   bool get isValidTarget; // Valid target for current connection
-  bool get isInvalidTarget; // Invalid target for current connection
 // Connection state
   int get currentConnections; // Number of current connections
   List<String> get connectedEdgeIds; // IDs of connected edges
@@ -44,8 +43,6 @@ mixin _$HandleRuntimeState {
                 other.isActive == isActive) &&
             (identical(other.isValidTarget, isValidTarget) ||
                 other.isValidTarget == isValidTarget) &&
-            (identical(other.isInvalidTarget, isInvalidTarget) ||
-                other.isInvalidTarget == isInvalidTarget) &&
             (identical(other.currentConnections, currentConnections) ||
                 other.currentConnections == currentConnections) &&
             const DeepCollectionEquality()
@@ -60,14 +57,13 @@ mixin _$HandleRuntimeState {
       isHovered,
       isActive,
       isValidTarget,
-      isInvalidTarget,
       currentConnections,
       const DeepCollectionEquality().hash(connectedEdgeIds),
       isAnimating);
 
   @override
   String toString() {
-    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, isInvalidTarget: $isInvalidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
+    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
   }
 }
 
@@ -81,7 +77,6 @@ abstract mixin class $HandleRuntimeStateCopyWith<$Res> {
       {bool isHovered,
       bool isActive,
       bool isValidTarget,
-      bool isInvalidTarget,
       int currentConnections,
       List<String> connectedEdgeIds,
       bool isAnimating});
@@ -103,7 +98,6 @@ class _$HandleRuntimeStateCopyWithImpl<$Res>
     Object? isHovered = null,
     Object? isActive = null,
     Object? isValidTarget = null,
-    Object? isInvalidTarget = null,
     Object? currentConnections = null,
     Object? connectedEdgeIds = null,
     Object? isAnimating = null,
@@ -120,10 +114,6 @@ class _$HandleRuntimeStateCopyWithImpl<$Res>
       isValidTarget: null == isValidTarget
           ? _self.isValidTarget
           : isValidTarget // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isInvalidTarget: null == isInvalidTarget
-          ? _self.isInvalidTarget
-          : isInvalidTarget // ignore: cast_nullable_to_non_nullable
               as bool,
       currentConnections: null == currentConnections
           ? _self.currentConnections
@@ -238,7 +228,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             bool isHovered,
             bool isActive,
             bool isValidTarget,
-            bool isInvalidTarget,
             int currentConnections,
             List<String> connectedEdgeIds,
             bool isAnimating)?
@@ -252,7 +241,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             _that.isHovered,
             _that.isActive,
             _that.isValidTarget,
-            _that.isInvalidTarget,
             _that.currentConnections,
             _that.connectedEdgeIds,
             _that.isAnimating);
@@ -280,7 +268,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             bool isHovered,
             bool isActive,
             bool isValidTarget,
-            bool isInvalidTarget,
             int currentConnections,
             List<String> connectedEdgeIds,
             bool isAnimating)
@@ -293,7 +280,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             _that.isHovered,
             _that.isActive,
             _that.isValidTarget,
-            _that.isInvalidTarget,
             _that.currentConnections,
             _that.connectedEdgeIds,
             _that.isAnimating);
@@ -320,7 +306,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             bool isHovered,
             bool isActive,
             bool isValidTarget,
-            bool isInvalidTarget,
             int currentConnections,
             List<String> connectedEdgeIds,
             bool isAnimating)?
@@ -333,7 +318,6 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
             _that.isHovered,
             _that.isActive,
             _that.isValidTarget,
-            _that.isInvalidTarget,
             _that.currentConnections,
             _that.connectedEdgeIds,
             _that.isAnimating);
@@ -350,7 +334,6 @@ class _HandleRuntimeState implements HandleRuntimeState {
       {this.isHovered = false,
       this.isActive = false,
       this.isValidTarget = false,
-      this.isInvalidTarget = false,
       this.currentConnections = 0,
       final List<String> connectedEdgeIds = const [],
       this.isAnimating = false})
@@ -368,10 +351,6 @@ class _HandleRuntimeState implements HandleRuntimeState {
   @JsonKey()
   final bool isValidTarget;
 // Valid target for current connection
-  @override
-  @JsonKey()
-  final bool isInvalidTarget;
-// Invalid target for current connection
 // Connection state
   @override
   @JsonKey()
@@ -413,8 +392,6 @@ class _HandleRuntimeState implements HandleRuntimeState {
                 other.isActive == isActive) &&
             (identical(other.isValidTarget, isValidTarget) ||
                 other.isValidTarget == isValidTarget) &&
-            (identical(other.isInvalidTarget, isInvalidTarget) ||
-                other.isInvalidTarget == isInvalidTarget) &&
             (identical(other.currentConnections, currentConnections) ||
                 other.currentConnections == currentConnections) &&
             const DeepCollectionEquality()
@@ -429,14 +406,13 @@ class _HandleRuntimeState implements HandleRuntimeState {
       isHovered,
       isActive,
       isValidTarget,
-      isInvalidTarget,
       currentConnections,
       const DeepCollectionEquality().hash(_connectedEdgeIds),
       isAnimating);
 
   @override
   String toString() {
-    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, isInvalidTarget: $isInvalidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
+    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
   }
 }
 
@@ -452,7 +428,6 @@ abstract mixin class _$HandleRuntimeStateCopyWith<$Res>
       {bool isHovered,
       bool isActive,
       bool isValidTarget,
-      bool isInvalidTarget,
       int currentConnections,
       List<String> connectedEdgeIds,
       bool isAnimating});
@@ -474,7 +449,6 @@ class __$HandleRuntimeStateCopyWithImpl<$Res>
     Object? isHovered = null,
     Object? isActive = null,
     Object? isValidTarget = null,
-    Object? isInvalidTarget = null,
     Object? currentConnections = null,
     Object? connectedEdgeIds = null,
     Object? isAnimating = null,
@@ -491,10 +465,6 @@ class __$HandleRuntimeStateCopyWithImpl<$Res>
       isValidTarget: null == isValidTarget
           ? _self.isValidTarget
           : isValidTarget // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isInvalidTarget: null == isInvalidTarget
-          ? _self.isInvalidTarget
-          : isInvalidTarget // ignore: cast_nullable_to_non_nullable
               as bool,
       currentConnections: null == currentConnections
           ? _self.currentConnections

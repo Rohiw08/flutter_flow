@@ -24,14 +24,11 @@ export 'theme_extensions.dart';
 export 'theme_provider.dart';
 
 // Theme Resolvers
-export 'theme_resolver/background_theme_resolver.dart';
 export 'theme_resolver/connection_theme_resolver.dart';
 export 'theme_resolver/controller_theme_resolver.dart';
 export 'theme_resolver/edge_label_theme_resolver.dart';
 export 'theme_resolver/edge_marker_theme_resolver.dart';
 export 'theme_resolver/edge_theme_resolver.dart';
-export 'theme_resolver/handle_theme_resolver.dart';
-export 'theme_resolver/minimap_theme_resolver.dart';
 export 'theme_resolver/node_theme_resolver.dart';
 export 'theme_resolver/selection_theme_resolver.dart';
 export 'theme_resolver/theme_resolver.dart';

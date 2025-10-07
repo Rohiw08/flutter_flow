@@ -32,7 +32,6 @@ class FlowEdgeLayer extends ConsumerWidget {
     // Get precomputed paths directly from the controller/service
     final precomputedPaths =
         controller.edgeGeometryService.getPrecomputedPaths();
-
     // Respect hidden edges option globally by filtering before painting
     final visibleEntries = paintState.edges.entries.where(
       (e) => !(e.value.isHidden(context)),
@@ -56,7 +55,6 @@ class FlowEdgeLayer extends ConsumerWidget {
       nodes: paintState.nodes,
       edges: Map.fromEntries(orderedEdges),
       connection: paintState.connection,
-      selectionRect: paintState.selectionRect,
       style: FlowCanvasThemeProvider.of(context),
       zoom: paintState.zoom,
       nodeStates: paintState.nodeStates,
@@ -112,6 +110,10 @@ class PainterState extends Equatable {
   final Rect? selectionRect;
   final double zoom;
 
+  // Hashes to detect changes
+  final int _nodePositionsHash;
+  final int _edgesHash;
+
   const PainterState({
     required this.nodes,
     required this.edges,
@@ -122,9 +124,20 @@ class PainterState extends Equatable {
     this.connectionState,
     this.selectionRect,
     required this.zoom,
-  });
+    required int nodePositionsHash,
+    required int edgesHash,
+  })  : _nodePositionsHash = nodePositionsHash,
+        _edgesHash = edgesHash;
 
   factory PainterState.fromState(FlowCanvasState s) {
+    // Hash node positions
+    final positionsHash = Object.hashAll(
+      s.nodes.values.map((node) => node.position),
+    );
+
+    // Hash edge keys
+    final edgesHash = Object.hashAll(s.edges.keys);
+
     return PainterState(
       nodes: s.nodes,
       edges: s.edges,
@@ -135,19 +148,21 @@ class PainterState extends Equatable {
       connectionState: s.connectionState,
       selectionRect: s.selectionRect,
       zoom: s.viewport.zoom,
+      nodePositionsHash: positionsHash,
+      edgesHash: edgesHash,
     );
   }
 
   @override
   List<Object?> get props => [
-        nodes,
-        edges,
+        _edgesHash,
         selectedEdges,
         nodeStates,
         edgeStates,
         connection,
         connectionState,
         selectionRect,
-        zoom
+        zoom,
+        _nodePositionsHash,
       ];
 }

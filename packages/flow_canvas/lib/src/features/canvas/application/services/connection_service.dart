@@ -90,7 +90,7 @@ class ConnectionService {
           '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
       newHandleStates[prevTargetKey] =
           (newHandleStates[prevTargetKey] ?? const HandleRuntimeState())
-              .copyWith(isValidTarget: false, isInvalidTarget: false);
+              .copyWith(isValidTarget: false);
     }
 
     String? targetNodeId;
@@ -114,17 +114,6 @@ class ConnectionService {
           (newHandleStates[currentTargetHandleKey] ??
                   const HandleRuntimeState())
               .copyWith(isValidTarget: true);
-    } else {
-      // If there's a handle nearby but it's invalid, mark it as invalid
-      final closestInvalid = _findClosestHandle(state, cursorPosition,
-          snapRadius: snapRadius, validator: validator, ignoreValidation: true);
-      if (closestInvalid != null) {
-        final invalidKey =
-            '${closestInvalid.nodeId}/${closestInvalid.handle.id}';
-        newHandleStates[invalidKey] =
-            (newHandleStates[invalidKey] ?? const HandleRuntimeState())
-                .copyWith(isInvalidTarget: true);
-      }
     }
 
     return state.copyWith(
@@ -174,13 +163,17 @@ class ConnectionService {
         final newEdges = Map<String, FlowEdge>.from(state.edges)
           ..[newEdge.id] = newEdge;
 
+        final newEdgeIndex = state.edgeIndex.addEdge(newEdge, newEdge.id);
+
         return state.copyWith(
           edges: newEdges,
+          edgeIndex: newEdgeIndex,
           connection: null,
           connectionState: null,
           handleStates: newHandleStates,
           dragMode: DragMode.none,
         );
+        // --- END SOLUTION ---
       }
     }
 
@@ -220,7 +213,7 @@ class ConnectionService {
           '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
       newHandleStates[targetKey] =
           (newHandleStates[targetKey] ?? const HandleRuntimeState())
-              .copyWith(isValidTarget: false, isInvalidTarget: false);
+              .copyWith(isValidTarget: false);
     }
 
     return newHandleStates;

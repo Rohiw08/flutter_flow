@@ -8,8 +8,6 @@ abstract class HandleRuntimeState with _$HandleRuntimeState {
     @Default(false) bool isHovered,
     @Default(false) bool isActive, // Currently being used for connection
     @Default(false) bool isValidTarget, // Valid target for current connection
-    @Default(false)
-    bool isInvalidTarget, // Invalid target for current connection
     // Connection state
     @Default(0) int currentConnections, // Number of current connections
     @Default([]) List<String> connectedEdgeIds, // IDs of connected edges

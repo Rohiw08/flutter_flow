@@ -9,151 +9,73 @@ import '../../domain/state/node_state.dart';
 
 /// A stateless service for handling business logic related to selection.
 class SelectionService {
-  // --- NODE SELECTION ---
-
-  /// Replaces the current selection with a single node.
-  FlowCanvasState selectNode(FlowCanvasState state, String nodeId) {
-    if (!state.nodes.containsKey(nodeId)) return state;
-
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
-    // Deselect previously selected nodes
-    for (final id in state.selectedNodes) {
-      if (id != nodeId) {
-        newNodeStates[id] = (newNodeStates[id] ?? const NodeRuntimeState())
-            .copyWith(selected: false);
-      }
-    }
-    // Select the new node
-    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
-        .copyWith(selected: true);
-
-    return state.copyWith(
-      selectedNodes: {nodeId},
-      nodeStates: newNodeStates,
-    );
-  }
-
-  /// Adds a node to the current selection.
-  FlowCanvasState addNodeToSelection(FlowCanvasState state, String nodeId) {
-    if (!state.nodes.containsKey(nodeId) ||
-        state.selectedNodes.contains(nodeId)) {
-      return state;
-    }
-    final newSelection = Set<String>.from(state.selectedNodes)..add(nodeId);
-
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
-    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
-        .copyWith(selected: true);
-
-    return state.copyWith(
-      selectedNodes: newSelection,
-      nodeStates: newNodeStates,
-    );
-  }
-
-  /// Removes a node from the current selection.
-  FlowCanvasState removeNodeFromSelection(
-      FlowCanvasState state, String nodeId) {
-    if (!state.selectedNodes.contains(nodeId)) return state;
-    final newSelection = Set<String>.from(state.selectedNodes)..remove(nodeId);
-
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
-    newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
-        .copyWith(selected: false);
-
-    return state.copyWith(
-      selectedNodes: newSelection,
-      nodeStates: newNodeStates,
-    );
-  }
-
-  /// Toggles a node's selection state, optionally adding to the existing selection.
+  /// Toggles a node's selection state.
+  /// Enforces exclusive selection: selecting a node deselects all other nodes and all edges.
   FlowCanvasState toggleNodeSelection(
     FlowCanvasState state,
     String nodeId, {
-    bool addToSelection = false,
+    bool addToSelection =
+        false, // Note: addToSelection is now effectively ignored for exclusive selection
   }) {
-    final isSelected = state.selectedNodes.contains(nodeId);
-    Set<String> newSelectedNodes;
+    final isAlreadySelected = state.selectedNodes.contains(nodeId);
 
-    if (addToSelection) {
-      newSelectedNodes = Set<String>.from(state.selectedNodes);
-      if (isSelected) {
-        newSelectedNodes.remove(nodeId);
-      } else {
-        newSelectedNodes.add(nodeId);
-      }
-    } else {
-      newSelectedNodes = isSelected ? {} : {nodeId};
+    // If this node is the only thing selected, and we're clicking it again, deselect it.
+    if (isAlreadySelected &&
+        state.selectedNodes.length == 1 &&
+        state.selectedEdges.isEmpty) {
+      return deselectAll(state);
     }
 
-    // Update runtime states
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    // Otherwise, we are selecting this node exclusively.
+    // First, get a clean state with nothing selected.
+    final deselectedState = deselectAll(state);
 
-    // If not adding to selection, first deselect all others
-    if (!addToSelection && !isSelected) {
-      for (final id in state.selectedNodes) {
-        newNodeStates[id] = (newNodeStates[id] ?? const NodeRuntimeState())
-            .copyWith(selected: false);
-      }
-    }
-
-    // Toggle the target node's state
+    // Now, select only the target node.
+    final newSelectedNodes = {nodeId};
+    final newNodeStates =
+        Map<String, NodeRuntimeState>.from(deselectedState.nodeStates);
     newNodeStates[nodeId] = (newNodeStates[nodeId] ?? const NodeRuntimeState())
-        .copyWith(selected: newSelectedNodes.contains(nodeId));
+        .copyWith(selected: true);
 
-    return state.copyWith(
+    return deselectedState.copyWith(
       selectedNodes: newSelectedNodes,
       nodeStates: newNodeStates,
     );
   }
 
-  // --- EDGE SELECTION ---
-
-  /// Toggles the selection state of a single edge.
+  /// Toggles an edge's selection state.
+  /// Enforces exclusive selection: selecting an edge deselects all other edges and all nodes.
   FlowCanvasState toggleEdgeSelection(
     FlowCanvasState state,
     String edgeId, {
-    bool addToSelection = false,
+    bool addToSelection =
+        false, // Note: addToSelection is now effectively ignored
   }) {
-    final newSelectedEdges =
-        addToSelection ? Set<String>.from(state.selectedEdges) : <String>{};
+    final isAlreadySelected = state.selectedEdges.contains(edgeId);
 
-    if (newSelectedEdges.contains(edgeId)) {
-      newSelectedEdges.remove(edgeId);
-    } else {
-      newSelectedEdges.add(edgeId);
+    // If this edge is the only thing selected, and we're clicking it again, deselect it.
+    if (isAlreadySelected &&
+        state.selectedEdges.length == 1 &&
+        state.selectedNodes.isEmpty) {
+      return deselectAll(state);
     }
 
-    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
+    // Otherwise, select this edge exclusively.
+    final deselectedState = deselectAll(state);
+
+    final newSelectedEdges = {edgeId};
+    final newEdgeStates =
+        Map<String, EdgeRuntimeState>.from(deselectedState.edgeStates);
     newEdgeStates[edgeId] = (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
-        .copyWith(selected: newSelectedEdges.contains(edgeId));
+        .copyWith(selected: true);
 
-    return state.copyWith(
-        selectedEdges: newSelectedEdges, edgeStates: newEdgeStates);
-  }
-
-  // --- GLOBAL SELECTION ---
-
-  /// Selects all items on the canvas, with options to specify what to select.
-  FlowCanvasState selectAll(FlowCanvasState state) {
-    final newSelectedNodes = state.nodes.keys.toSet();
-
-    // Update all runtime states
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
-    for (final nodeId in state.nodes.keys) {
-      newNodeStates[nodeId] =
-          (newNodeStates[nodeId] ?? const NodeRuntimeState())
-              .copyWith(selected: newSelectedNodes.contains(nodeId));
-    }
-
-    return state.copyWith(
-      selectedNodes: newSelectedNodes,
-      nodeStates: newNodeStates,
+    return deselectedState.copyWith(
+      selectedEdges: newSelectedEdges,
+      edgeStates: newEdgeStates,
     );
   }
 
-  /// Deselects all nodes and edges.
+  /// Deselects all nodes and edges. This is now the primary helper for ensuring a clean slate.
   FlowCanvasState deselectAll(FlowCanvasState state) {
     if (state.selectedNodes.isEmpty && state.selectedEdges.isEmpty) {
       return state;
@@ -180,43 +102,49 @@ class SelectionService {
     );
   }
 
-  // --- BOX SELECTION ---
+  // The methods below are for multi-selection, which you may want to disable or keep.
+  // For now, they remain but the primary toggle methods enforce single selection.
 
-  /// Starts a box selection gesture.
-  FlowCanvasState startBoxSelection(FlowCanvasState state, Offset position) {
+  FlowCanvasState selectAll(FlowCanvasState state) {
+    final newSelectedNodes = state.nodes.keys.toSet();
+    final newSelectedEdges = state.edges.keys.toSet();
+
+    final newNodeStates = {
+      for (var id in newSelectedNodes)
+        id: const NodeRuntimeState(selected: true)
+    };
+    final newEdgeStates = {
+      for (var id in newSelectedEdges)
+        id: const EdgeRuntimeState(selected: true)
+    };
+
     return state.copyWith(
+      selectedNodes: newSelectedNodes,
+      selectedEdges: newSelectedEdges,
+      nodeStates: newNodeStates,
+      edgeStates: newEdgeStates,
+    );
+  }
+
+  FlowCanvasState startBoxSelection(FlowCanvasState state, Offset position) {
+    return deselectAll(state).copyWith(
       selectionRect: Rect.fromPoints(position, position),
     );
   }
 
-  /// Updates the box selection area and calculates the selected elements within it.
   FlowCanvasState updateBoxSelection(
     FlowCanvasState state,
+    Offset origin,
     Offset position, {
     SelectionMode selectionMode = SelectionMode.partial,
     required NodeQueryService nodeQueryService,
   }) {
     if (state.selectionRect == null) return state;
 
-    final newSelectionRect =
-        Rect.fromPoints(state.selectionRect!.topLeft, position);
-
-    // Use spatial indexing for efficient node querying
+    final newSelectionRect = Rect.fromPoints(origin, position);
     final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
+    final nodesInArea = nodesInRect.map((n) => n.id).toSet();
 
-    final nodesInArea = <String>{};
-    for (final node in nodesInRect) {
-      final overlaps = selectionMode == SelectionMode.partial
-          ? newSelectionRect.overlaps(node.rect)
-          : newSelectionRect.contains(node.rect.topLeft) &&
-              newSelectionRect.contains(node.rect.bottomRight);
-
-      if (overlaps) {
-        nodesInArea.add(node.id);
-      }
-    }
-
-    // Use index-backed queries for edges connected to nodes in the area
     final edgeQuery = EdgeQueryService();
     final edgesInArea = <String>{};
     for (final nodeId in nodesInArea) {
@@ -231,18 +159,14 @@ class SelectionService {
       }
     }
 
-    final newNodeStates = Map<String, NodeRuntimeState>.from(state.nodeStates);
-    for (final nodeId in state.nodes.keys) {
-      newNodeStates[nodeId] =
-          (newNodeStates[nodeId] ?? const NodeRuntimeState())
-              .copyWith(selected: nodesInArea.contains(nodeId));
-    }
-    final newEdgeStates = Map<String, EdgeRuntimeState>.from(state.edgeStates);
-    for (final edgeId in state.edges.keys) {
-      newEdgeStates[edgeId] =
-          (newEdgeStates[edgeId] ?? const EdgeRuntimeState())
-              .copyWith(selected: edgesInArea.contains(edgeId));
-    }
+    final newNodeStates = {
+      for (var id in state.nodes.keys)
+        id: NodeRuntimeState(selected: nodesInArea.contains(id))
+    };
+    final newEdgeStates = {
+      for (var id in state.edges.keys)
+        id: EdgeRuntimeState(selected: edgesInArea.contains(id))
+    };
 
     return state.copyWith(
       selectionRect: newSelectionRect,
@@ -253,7 +177,6 @@ class SelectionService {
     );
   }
 
-  /// Ends the box selection process.
   FlowCanvasState endBoxSelection(FlowCanvasState state) {
     return state.copyWith(
       selectionRect: null,

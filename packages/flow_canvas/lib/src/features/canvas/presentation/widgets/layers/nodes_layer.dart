@@ -1,8 +1,39 @@
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
 import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/node_options.dart';
+import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
+
+class NodesRectPainter extends CustomPainter {
+  final Map<String, FlowNode> nodes;
+  final CanvasCoordinateConverter converter;
+
+  NodesRectPainter(this.nodes, this.converter);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    for (final node in nodes.values) {
+      // Each FlowNode has a rect getter:
+      canvas.drawRect(converter.cartesianRectToRenderRect(node.rect), paint);
+
+      // Optional: draw center marker
+      canvas.drawCircle(node.center, 3, Paint()..color = Colors.red);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant NodesRectPainter oldDelegate) {
+    // Repaint when node positions or sizes change
+    return oldDelegate.nodes != nodes;
+  }
+}
 
 /// A layer that renders all node widgets.
 ///
@@ -10,19 +41,16 @@ import 'package:flow_canvas/src/features/canvas/presentation/options/components/
 /// changes (i.e., a node is added or removed), preventing unnecessary rebuilds
 /// when nodes are dragged or other canvas state changes occur.
 class FlowNodesLayer extends ConsumerWidget {
-  const FlowNodesLayer({
-    super.key,
-  });
+  const FlowNodesLayer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nodeIds = ref.watch(
-      internalControllerProvider.select((state) => state.nodes.keys.toList()),
-    );
+    final state = ref.watch(internalControllerProvider);
+    final nodeIds = state.nodes.keys.toList();
+    final converter = ref.watch(coordinateConverterProvider);
 
-    // Render order: zIndex then (optionally) elevate selected
+    // Sort nodes (your existing logic)
     final opts = NodeOptions.resolve(context);
-    final state = ref.read(internalControllerProvider);
     final selected = state.selectedNodes;
     final sortedIds = [...nodeIds]..sort((a, b) {
         final na = state.nodes[a]!;
@@ -40,12 +68,17 @@ class FlowNodesLayer extends ConsumerWidget {
 
     return Stack(
       clipBehavior: Clip.none,
-      children: sortedIds
-          .map((nodeId) => _NodeWidget(
-                key: ValueKey(nodeId),
-                nodeId: nodeId,
-              ))
-          .toList(),
+      children: [
+        Positioned.fill(
+          child: CustomPaint(
+            painter: NodesRectPainter(state.nodes, converter),
+          ),
+        ),
+        ...sortedIds.map((nodeId) => _NodeWidget(
+              key: ValueKey(nodeId),
+              nodeId: nodeId,
+            )),
+      ],
     );
   }
 }
@@ -95,9 +128,11 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
     final isFocusable = node.focusable ?? resolved.focusable;
     if (isHidden) return const SizedBox.shrink();
 
-    final maxHandleSize = node.handles.values
-        .map((h) => h.size)
-        .fold<double>(0, (max, size) => size > max ? size : max);
+    final maxHandleSize =
+        node.handles.values.map((h) => h.size).fold<double>(0, (max, size) {
+      final larger = size.width > size.height ? size.width : size.height;
+      return larger > max ? larger : max;
+    });
 
     final hitTestPadding = node.hitTestPadding > maxHandleSize
         ? node.hitTestPadding
@@ -119,6 +154,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
             canRequestFocus: isFocusable,
             child: GestureDetector(
               behavior: HitTestBehavior.deferToChild,
+              // TODO: Simplify this
               onTapDown: (details) => controller.onNodeTap(widget.nodeId,
                   details, isSelectable, _focusNode, isFocusable),
               onDoubleTap: () => controller.onNodeDoubleClick(widget.nodeId),

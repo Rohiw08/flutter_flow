@@ -14,7 +14,7 @@ abstract class NodeHandle with _$NodeHandle {
     required HandleType type,
     required Offset position,
     @Default(true) bool isConnectable,
-    @Default(10) double size,
+    @Default(Size(10, 10)) Size size,
   }) = _NodeHandle;
 
   Offset get center => position;

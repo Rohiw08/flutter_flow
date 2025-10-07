@@ -18,7 +18,6 @@ class EdgeGeom {
 
 /// Manages the calculation, caching, and hit-testing of edge geometry.
 class EdgeGeometryService {
-  /// The service depends on a coordinate converter, passed directly.
   final CanvasCoordinateConverter coordinateConverter;
 
   EdgeGeometryService(this.coordinateConverter);
@@ -45,6 +44,43 @@ class EdgeGeometryService {
     }
   }
 
+  /// Updates only edges connected to specific nodes (OPTIMIZED).
+  /// This is much faster when only a few nodes have moved.
+  void updateEdgesForNodes(FlowCanvasState state, Set<String> nodeIds) {
+    if (nodeIds.isEmpty) return;
+
+    final edgesToUpdate = <String>{};
+
+    // Collect all edges connected to the changed nodes
+    for (final nodeId in nodeIds) {
+      edgesToUpdate.addAll(state.edgeIndex.getEdgesForNode(nodeId));
+    }
+    // Only update those specific edges
+    for (final edgeId in edgesToUpdate) {
+      _ensureEdgeGeom(state, edgeId);
+    }
+  }
+
+  /// Updates a single edge (useful when adding/modifying one edge).
+  void updateEdge(FlowCanvasState state, String edgeId) {
+    _edgeVersion.remove(edgeId); // Force recalculation
+    _ensureEdgeGeom(state, edgeId);
+  }
+
+  /// Removes edges from the cache (useful when edges are deleted).
+  void removeEdges(Set<String> edgeIds) {
+    for (final edgeId in edgeIds) {
+      _edgeCache.remove(edgeId);
+      _edgeVersion.remove(edgeId);
+    }
+  }
+
+  /// Clears the entire cache.
+  void clearCache() {
+    _edgeCache.clear();
+    _edgeVersion.clear();
+  }
+
   void _ensureEdgeGeom(FlowCanvasState state, String edgeId) {
     final edge = state.edges[edgeId];
     if (edge == null) return;
@@ -53,8 +89,17 @@ class EdgeGeometryService {
     final targetNode = state.nodes[edge.targetNodeId];
     if (sourceNode == null || targetNode == null) return;
 
-    final version = sourceNode.hashCode ^ targetNode.hashCode ^ edge.hashCode;
-    if (_edgeVersion[edgeId] == version) return;
+    // Version check based on node positions - prevents unnecessary recalculation
+    final version = Object.hash(
+      sourceNode.position,
+      targetNode.position,
+      edge.sourceHandleId,
+      edge.targetHandleId,
+      edge.pathType,
+    );
+
+    final oldVersion = _edgeVersion[edgeId];
+    if (oldVersion == version) return;
 
     final sourceHandle = edge.sourceHandleId != null
         ? sourceNode.handles[edge.sourceHandleId!]
@@ -64,7 +109,6 @@ class EdgeGeometryService {
         : null;
     if (sourceHandle == null || targetHandle == null) return;
 
-    // Use the coordinateConverter directly from the property
     final sourceHandlePosition = coordinateConverter
         .toRenderPosition(sourceNode.center + sourceHandle.center);
     final targetHandlePosition = coordinateConverter
@@ -91,7 +135,6 @@ class EdgeGeometryService {
     _edgeVersion[edgeId] = version;
   }
 
-  // ... hitTestEdgeAt and _isPointNearSamples methods remain exactly the same ...
   String? hitTestEdgeAt(Offset localPos, FlowCanvasState state, double zoom) {
     const double baseTolerance = 8.0;
 

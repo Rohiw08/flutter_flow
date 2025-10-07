@@ -69,6 +69,7 @@ export 'src/shared/enums.dart';
 
 // --- Widgets ---
 export 'src/features/canvas/presentation/widgets/flow_canvas_controls.dart';
+export 'src/features/canvas/presentation/widgets/control_button.dart';
 export 'src/features/canvas/presentation/widgets/flow_minimap.dart';
 export 'src/features/canvas/presentation/widgets/flow_handle.dart';
 export 'src/features/canvas/presentation/widgets/flow_background.dart';

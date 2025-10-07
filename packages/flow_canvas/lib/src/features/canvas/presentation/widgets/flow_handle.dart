@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
-
 import '../../../../shared/providers.dart';
-import '../theme/theme_resolver/handle_theme_resolver.dart';
 
 /// A builder function for creating a custom handle widget.
 /// It receives the handle's current runtime state from the canvas controller
@@ -29,11 +27,9 @@ class Handle extends ConsumerWidget {
 
   /// An optional builder to render a completely custom widget for the handle.
   final HandleBuilder? builder;
-
   // Theming override
   final FlowHandleStyle? handleStyle;
 
-  // REMOVED: `position` property is gone.
   const Handle({
     super.key,
     required this.nodeId,
@@ -55,7 +51,9 @@ class Handle extends ConsumerWidget {
     );
 
     final controller = ref.read(internalControllerProvider.notifier);
-    final theme = resolveHandleTheme(context, handleStyle);
+
+    final baseTheme = context.flowCanvasTheme.handle;
+    final theme = baseTheme.merge(handleStyle);
 
     final finalColor = _getHandleColor(theme, handleState);
     final scale = (handleState.isHovered ||
@@ -104,17 +102,21 @@ class Handle extends ConsumerWidget {
             if (type == HandleType.target) return;
             controller.endConnection();
           },
-          child: AnimatedContainer(
-            duration: theme.enableAnimations!
-                ? const Duration(milliseconds: 150)
-                : Duration.zero,
-            transformAlignment: Alignment.center,
-            transform: Matrix4.identity()..scale(scale),
-            width: theme.size!,
-            height: theme.size!,
-            color: Colors.transparent,
-            child: Center(child: handleCore),
-          ),
+          child: theme.enableAnimations
+              ? AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  transformAlignment: Alignment.center,
+                  transform: Matrix4.identity()..scale(scale),
+                  width: theme.size.width,
+                  height: theme.size.height,
+                  color: Colors.transparent,
+                  child: Center(child: handleCore),
+                )
+              : SizedBox(
+                  width: theme.size.width,
+                  height: theme.size.height,
+                  child: Center(child: handleCore),
+                ),
         ),
       ),
     );
@@ -122,18 +124,15 @@ class Handle extends ConsumerWidget {
 
   Color _getHandleColor(FlowHandleStyle theme, HandleRuntimeState state) {
     if (state.isActive) {
-      return theme.activeColor!;
-    }
-    if (state.isInvalidTarget) {
-      return theme.invalidTargetColor!;
+      return theme.activeColor;
     }
     if (state.isValidTarget) {
-      return theme.validTargetColor!;
+      return theme.validTargetColor;
     }
     if (state.isHovered) {
-      return theme.hoverColor!;
+      return theme.hoverColor;
     }
-    return theme.idleColor!;
+    return theme.idleColor;
   }
 }
 
@@ -147,16 +146,16 @@ class _DefaultHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: theme.size,
-      height: theme.size,
+      width: theme.size.width,
+      height: theme.size.height,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: theme.shape,
         color: color,
         border: Border.all(
-          color: theme.borderColor!,
-          width: theme.borderWidth!,
+          color: theme.borderColor,
+          width: theme.borderWidth,
         ),
-        boxShadow: theme.shadows!,
+        boxShadow: theme.shadows,
       ),
     );
   }

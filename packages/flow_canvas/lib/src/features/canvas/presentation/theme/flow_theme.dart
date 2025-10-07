@@ -115,7 +115,6 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         gradient: null,
         patternOffset: Offset.zero,
         blendMode: BlendMode.srcOver,
-        alternateColors: null,
       ),
       node: FlowNodeStyle(
         defaultBackgroundColor: colorScheme.surfaceContainer,
@@ -192,9 +191,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         hoverColor: colorScheme.primary,
         activeColor: colorScheme.primary,
         validTargetColor: colorScheme.tertiary,
-        invalidTargetColor: colorScheme.error,
         borderColor: colorScheme.surface,
-        size: 10.0,
+        size: const Size(10.0, 10.0),
         borderWidth: 1.5,
         shadows: [
           BoxShadow(

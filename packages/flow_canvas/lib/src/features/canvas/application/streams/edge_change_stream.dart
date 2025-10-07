@@ -44,8 +44,13 @@ class EdgeInteractionStreams {
     }
   }
 
-  void emitBulk() {
-    // TODO: Implement bulk
+  /// Emits multiple edge interaction events at once.
+  void emitBulk(List<EdgeInteractionEvent> events) {
+    if (!_controller.isClosed) {
+      for (final event in events) {
+        _controller.add(event);
+      }
+    }
   }
 
   /// Closes the stream controller. Should be called when the widget is disposed.

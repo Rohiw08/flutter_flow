@@ -13,11 +13,12 @@ class FlowCanvasControls extends ConsumerWidget {
   final bool showZoom;
   final bool showFitView;
   final bool showLock;
+  final bool showUndoRedo;
   final List<Widget> children;
   final Axis orientation;
   final Alignment alignment;
   final EdgeInsetsGeometry margin;
-  final double? spacing; // Added spacing parameter
+  final double? spacing;
 
   // THEME OVERRIDES
   final FlowCanvasControlsStyle? controlsTheme;
@@ -27,6 +28,7 @@ class FlowCanvasControls extends ConsumerWidget {
     this.showZoom = true,
     this.showFitView = true,
     this.showLock = true,
+    this.showUndoRedo = true, // ADDED
     this.orientation = Axis.vertical,
     this.alignment = Alignment.bottomLeft,
     this.margin = const EdgeInsets.all(20),
@@ -117,7 +119,7 @@ class FlowCanvasControls extends ConsumerWidget {
         ControlButton(
           icon: Icons.center_focus_strong,
           tooltip: 'Center View',
-          onPressed: () => controller.centerOnOrigin(),
+          onPressed: () => controller.centerOnPosition(Offset.zero),
         ),
       ],
       if (showLock)
@@ -125,6 +127,20 @@ class FlowCanvasControls extends ConsumerWidget {
             icon: isLocked ? Icons.lock : Icons.lock_open,
             tooltip: isLocked ? 'Unlock' : 'Lock',
             onPressed: controller.toggleLock),
+      // --- SOLUTION ---
+      if (showUndoRedo) ...[
+        ControlButton(
+          icon: Icons.undo,
+          tooltip: 'Undo',
+          onPressed: controller.undo,
+        ),
+        ControlButton(
+          icon: Icons.redo,
+          tooltip: 'Redo',
+          onPressed: controller.redo,
+        ),
+      ],
+      // --- END SOLUTION ---
       ...children,
     ];
   }

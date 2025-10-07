@@ -2,33 +2,29 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/clipboard_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_service.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/history_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/node_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/selection_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/viewport_service.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 
-/// Centralizes keyboard handling using KeyboardOptions mapping and services.
 class KeyboardActionService {
-  final HistoryService history;
   final NodeService nodeService;
-  final EdgeService edgeService;
   final SelectionService selectionService;
   final ViewportService viewportService;
   final ClipboardService clipboardService;
-
-  Map<String, dynamic>? _clipboardPayload;
+  final EdgeService edgeService;
 
   KeyboardActionService({
-    required this.history,
     required this.nodeService,
-    required this.edgeService,
     required this.selectionService,
     required this.viewportService,
     required this.clipboardService,
+    required this.edgeService,
   });
 
+  /// Processes a keyboard action and returns the new state.
+  /// Note: This service no longer interacts with HistoryService directly.
   FlowCanvasState handleAction(
     FlowCanvasState state,
     KeyboardAction action, {
@@ -39,72 +35,59 @@ class KeyboardActionService {
     Offset focalPoint = Offset.zero,
   }) {
     switch (action) {
+      // --- MUTATION ACTIONS (will be wrapped in history by the controller) ---
       case KeyboardAction.selectAll:
-        return history.apply(state, (s) => selectionService.selectAll(s));
+        return selectionService.selectAll(state);
       case KeyboardAction.deselectAll:
-        return history.apply(state, (s) => selectionService.deselectAll(s));
+        return selectionService.deselectAll(state);
       case KeyboardAction.deleteSelection:
-        return history.apply(
-            state,
-            (s) => nodeService.removeNodesAndConnections(
-                state, state.selectedNodes.toList()));
+        return nodeService.removeNodesAndConnections(
+            state, state.selectedNodes.toList());
       case KeyboardAction.moveUp:
-        return history.apply(
-            state,
-            (s) =>
-                nodeService.dragSelectedNodes(s, Offset(0, arrowMoveDelta.dy)));
+        return nodeService.dragSelectedNodes(
+            state, Offset(0, arrowMoveDelta.dy));
       case KeyboardAction.moveDown:
-        // In Cartesian, "Down" is a negative Y value.
-        return history.apply(
-            state,
-            (s) => nodeService.dragSelectedNodes(
-                s, Offset(0, -arrowMoveDelta.dy)));
+        return nodeService.dragSelectedNodes(
+            state, Offset(0, -arrowMoveDelta.dy));
       case KeyboardAction.moveLeft:
-        return history.apply(
-            state,
-            (s) => nodeService.dragSelectedNodes(
-                s, Offset(-arrowMoveDelta.dx, 0)));
+        return nodeService.dragSelectedNodes(
+            state, Offset(-arrowMoveDelta.dx, 0));
       case KeyboardAction.moveRight:
-        return history.apply(
-            state,
-            (s) =>
-                nodeService.dragSelectedNodes(s, Offset(arrowMoveDelta.dx, 0)));
-      case KeyboardAction.zoomIn:
-        return history.apply(
-            state,
-            (s) => viewportService.zoom(
-                  s,
-                  zoomFactor: 1 + zoomStep,
-                  focalPoint: focalPoint,
-                  minZoom: minZoom,
-                  maxZoom: maxZoom,
-                ));
-      case KeyboardAction.zoomOut:
-        return history.apply(
-            state,
-            (s) => viewportService.zoom(
-                  s,
-                  zoomFactor: 1 - zoomStep,
-                  focalPoint: focalPoint,
-                  minZoom: minZoom,
-                  maxZoom: maxZoom,
-                ));
-      case KeyboardAction.resetZoom:
-        return history.apply(
-            state, (s) => s.copyWith(viewport: s.viewport.copyWith(zoom: 1.0)));
+        return nodeService.dragSelectedNodes(
+            state, Offset(arrowMoveDelta.dx, 0));
       case KeyboardAction.duplicateSelection:
-        return history.apply(state, (s) {
-          _clipboardPayload = clipboardService.copy(s);
-          if (_clipboardPayload == null) return s;
-          return clipboardService.paste(s, _clipboardPayload!,
-              positionOffset: const Offset(30, 30),
-              nodeService: nodeService,
-              edgeService: edgeService);
-        });
+        final payload = clipboardService.copy(state);
+        if (payload.isEmpty) return state;
+        return clipboardService.paste(state, payload,
+            positionOffset: const Offset(30, 30),
+            nodeService: nodeService,
+            edgeService: edgeService);
+
+      // --- VIEWPORT (NAVIGATION) ACTIONS (will NOT be wrapped in history) ---
+      case KeyboardAction.zoomIn:
+        return viewportService.zoom(
+          state,
+          zoomFactor: 1 + zoomStep,
+          focalPoint: focalPoint,
+          minZoom: minZoom,
+          maxZoom: maxZoom,
+        );
+      case KeyboardAction.zoomOut:
+        return viewportService.zoom(
+          state,
+          zoomFactor: 1 - zoomStep,
+          focalPoint: focalPoint,
+          minZoom: minZoom,
+          maxZoom: maxZoom,
+        );
+      case KeyboardAction.resetZoom:
+        return state.copyWith(viewport: state.viewport.copyWith(zoom: 1.0));
+
+      // --- HISTORY ACTIONS (handled directly by the controller) ---
       case KeyboardAction.undo:
-        return history.undo() ?? state;
       case KeyboardAction.redo:
-        return history.redo() ?? state;
+        // These actions are now handled in the controller, so we just return the current state.
+        return state;
     }
   }
 }

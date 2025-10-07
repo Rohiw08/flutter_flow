@@ -43,10 +43,10 @@ abstract class FlowCanvasState with _$FlowCanvasState {
     Size? viewportSize,
 
     // Interaction state
+    @Default(DragMode.none) DragMode dragMode,
     FlowConnection? connection,
     FlowConnectionRuntimeState? connectionState,
     Rect? selectionRect,
-    @Default(DragMode.none) DragMode dragMode,
     String? hoveredEdgeId,
     String? lastClickedEdgeId,
   }) = _FlowCanvasState;

@@ -101,20 +101,24 @@ class SerializationService {
         'isConnectable': handle.isConnectable,
       };
 
-  NodeHandle _handleFromJson(Map<String, dynamic> json) => NodeHandle(
-        id: json['id'] as String,
-        position: Offset(
-            (json['x'] as num).toDouble(), (json['y'] as num).toDouble()),
-        // accept either compact 's' or verbose 'size'
-        size: (json['s'] as num?)?.toDouble() ??
-            (json['size'] as num?)?.toDouble() ??
-            10.0,
-        type: HandleType.values.firstWhere(
-          (e) => e.name == (json['type'] as String? ?? 'both'),
-          orElse: () => HandleType.both,
-        ),
-        isConnectable: json['isConnectable'] as bool? ?? true,
-      );
+  NodeHandle _handleFromJson(Map<String, dynamic> json) {
+    return NodeHandle(
+      id: json['id'] as String,
+      position: Offset(
+        (json['x'] as num).toDouble(),
+        (json['y'] as num).toDouble(),
+      ),
+      size: Size(
+        (json['w'] as num).toDouble(),
+        (json['h'] as num).toDouble(),
+      ), // Use the parsed size
+      type: HandleType.values.firstWhere(
+        (e) => e.name == (json['type'] as String? ?? 'both'),
+        orElse: () => HandleType.both,
+      ),
+      isConnectable: json['isConnectable'] as bool? ?? true,
+    );
+  }
 
   // --- Edge and Viewport Serialization (Unchanged) ---
 

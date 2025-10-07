@@ -10,8 +10,8 @@ import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_export.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/edge_path_creator.dart';
 
-/// A painter for drawing the edges, active connection,
-/// and selection rectangle on the canvas.
+/// A painter for drawing the edges and active connection on the canvas.
+/// The selection rectangle is now handled by a separate painter.
 class FlowPainter extends CustomPainter {
   final Map<String, FlowNode> nodes;
   final Map<String, FlowEdge> edges;
@@ -19,7 +19,6 @@ class FlowPainter extends CustomPainter {
   final Map<String, NodeRuntimeState> nodeStates;
   final Map<String, EdgeRuntimeState> edgeStates;
   final FlowConnectionRuntimeState? connectionState;
-  final Rect? selectionRect;
   final FlowCanvasTheme style;
   final double zoom;
   final double canvasHeight;
@@ -35,14 +34,11 @@ class FlowPainter extends CustomPainter {
   final Paint _animatedEdgePaint;
   final Paint _connectionPaint;
   final Paint _connectionEndpointPaint;
-  final Paint _selectionFillPaint;
-  final Paint _selectionStrokePaint;
 
   FlowPainter({
     required this.nodes,
     required this.edges,
     required this.connection,
-    required this.selectionRect,
     required this.style,
     required this.zoom,
     required this.canvasHeight,
@@ -75,11 +71,7 @@ class FlowPainter extends CustomPainter {
           ..strokeWidth = style.connection.strokeWidth
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round,
-        _connectionEndpointPaint = Paint()..style = PaintingStyle.fill,
-        _selectionFillPaint = Paint()..color = style.selection.fillColor!,
-        _selectionStrokePaint = Paint()
-          ..color = style.selection.borderColor!
-          ..style = PaintingStyle.stroke;
+        _connectionEndpointPaint = Paint()..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -92,7 +84,6 @@ class FlowPainter extends CustomPainter {
     // Pass the converter to the drawing methods.
     _drawEdges(canvas, coordinateConverter);
     _drawConnection(canvas, coordinateConverter);
-    _drawSelectionRect(canvas);
   }
 
   void _drawEdges(
@@ -123,17 +114,14 @@ class FlowPainter extends CustomPainter {
       final targetNodeRenderPos =
           coordinateConverter.toRenderPosition(targetNode.position);
 
-      // 2. Add the handle's render-space offset to the node's render position
       final start = sourceNodeRenderPos + sourceHandle.position;
       final end = targetNodeRenderPos + targetHandle.position;
 
-      // Edge runtime state
       final state = edgeStates[edgeId];
       final isSelected = state?.selected ?? false;
       final isHovered = state?.hovered ?? false;
       final isAnimating = state?.isAnimating ?? (edge.animated ?? false);
 
-      // Choose base paint
       Paint paint;
       if (isSelected) {
         paint = _selectedEdgePaint;
@@ -145,12 +133,10 @@ class FlowPainter extends CustomPainter {
         paint = _defaultEdgePaint;
       }
 
-      // Build path and draw (use cache if available)
       final path = precomputedPaths?[edgeId] ??
           EdgePathCreator.createPath(edge.pathType, start, end);
       canvas.drawPath(path, paint);
 
-      // Draw simple arrow head marker at end if configured
       final marker = edge.endMarkerStyle ?? style.edge.markerStyle;
       if (marker?.type != null &&
           marker?.width != null &&
@@ -218,20 +204,10 @@ class FlowPainter extends CustomPainter {
     );
     canvas.drawPath(path, _connectionPaint);
     canvas.drawCircle(
-      renderEndPoint, // Use the converted point for the circle at the end
-      (style.handle.size ?? 10.0) / 2,
+      renderEndPoint,
+      (style.handle.size.height) / 2,
       _connectionEndpointPaint,
     );
-  }
-
-  void _drawSelectionRect(Canvas canvas) {
-    if (selectionRect == null) return;
-    canvas.drawRect(selectionRect!, _selectionFillPaint);
-
-    // Scale the border width to remain visually consistent when zoomed out
-    _selectionStrokePaint.strokeWidth =
-        (style.selection.borderWidth! / zoom).clamp(0.5, 3.0);
-    canvas.drawRect(selectionRect!, _selectionStrokePaint);
   }
 
   @override
@@ -242,7 +218,6 @@ class FlowPainter extends CustomPainter {
         oldDelegate.edgeStates != edgeStates ||
         oldDelegate.connectionState != connectionState ||
         oldDelegate.connection != connection ||
-        oldDelegate.selectionRect != selectionRect ||
         oldDelegate.style != style ||
         oldDelegate.zoom != zoom ||
         oldDelegate.precomputedPaths != precomputedPaths;

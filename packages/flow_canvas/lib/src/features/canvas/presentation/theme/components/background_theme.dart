@@ -1,69 +1,43 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
-import 'package:flutter/foundation.dart';
 
 @immutable
 class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
-  final Color? backgroundColor;
-  final BackgroundVariant? variant;
-  final Color? patternColor;
-  final double? gap;
-  final double? lineWidth;
-  final double? dotRadius;
-  final double? crossSize;
-  final bool? fadeOnZoom;
+  final Color backgroundColor;
+  final BackgroundVariant variant;
+  final Color patternColor;
+  final double gap;
+  final double lineWidth;
+  final double dotRadius;
+  final double crossSize;
+  final bool fadeOnZoom;
   final Gradient? gradient;
-  final Offset? patternOffset;
-  final BlendMode? blendMode;
-  final List<Color>? alternateColors;
+  final Offset patternOffset;
+  final BlendMode blendMode;
 
   const FlowBackgroundStyle({
-    this.backgroundColor,
-    this.variant,
-    this.patternColor,
-    this.gap,
-    this.lineWidth,
-    this.dotRadius,
-    this.crossSize,
-    this.fadeOnZoom,
+    this.backgroundColor = const Color(0xFFFAFAFA),
+    this.variant = BackgroundVariant.dots,
+    this.patternColor = const Color.fromARGB(255, 157, 157, 157),
+    this.gap = 25.0,
+    this.lineWidth = 1.0,
+    this.dotRadius = 0.75,
+    this.crossSize = 8.0,
+    this.fadeOnZoom = true,
     this.gradient,
-    this.patternOffset,
-    this.blendMode,
-    this.alternateColors,
+    this.patternOffset = Offset.zero,
+    this.blendMode = BlendMode.srcOver,
   });
 
   factory FlowBackgroundStyle.light() {
-    return const FlowBackgroundStyle(
-      backgroundColor: Color(0xFFFAFAFA),
-      variant: BackgroundVariant.dots,
-      patternColor: Color.fromARGB(75, 0, 0, 0),
-      gap: 25.0,
-      lineWidth: 1.0,
-      dotRadius: 0.75,
-      crossSize: 8.0,
-      fadeOnZoom: true,
-      gradient: null,
-      patternOffset: Offset.zero,
-      blendMode: BlendMode.srcOver,
-      alternateColors: null,
-    );
+    return const FlowBackgroundStyle(); // Now uses the default constructor values
   }
 
   factory FlowBackgroundStyle.dark() {
     return const FlowBackgroundStyle(
-      backgroundColor: Color(0xFF1A1A1A),
-      variant: BackgroundVariant.dots,
-      patternColor: Color(0xFF404040),
-      gap: 25.0,
-      lineWidth: 1.0,
-      dotRadius: 0.75,
-      crossSize: 8.0,
-      fadeOnZoom: true,
-      gradient: null,
-      patternOffset: Offset.zero,
-      blendMode: BlendMode.srcOver,
-      alternateColors: null,
+      backgroundColor: Color(0xFF404040),
+      patternColor: Color(0xFF1A1A1A),
     );
   }
 
@@ -73,24 +47,34 @@ class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
     double gap = 30.0,
   }) {
     return FlowBackgroundStyle(
-      backgroundColor:
-          colors.isNotEmpty ? colors.first : const Color(0xFF000000),
-      variant: variant,
-      patternColor: colors.length > 1
-          ? colors[1]
-          : (colors.isNotEmpty ? colors.first : const Color(0xFFFFFFFF)),
-      gap: gap,
-      lineWidth: 1.0,
-      dotRadius: 0.75,
-      crossSize: 8.0,
-      fadeOnZoom: true,
-      gradient: LinearGradient(
-          colors: colors.isNotEmpty
-              ? colors
-              : [const Color(0xFF000000), const Color(0xFFFFFFFF)]),
-      patternOffset: Offset.zero,
-      blendMode: BlendMode.srcOver,
-      alternateColors: colors.length > 2 ? colors.sublist(2) : null,
+        backgroundColor:
+            colors.isNotEmpty ? colors.first : const Color(0xFF000000),
+        variant: variant,
+        patternColor: colors.length > 1
+            ? colors[1]
+            : (colors.isNotEmpty ? colors.first : const Color(0xFFFFFFFF)),
+        gap: gap,
+        gradient: LinearGradient(
+            colors: colors.isNotEmpty
+                ? colors
+                : [const Color(0xFF000000), const Color(0xFFFFFFFF)]));
+  }
+
+  /// Merges this style with an optional override style.
+  FlowBackgroundStyle merge(FlowBackgroundStyle? other) {
+    if (other == null) return this;
+    return copyWith(
+      backgroundColor: other.backgroundColor,
+      variant: other.variant,
+      patternColor: other.patternColor,
+      gap: other.gap,
+      lineWidth: other.lineWidth,
+      dotRadius: other.dotRadius,
+      crossSize: other.crossSize,
+      fadeOnZoom: other.fadeOnZoom,
+      gradient: other.gradient,
+      patternOffset: other.patternOffset,
+      blendMode: other.blendMode,
     );
   }
 
@@ -121,7 +105,6 @@ class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
       gradient: gradient ?? this.gradient,
       patternOffset: patternOffset ?? this.patternOffset,
       blendMode: blendMode ?? this.blendMode,
-      alternateColors: alternateColors ?? this.alternateColors,
     );
   }
 
@@ -130,20 +113,17 @@ class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
       ThemeExtension<FlowBackgroundStyle>? other, double t) {
     if (other is! FlowBackgroundStyle) return this;
     return FlowBackgroundStyle(
-      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t),
-      variant: t < 0.5 ? variant : other.variant, // Discrete switch
-      patternColor: Color.lerp(patternColor, other.patternColor, t),
-      gap: lerpDouble(gap, other.gap, t),
-      lineWidth: lerpDouble(lineWidth, other.lineWidth, t),
-      dotRadius: lerpDouble(dotRadius, other.dotRadius, t),
-      crossSize: lerpDouble(crossSize, other.crossSize, t),
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
+      variant: t < 0.5 ? variant : other.variant,
+      patternColor: Color.lerp(patternColor, other.patternColor, t)!,
+      gap: lerpDouble(gap, other.gap, t)!,
+      lineWidth: lerpDouble(lineWidth, other.lineWidth, t)!,
+      dotRadius: lerpDouble(dotRadius, other.dotRadius, t)!,
+      crossSize: lerpDouble(crossSize, other.crossSize, t)!,
       fadeOnZoom: t < 0.5 ? fadeOnZoom : other.fadeOnZoom,
       gradient: Gradient.lerp(gradient, other.gradient, t),
-      patternOffset:
-          Offset.lerp(patternOffset, other.patternOffset, t) ?? Offset.zero,
+      patternOffset: Offset.lerp(patternOffset, other.patternOffset, t)!,
       blendMode: t < 0.5 ? blendMode : other.blendMode,
-      alternateColors:
-          t < 0.5 ? alternateColors : other.alternateColors, // Simplified
     );
   }
 
@@ -161,8 +141,7 @@ class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
         other.fadeOnZoom == fadeOnZoom &&
         other.gradient == gradient &&
         other.patternOffset == patternOffset &&
-        other.blendMode == blendMode &&
-        listEquals(other.alternateColors, alternateColors);
+        other.blendMode == blendMode;
   }
 
   @override
@@ -178,6 +157,5 @@ class FlowBackgroundStyle extends ThemeExtension<FlowBackgroundStyle> {
         gradient,
         patternOffset,
         blendMode,
-        alternateColors == null ? null : Object.hashAll(alternateColors!),
       );
 }

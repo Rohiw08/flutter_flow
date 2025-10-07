@@ -54,7 +54,6 @@ Map<Type, Action<Intent>> buildActions(
           zoomFactor: 0.2,
           minZoom: options.viewportOptions.minZoom,
           maxZoom: options.viewportOptions.minZoom,
-          // TODO: check for implementation of screens centre
           focalPoint: controller.currentState.viewport.offset,
         );
         return null;
@@ -66,7 +65,6 @@ Map<Type, Action<Intent>> buildActions(
           zoomFactor: -0.2,
           minZoom: options.viewportOptions.minZoom,
           maxZoom: options.viewportOptions.minZoom,
-          // TODO: check for implementation of screens centre
           focalPoint: controller.currentState.viewport.offset,
         );
         return null;

@@ -140,7 +140,6 @@ final edgeGeometryServiceProvider = Provider<EdgeGeometryService>((ref) {
 // This one is special as it depends on other services
 final keyboardActionServiceProvider = Provider<KeyboardActionService>((ref) {
   return KeyboardActionService(
-    history: ref.watch(historyServiceProvider),
     nodeService: ref.watch(nodeServiceProvider),
     edgeService: ref.watch(edgeServiceProvider),
     selectionService: ref.watch(selectionServiceProvider),

@@ -1,19 +1,19 @@
-import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/painters/minimap_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/minimap_theme.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_resolver/minimap_theme_resolver.dart';
-
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
 import '../../../../shared/providers.dart';
+import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 
-/// A function that returns a color for a given node in the minimap.
+typedef MiniMapNodeProperty<T> = T Function(FlowNode node);
 typedef MiniMapNodeColorFunc = Color? Function(FlowNode node);
+typedef MiniMapNodeBuilder = Path Function(FlowNode node);
+typedef MiniMapNodeOnClick = void Function(FlowNode node);
 
-/// A highly customizable and performant minimap widget for the FlowCanvas.
-class FlowMiniMap extends ConsumerStatefulWidget {
+class FlowMiniMap extends ConsumerWidget {
   final double width;
   final double height;
   final Alignment alignment;
@@ -21,6 +21,13 @@ class FlowMiniMap extends ConsumerStatefulWidget {
   final FlowMinimapStyle? minimapStyle;
   final bool pannable;
   final bool zoomable;
+  final bool inversePan;
+  final MiniMapNodeColorFunc? nodeColor;
+  final MiniMapNodeColorFunc? nodeStrokeColor;
+  final MiniMapNodeProperty<double>? nodeStrokeWidth;
+  final MiniMapNodeProperty<double>? nodeBorderRadius;
+  final MiniMapNodeBuilder? nodeBuilder;
+  final MiniMapNodeOnClick? onClickNode;
 
   const FlowMiniMap({
     super.key,
@@ -31,40 +38,23 @@ class FlowMiniMap extends ConsumerStatefulWidget {
     this.minimapStyle,
     this.pannable = true,
     this.zoomable = true,
+    this.inversePan = false,
+    this.nodeColor,
+    this.nodeStrokeColor,
+    this.nodeStrokeWidth,
+    this.nodeBorderRadius,
+    this.nodeBuilder,
+    this.onClickNode,
   });
 
   @override
-  ConsumerState<FlowMiniMap> createState() => _FlowMiniMapState();
-}
-
-class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
-  late FlowMinimapStyle _resolvedStyle;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _resolvedStyle = resolveMiniMapTheme(context, widget.minimapStyle);
-  }
-
-  @override
-  void didUpdateWidget(covariant FlowMiniMap oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.minimapStyle != widget.minimapStyle) {
-      _resolvedStyle = resolveMiniMapTheme(context, widget.minimapStyle);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(internalControllerProvider.notifier);
     final state = ref.watch(internalControllerProvider);
-    final style = _resolvedStyle;
+    final baseTheme = context.flowCanvasTheme.minimap;
+    final style = baseTheme.merge(minimapStyle);
 
-    // The nodes in the state are already in the correct Cartesian coordinate system.
-    // We can pass them directly to the painter.
     final nodes = state.nodes.values.toList();
-
-    // CORRECTLY calculate the viewport rectangle in Cartesian coordinates.
     final viewportSize = state.viewportSize ?? Size.zero;
     final topLeft = controller.screenToCanvasPosition(Offset.zero);
     final bottomRight = controller.screenToCanvasPosition(
@@ -72,43 +62,46 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
     final cartesianViewportRect = Rect.fromPoints(topLeft, bottomRight);
 
     return Align(
-      alignment: widget.alignment,
+      alignment: alignment,
       child: Container(
-        margin: widget.margin,
-        width: widget.width,
-        height: widget.height,
+        margin: margin,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           color: style.backgroundColor,
-          borderRadius: BorderRadius.circular(style.borderRadius ?? 8.0),
-          border: Border.all(
-            color: (style.maskStrokeColor ?? Colors.grey).withAlpha(125),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(style.borderRadius),
+          border:
+              Border.all(color: style.maskStrokeColor.withAlpha(125), width: 1),
           boxShadow: style.shadows,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(style.borderRadius ?? 8.0),
+          borderRadius: BorderRadius.circular(style.borderRadius),
           child: Listener(
-            onPointerSignal: widget.zoomable
-                ? (event) => _onPointerSignal(event, controller)
+            onPointerSignal: zoomable
+                ? (event) => _onPointerSignal(event, ref, controller)
                 : null,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTapUp: widget.pannable
+              onTapUp: pannable
                   ? (details) => _onTapUp(details, nodes, style, controller)
                   : null,
-              onPanUpdate: widget.pannable
+              onPanUpdate: pannable
                   ? (details) => _onPanUpdate(
                       details, nodes, style, controller, state.viewport.zoom)
                   : null,
               child: RepaintBoundary(
                 child: CustomPaint(
                   painter: MiniMapPainter(
-                    nodes: nodes, // Use original nodes
-                    viewport: cartesianViewportRect, // Use corrected viewport
+                    nodes: nodes,
+                    viewport: cartesianViewportRect,
                     theme: style,
+                    nodeColor: nodeColor,
+                    nodeStrokeColor: nodeStrokeColor,
+                    nodeStrokeWidth: nodeStrokeWidth,
+                    nodeBorderRadius: nodeBorderRadius,
+                    nodeBuilder: nodeBuilder,
                   ),
-                  size: Size(widget.width, widget.height),
+                  size: Size(width, height),
                 ),
               ),
             ),
@@ -124,17 +117,30 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
     FlowMinimapStyle style,
     FlowCanvasController controller,
   ) {
-    final transform = MiniMapPainter.calculateTransform(
-      _getBounds(nodes),
-      Size(widget.width, widget.height),
-      style,
-    );
+    final minimapSize = Size(width, height);
+    final bounds =
+        MiniMapPainter(nodes: nodes, viewport: Rect.zero, theme: style)
+            .getCombinedBounds(nodes, Rect.zero);
+    final transform =
+        MiniMapPainter.calculateTransform(bounds, minimapSize, style);
     if (transform.scale <= 0) return;
 
-    final cartesianPosition =
-        MiniMapPainter.fromMiniMapToCanvas(details.localPosition, transform);
+    final cartesianPosition = MiniMapPainter.fromMiniMapToCanvas(
+        details.localPosition, transform, minimapSize);
 
-    controller.centerOnPosition(cartesianPosition);
+    FlowNode? clickedNode;
+    for (final node in nodes.reversed) {
+      if (node.rect.contains(cartesianPosition)) {
+        clickedNode = node;
+        break;
+      }
+    }
+
+    if (clickedNode != null && onClickNode != null) {
+      onClickNode!(clickedNode);
+    } else {
+      controller.centerOnPosition(cartesianPosition);
+    }
   }
 
   void _onPanUpdate(
@@ -144,31 +150,20 @@ class _FlowMiniMapState extends ConsumerState<FlowMiniMap> {
     FlowCanvasController controller,
     double mainCanvasZoom,
   ) {
-    final transform = MiniMapPainter.calculateTransform(
-      _getBounds(nodes),
-      Size(widget.width, widget.height),
-      style,
-    );
+    final minimapSize = Size(width, height);
+    final bounds =
+        MiniMapPainter(nodes: nodes, viewport: Rect.zero, theme: style)
+            .getCombinedBounds(nodes, Rect.zero);
+    final transform =
+        MiniMapPainter.calculateTransform(bounds, minimapSize, style);
     if (transform.scale <= 0) return;
 
-    // Convert the drag delta from minimap pixels to canvas pixels
-    final canvasDelta = details.delta / transform.scale;
-    // Convert canvas pixels to screen pixels for the main view
-    final screenDelta = canvasDelta * mainCanvasZoom;
-
-    // Call the new panBy method with the inverted delta
-    controller.panBy(-screenDelta);
+    final screenDelta = details.delta * (mainCanvasZoom / transform.scale);
+    controller.panBy(inversePan ? screenDelta : -screenDelta);
   }
 
-  Rect _getBounds(List<FlowNode> nodes) {
-    if (nodes.isEmpty) return Rect.zero;
-    return nodes
-        .map((n) => n.rect)
-        .reduce((value, element) => value.expandToInclude(element));
-  }
-
-  void _onPointerSignal(
-      PointerSignalEvent event, FlowCanvasController controller) {
+  void _onPointerSignal(PointerSignalEvent event, WidgetRef ref,
+      FlowCanvasController controller) {
     if (event is PointerScrollEvent) {
       final options = ref.read(flowOptionsProvider);
       final zoomDelta = -event.scrollDelta.dy * 0.001;
