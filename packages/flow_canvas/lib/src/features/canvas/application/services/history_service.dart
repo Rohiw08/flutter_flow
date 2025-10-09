@@ -39,10 +39,8 @@ class HistoryService {
   /// Undo to the previous state. Returns the new current state.
   FlowCanvasState? undo() {
     if (_undoStack.length <= 1) return null;
-
     final currentState = _undoStack.removeLast();
     _redoStack.add(currentState);
-
     return _undoStack.last;
   }
 

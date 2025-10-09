@@ -26,6 +26,7 @@ class MiniMapPainter extends CustomPainter {
   final MiniMapNodeProperty<double>? nodeBorderRadius;
   final MiniMapNodeBuilder? nodeBuilder;
 
+  // Paints are inexpensive to create, no major change needed here.
   final Paint _backgroundPaint;
   final Paint _nodePaint;
   final Paint _nodeStrokePaint;
@@ -54,6 +55,8 @@ class MiniMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Calculations are now done in the widget and passed in,
+    // but we still need them here for painting.
     final combinedBounds = getCombinedBounds(nodes, viewport);
     final transform = calculateTransform(combinedBounds, size, theme);
 
@@ -133,7 +136,8 @@ class MiniMapPainter extends CustomPainter {
     }
   }
 
-  Rect getCombinedBounds(List<FlowNode> nodes, Rect viewport) {
+  // Make this static so it can be called from the widget
+  static Rect getCombinedBounds(List<FlowNode> nodes, Rect viewport) {
     if (nodes.isEmpty && viewport.isEmpty) return Rect.zero;
     Rect? combinedBounds;
     if (nodes.isNotEmpty) {
@@ -148,6 +152,7 @@ class MiniMapPainter extends CustomPainter {
         Rect.zero;
   }
 
+  // Keep these static as they are pure functions
   static MiniMapTransform calculateTransform(
       Rect contentBounds, Size minimapSize, FlowMinimapStyle theme) {
     if (contentBounds.isEmpty || minimapSize.isEmpty) {

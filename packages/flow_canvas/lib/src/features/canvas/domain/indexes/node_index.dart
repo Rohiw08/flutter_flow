@@ -11,7 +11,7 @@ typedef CellKey = String;
 /// - +Y goes UP, -Y goes DOWN
 /// - This matches the coordinate system used by FlowNode.position
 class NodeIndex {
-  static const double _defaultCellSize = 200.0;
+  static const double _defaultCellSize = 10.0;
 
   final Map<String, FlowNode> _nodes;
   final Map<CellKey, Set<String>> _nodeSpatialGrid;
@@ -64,7 +64,7 @@ class NodeIndex {
 
   /// Queries nodes that intersect with the given rectangle.
   /// The rect parameter should be in Cartesian coordinates.
-  List<FlowNode> queryNodesInRect(Rect rect) {
+  Set<String> queryNodesInRect(Rect rect) {
     final resultIds = <String>{};
     final cells = _getCellsInRect(rect, _cellSize);
 
@@ -75,11 +75,7 @@ class NodeIndex {
       }
     }
 
-    return resultIds
-        .map((id) => _nodes[id])
-        .where((node) => node != null)
-        .cast<FlowNode>()
-        .toList();
+    return resultIds;
   }
 
   /// Queries handles near the given position (within adjacent grid cells).

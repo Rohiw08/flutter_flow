@@ -46,7 +46,7 @@ class KeyboardAdapter extends StatelessWidget {
             final mapped = kb.shortcuts[matched];
             if (mapped == null) return KeyEventResult.ignored;
 
-            controller.handleKeyboardAction(
+            controller.keyboard.handleKeyboardAction(
               mapped,
               options: kb,
               minZoom: options.viewportOptions.minZoom,

@@ -50,7 +50,7 @@ Map<Type, Action<Intent>> buildActions(
   return <Type, Action<Intent>>{
     ZoomInIntent: CallbackAction<ZoomInIntent>(
       onInvoke: (intent) {
-        controller.zoom(
+        controller.viewport.zoom(
           zoomFactor: 0.2,
           minZoom: options.viewportOptions.minZoom,
           maxZoom: options.viewportOptions.minZoom,
@@ -61,7 +61,7 @@ Map<Type, Action<Intent>> buildActions(
     ),
     ZoomOutIntent: CallbackAction<ZoomOutIntent>(
       onInvoke: (intent) {
-        controller.zoom(
+        controller.viewport.zoom(
           zoomFactor: -0.2,
           minZoom: options.viewportOptions.minZoom,
           maxZoom: options.viewportOptions.minZoom,
@@ -72,13 +72,13 @@ Map<Type, Action<Intent>> buildActions(
     ),
     FitViewIntent: CallbackAction<FitViewIntent>(
       onInvoke: (intent) {
-        controller.fitView();
+        controller.viewport.fitView();
         return null;
       },
     ),
     SelectAllIntent: CallbackAction<SelectAllIntent>(
       onInvoke: (intent) {
-        controller.selectAll();
+        controller.selection.selectAll();
         return null;
       },
     ),
@@ -96,11 +96,11 @@ Map<Type, Action<Intent>> buildActions(
         }).toList();
 
         if (deletableNodeIds.isNotEmpty) {
-          controller.deselectAll();
+          controller.selection.deselectAll();
           for (final id in deletableNodeIds) {
-            controller.selectNode(id, addToSelection: true);
+            controller.selection.selectNode(id, addToSelection: true);
           }
-          controller.removeSelectedNodes();
+          controller.nodes.removeSelectedNodes();
         }
 
         // Edges (remaining selection might have changed; recompute)
@@ -114,11 +114,11 @@ Map<Type, Action<Intent>> buildActions(
         }).toList();
 
         if (deletableEdgeIds.isNotEmpty) {
-          controller.deselectAll();
+          controller.selection.deselectAll();
           for (final id in deletableEdgeIds) {
-            controller.selectEdge(id, addToSelection: true);
+            controller.selection.selectEdge(id, addToSelection: true);
           }
-          controller.removeSelectedEdges();
+          controller.edges.removeSelectedEdges();
         }
 
         return null;
@@ -126,25 +126,25 @@ Map<Type, Action<Intent>> buildActions(
     ),
     UndoIntent: CallbackAction<UndoIntent>(
       onInvoke: (intent) {
-        controller.undo();
+        controller.history.undo();
         return null;
       },
     ),
     RedoIntent: CallbackAction<RedoIntent>(
       onInvoke: (intent) {
-        controller.redo();
+        controller.history.redo();
         return null;
       },
     ),
     CopyIntent: CallbackAction<CopyIntent>(
       onInvoke: (intent) {
-        controller.copySelection();
+        controller.clipboard.copySelection();
         return null;
       },
     ),
     PasteIntent: CallbackAction<PasteIntent>(
       onInvoke: (intent) {
-        controller.paste();
+        controller.clipboard.paste();
         return null;
       },
     ),

@@ -6,5 +6,4 @@ export 'controller_theme_resolver.dart';
 export 'edge_label_theme_resolver.dart';
 export 'edge_marker_theme_resolver.dart';
 export 'edge_theme_resolver.dart';
-export 'node_theme_resolver.dart';
 export 'selection_theme_resolver.dart';

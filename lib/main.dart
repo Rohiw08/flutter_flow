@@ -9,7 +9,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
@@ -30,6 +29,14 @@ class Example extends StatefulWidget {
 
 class _ExampleState extends State<Example> {
   FlowCanvasController? _controller;
+
+  bool _isSelectionMode = false; // default value
+
+  @override
+  void initState() {
+    super.initState();
+    _isSelectionMode = false; // or set based on some default mode
+  }
 
   // 1. Define initial nodes for the canvas.
   late final List<FlowNode> initialNodes = [
@@ -168,16 +175,16 @@ class _ExampleState extends State<Example> {
                     type: 'default',
                     data: {'label': 'Added Node'},
                   );
-                  _controller!.addNode(newNode);
+                  _controller!.nodes.addNode(newNode);
                 },
                 child: const Text('Add Node'),
               ),
               ElevatedButton(
-                onPressed: () => _controller?.removeSelectedNodes(),
+                onPressed: () => _controller?.nodes.removeSelectedNodes(),
                 child: const Text('Remove Selected'),
               ),
               ElevatedButton(
-                onPressed: () => _controller?.fitView(),
+                onPressed: () => _controller?.viewport.fitView(),
                 child: const Text('Fit View'),
               ),
             ],
@@ -191,21 +198,60 @@ class _ExampleState extends State<Example> {
             initialNodes: initialNodes,
             initialEdges: initialEdges,
             // We use setState here to trigger a rebuild once the controller is ready.
-            onCanvasCreated: (controller) =>
-                setState(() => _controller = controller),
+            onCanvasCreated: (controller) {
+              setState(() => _controller = controller);
+              // for (int i = 10; i < 60; i++) {
+              //   _controller!.nodes.addNode(FlowNode.create(
+              //     id: i.toString(),
+              //     position: Offset(150.0 * (i % 10), 80.0 * (i / 10).toInt()),
+              //     size: const Size(150, 80),
+              //     type: 'default',
+              //     handles: [
+              //       NodeHandle(
+              //         id: '$i-both-1',
+              //         type: HandleType.both,
+              //         position: const Offset(75, 0),
+              //       )
+              //     ],
+              //     data: {'label': 'Added Node'},
+              //   ));
+              // }
+            },
             options: const FlowOptions(
               viewportOptions: ViewportOptions(
                 maxZoom: 3.0,
                 minZoom: 0.3,
               ),
               nodeOptions: NodeOptions(
-                elevateNodesOnSelected: false,
+                elevateNodesOnSelected: true,
               ),
             ),
-            overlays: const [
-              FlowBackground(),
-              FlowMiniMap(),
-              FlowCanvasControls(),
+            overlays: [
+              const FlowBackground(),
+              const FlowMiniMap(
+                minimapStyle: FlowMinimapStyle(
+                  maskStrokeWidth: 0,
+                ),
+              ),
+              FlowCanvasControls(
+                children: [
+                  ControlButton(
+                    icon: _isSelectionMode ? Icons.mouse : Icons.select_all,
+                    tooltip: "Select",
+                    onPressed: () {
+                      if (_controller == null) return;
+                      _controller!.updateStateOnly(_controller!.currentState
+                          .copyWith(
+                              dragMode: _isSelectionMode
+                                  ? DragMode.none
+                                  : DragMode.selection));
+                      setState(() {
+                        _isSelectionMode = !_isSelectionMode;
+                      });
+                    },
+                  )
+                ],
+              ),
             ],
           ),
         ),
@@ -290,7 +336,7 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
               final newNodeData = Map<String, dynamic>.from(widget.node.data);
               newNodeData['color'] = currentColor;
               final updatedNode = widget.node.copyWith(data: newNodeData);
-              widget.controller.updateNode(updatedNode);
+              widget.controller.nodes.updateNode(updatedNode);
 
               Navigator.of(context).pop();
             },

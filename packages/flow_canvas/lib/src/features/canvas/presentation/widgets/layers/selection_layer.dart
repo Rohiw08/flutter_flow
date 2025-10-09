@@ -33,14 +33,6 @@ class SelectionLayer extends ConsumerWidget {
     final isSelecting =
         ref.watch(internalControllerProvider.select((state) => state.dragMode));
 
-    final nodeIndex = ref.watch(
-      internalControllerProvider.select((state) => state.nodeIndex),
-    );
-    final rect = ref.watch(
-      internalControllerProvider.select((state) => state.selectionRect),
-    );
-    final converter = ref.read(coordinateConverterProvider);
-
     final theme = FlowCanvasThemeProvider.of(context);
 
     return IgnorePointer(
@@ -48,30 +40,16 @@ class SelectionLayer extends ConsumerWidget {
       child: Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: (event) {
-          controller.startSelection(event.localPosition);
+          controller.selection.startSelection(event.localPosition);
         },
         onPointerMove: (event) {
-          // print('Render Coords Hover: ${event.localPosition}');
-          print(rect);
-          if (rect != null) {
-            // 2. Convert the rect BEFORE querying
-            final cartesianRect = converter.renderRectToCartesianRect(rect);
-
-            print('Original Render Rect: $rect');
-            print('Converted Cartesian Rect: $cartesianRect');
-
-            final foundNodes = nodeIndex.queryNodesInRect(cartesianRect);
-            print('Nodes Found: ${foundNodes.map((n) => n.id).toList()}');
-            // final selectedNodes = controller.currentState.selectedNodes;
-            // print("selected nodes ${selectedNodes}");
-          }
           if (dragMode == DragMode.selection) {
-            controller.updateSelection(event.localPosition);
+            controller.selection.updateSelection(event.localPosition);
           }
         },
         onPointerUp: (event) {
           if (dragMode == DragMode.selection) {
-            controller.endSelection();
+            controller.selection.endSelection();
           }
         },
         child: CustomPaint(

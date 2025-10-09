@@ -73,8 +73,8 @@ class Handle extends ConsumerWidget {
       dx: position.dx,
       dy: position.dy,
       child: MouseRegion(
-        onEnter: (_) => controller.setHandleHover(handleKey, true),
-        onExit: (_) => controller.setHandleHover(handleKey, false),
+        onEnter: (_) => controller.handle.setHandleHover(handleKey, true),
+        onExit: (_) => controller.handle.setHandleHover(handleKey, false),
         cursor: SystemMouseCursors.precise,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -83,7 +83,7 @@ class Handle extends ConsumerWidget {
             final flowOptions = context.flowCanvasOptions;
             if (!flowOptions.enableConnectivity) return;
 
-            controller.startConnection(nodeId, handleId);
+            controller.connection.startConnection(nodeId, handleId);
           },
           onPanUpdate: (details) {
             if (type == HandleType.target) return;
@@ -96,11 +96,12 @@ class Handle extends ConsumerWidget {
             final localPosition =
                 canvasRenderBox.globalToLocal(details.globalPosition);
 
-            controller.updateConnection(localPosition, nodeId, handleId);
+            controller.connection
+                .updateConnection(localPosition, nodeId, handleId);
           },
           onPanEnd: (details) {
             if (type == HandleType.target) return;
-            controller.endConnection();
+            controller.connection.endConnection();
           },
           child: theme.enableAnimations
               ? AnimatedContainer(

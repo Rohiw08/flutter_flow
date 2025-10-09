@@ -70,23 +70,23 @@ class FlowEdgeLayer extends ConsumerWidget {
         final box = context.findRenderObject() as RenderBox?;
         if (box == null) return;
         final local = box.globalToLocal(event.position);
-        controller.onEdgePointerHover(event, local);
+        controller.edges.onEdgePointerHover(event, local);
       },
       child: GestureDetector(
         onTapDown: (details) {
           final box = context.findRenderObject() as RenderBox?;
           if (box == null) return;
           final local = box.globalToLocal(details.globalPosition);
-          controller.onEdgeTapDown(details, local);
+          controller.edges.onEdgeTapDown(details, local);
         },
         onDoubleTap: () {
-          controller.onEdgeDoubleTap();
+          controller.edges.onEdgeDoubleTap();
         },
         onLongPressStart: (details) {
           final box = context.findRenderObject() as RenderBox?;
           if (box == null) return;
           final local = box.globalToLocal(details.globalPosition);
-          controller.onEdgeLongPressStart(details, local);
+          controller.edges.onEdgeLongPressStart(details, local);
         },
         child: CustomPaint(
           painter: painter,

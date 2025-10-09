@@ -143,17 +143,16 @@ class SelectionService {
 
     final newSelectionRect = Rect.fromPoints(origin, position);
     final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
-    final nodesInArea = nodesInRect.map((n) => n.id).toSet();
 
     final edgeQuery = EdgeQueryService();
     final edgesInArea = <String>{};
-    for (final nodeId in nodesInArea) {
+    for (final nodeId in nodesInRect) {
       final connectedEdges = edgeQuery.getEdgesForNode(state, nodeId);
       for (final edgeId in connectedEdges) {
         final edge = state.edges[edgeId];
         if (edge != null &&
-            nodesInArea.contains(edge.sourceNodeId) &&
-            nodesInArea.contains(edge.targetNodeId)) {
+            nodesInRect.contains(edge.sourceNodeId) &&
+            nodesInRect.contains(edge.targetNodeId)) {
           edgesInArea.add(edgeId);
         }
       }
@@ -161,7 +160,7 @@ class SelectionService {
 
     final newNodeStates = {
       for (var id in state.nodes.keys)
-        id: NodeRuntimeState(selected: nodesInArea.contains(id))
+        id: NodeRuntimeState(selected: nodesInRect.contains(id))
     };
     final newEdgeStates = {
       for (var id in state.edges.keys)
@@ -170,7 +169,7 @@ class SelectionService {
 
     return state.copyWith(
       selectionRect: newSelectionRect,
-      selectedNodes: nodesInArea,
+      selectedNodes: nodesInRect,
       selectedEdges: edgesInArea,
       nodeStates: newNodeStates,
       edgeStates: newEdgeStates,

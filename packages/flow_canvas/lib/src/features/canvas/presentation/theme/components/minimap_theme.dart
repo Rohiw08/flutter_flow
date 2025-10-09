@@ -34,7 +34,7 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
     this.maskColor = const Color(0x99F0F2F5),
     this.maskStrokeColor = const Color(0xFF9E9E9E),
     this.nodeStrokeWidth = 1.0, // Changed
-    this.maskStrokeWidth = 1.5,
+    this.maskStrokeWidth = 0,
     this.borderRadius = 8.0,
     this.shadows = const [
       BoxShadow(

@@ -1,39 +1,8 @@
-import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
 import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/node_options.dart';
-import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
-
-class NodesRectPainter extends CustomPainter {
-  final Map<String, FlowNode> nodes;
-  final CanvasCoordinateConverter converter;
-
-  NodesRectPainter(this.nodes, this.converter);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    for (final node in nodes.values) {
-      // Each FlowNode has a rect getter:
-      canvas.drawRect(converter.cartesianRectToRenderRect(node.rect), paint);
-
-      // Optional: draw center marker
-      canvas.drawCircle(node.center, 3, Paint()..color = Colors.red);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant NodesRectPainter oldDelegate) {
-    // Repaint when node positions or sizes change
-    return oldDelegate.nodes != nodes;
-  }
-}
 
 /// A layer that renders all node widgets.
 ///
@@ -47,37 +16,16 @@ class FlowNodesLayer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(internalControllerProvider);
     final nodeIds = state.nodes.keys.toList();
-    final converter = ref.watch(coordinateConverterProvider);
-
-    // Sort nodes (your existing logic)
-    final opts = NodeOptions.resolve(context);
-    final selected = state.selectedNodes;
-    final sortedIds = [...nodeIds]..sort((a, b) {
-        final na = state.nodes[a]!;
-        final nb = state.nodes[b]!;
-        final za = na.zIndex;
-        final zb = nb.zIndex;
-        if (za != zb) return za.compareTo(zb);
-        if (opts.elevateNodesOnSelected) {
-          final sa = selected.contains(a) ? 1 : 0;
-          final sb = selected.contains(b) ? 1 : 0;
-          if (sa != sb) return sa.compareTo(sb);
-        }
-        return 0;
-      });
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned.fill(
-          child: CustomPaint(
-            painter: NodesRectPainter(state.nodes, converter),
+        ...nodeIds.map(
+          (nodeId) => _NodeWidget(
+            key: ValueKey(nodeId),
+            nodeId: nodeId,
           ),
         ),
-        ...sortedIds.map((nodeId) => _NodeWidget(
-              key: ValueKey(nodeId),
-              nodeId: nodeId,
-            )),
       ],
     );
   }
@@ -146,31 +94,32 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
         width: node.size.width + hitTestPadding,
         child: MouseRegion(
           cursor: SystemMouseCursors.grab,
-          onEnter: (e) => controller.onNodeMouseEnter(widget.nodeId, e),
-          onHover: (e) => controller.onNodeMouseMove(widget.nodeId, e),
-          onExit: (e) => controller.onNodeMouseLeave(widget.nodeId, e),
+          onEnter: (e) => controller.nodes.onNodeMouseEnter(widget.nodeId, e),
+          onHover: (e) => controller.nodes.onNodeMouseMove(widget.nodeId, e),
+          onExit: (e) => controller.nodes.onNodeMouseLeave(widget.nodeId, e),
           child: Focus(
             focusNode: _focusNode,
             canRequestFocus: isFocusable,
             child: GestureDetector(
               behavior: HitTestBehavior.deferToChild,
               // TODO: Simplify this
-              onTapDown: (details) => controller.onNodeTap(widget.nodeId,
+              onTapDown: (details) => controller.nodes.onNodeTap(widget.nodeId,
                   details, isSelectable, _focusNode, isFocusable),
-              onDoubleTap: () => controller.onNodeDoubleClick(widget.nodeId),
+              onDoubleTap: () =>
+                  controller.nodes.onNodeDoubleClick(widget.nodeId),
               onLongPressStart: (details) =>
-                  controller.onNodeContextMenu(widget.nodeId, details),
+                  controller.nodes.onNodeContextMenu(widget.nodeId, details),
               onPanStart: isDraggable
                   ? (details) =>
-                      controller.onNodeDragStart(widget.nodeId, details)
+                      controller.nodes.onNodeDragStart(widget.nodeId, details)
                   : null,
               onPanUpdate: isDraggable
-                  ? (details) => controller.onNodeDragUpdate(
-                      widget.nodeId, details, isSelectable)
+                  ? (details) => controller.nodes
+                      .onNodeDragUpdate(widget.nodeId, details, isSelectable)
                   : null,
               onPanEnd: isDraggable
                   ? (details) =>
-                      controller.onNodeDragEnd(widget.nodeId, details)
+                      controller.nodes.onNodeDragEnd(widget.nodeId, details)
                   : null,
               // Build the user-defined widget for the node.
               child: nodeRegistry.buildWidget(node),

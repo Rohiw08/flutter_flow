@@ -5,12 +5,12 @@ import 'package:flow_canvas/src/features/canvas/application/services/edge_query_
 
 class NodeQueryService {
   /// Query nodes in a rectangle using the NodeIndex.
-  List<FlowNode> queryInRect(FlowCanvasState state, Rect rect) {
+  Set<String> queryInRect(FlowCanvasState state, Rect rect) {
     return state.nodeIndex.queryNodesInRect(rect);
   }
 
   /// Query nodes near a point using the NodeIndex.
-  List<FlowNode> queryNearPoint(
+  Set<String> queryNearPoint(
       FlowCanvasState state, Offset point, double radius) {
     final rect = Rect.fromCircle(center: point, radius: radius);
     // You might want a more precise circular check here later if needed

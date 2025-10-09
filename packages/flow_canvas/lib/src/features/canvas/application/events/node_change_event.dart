@@ -1,30 +1,26 @@
 import 'package:flutter/gestures.dart';
 
-/// User interaction events specific to one node.
-enum NodeInteractionType {
-  click,
-  doubleClick,
-  dragStart,
-  drag,
-  dragStop,
-  mouseEnter,
-  mouseMove,
-  mouseLeave,
-  contextMenu,
+// =======================================================================
+// == New Base Class for All Events                                     ==
+// =======================================================================
+/// The base class for all events originating from the canvas.
+abstract class FlowCanvasEvent {
+  final DateTime timestamp;
+  FlowCanvasEvent({DateTime? timestamp})
+      : timestamp = timestamp ?? DateTime.now();
 }
 
-/// Base class for user interaction events specific to one node.
-abstract class NodeInteractionEvent {
+/// Base class for user interaction events specific to **one node**.
+abstract class NodeInteractionEvent extends FlowCanvasEvent {
   final String nodeId;
-  final DateTime timestamp;
 
   NodeInteractionEvent({
     required this.nodeId,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+    super.timestamp,
+  });
 }
 
-// --- High-Frequency Events (Minimalist) ---
+// --- High-Frequency Events ---
 
 class NodeDragStartEvent extends NodeInteractionEvent {
   final DragStartDetails details;
@@ -32,13 +28,18 @@ class NodeDragStartEvent extends NodeInteractionEvent {
       {required super.nodeId, required this.details, super.timestamp});
 }
 
-class NodeDragEvent extends NodeInteractionEvent {
-  final Offset position;
+// =======================================================================
+// == OPTIMIZED BATCH EVENT                                             ==
+// =======================================================================
+/// Event fired when a group of one or more nodes is dragged.
+/// This event is batched for performance.
+class NodesDragEvent extends FlowCanvasEvent {
+  /// A map of the moved node IDs to their new canvas positions.
+  final Map<String, Offset> positions;
   final Offset delta;
   final DragUpdateDetails details;
-  NodeDragEvent({
-    required super.nodeId,
-    required this.position,
+  NodesDragEvent({
+    required this.positions,
     required this.delta,
     required this.details,
     super.timestamp,
@@ -57,7 +58,7 @@ class NodeMouseMoveEvent extends NodeInteractionEvent {
       {required super.nodeId, required this.details, super.timestamp});
 }
 
-// --- Low-Frequency Events (Can be richer if needed) ---
+// --- Low-Frequency Events (Unchanged) ---
 
 class NodeClickEvent extends NodeInteractionEvent {
   final TapDownDetails details;

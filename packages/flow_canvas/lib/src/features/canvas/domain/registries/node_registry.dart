@@ -34,8 +34,6 @@ class NodeRegistry {
 
   void _registerDefaultTypes() {
     register('defaultNode', buildDefaultNode);
-    register('inputNode', buildInputNode);
-    register('outputNode', buildOutputNode);
   }
 
   Widget buildWidget(FlowNode node) {

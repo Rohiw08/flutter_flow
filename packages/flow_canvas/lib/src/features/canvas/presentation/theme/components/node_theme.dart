@@ -71,13 +71,7 @@ class FlowNodeStyle {
       selectedBorderWidth: 2.0,
       hoverBorderWidth: 1.5,
       borderRadius: 8.0,
-      shadows: [
-        BoxShadow(
-          color: Color(0x40000000),
-          blurRadius: 4,
-          offset: Offset(0, 2),
-        ),
-      ],
+      shadows: [],
       defaultTextStyle: TextStyle(
         color: Color(0xFF333333),
         fontSize: 14,
@@ -105,13 +99,7 @@ class FlowNodeStyle {
       selectedBorderWidth: 2.0,
       hoverBorderWidth: 1.5,
       borderRadius: 8.0,
-      shadows: [
-        BoxShadow(
-          color: Color(0x4D000000),
-          blurRadius: 8,
-          offset: Offset(0, 4),
-        ),
-      ],
+      shadows: [],
       defaultTextStyle: TextStyle(
         color: Color(0xFFE0E0E0),
         fontSize: 14,
@@ -120,6 +108,39 @@ class FlowNodeStyle {
       defaultPadding: EdgeInsets.all(12.0),
       minWidth: 100.0,
       minHeight: 60.0,
+    );
+  }
+
+  /// Merges another [FlowNodeStyle] into this one.
+  ///
+  /// Properties from the `other` style will override the properties of this style
+  /// if they are not null.
+  FlowNodeStyle merge(FlowNodeStyle? other) {
+    if (other == null) return this;
+    return copyWith(
+      defaultBackgroundColor: other.defaultBackgroundColor,
+      defaultBorderColor: other.defaultBorderColor,
+      selectedBackgroundColor: other.selectedBackgroundColor,
+      selectedBorderColor: other.selectedBorderColor,
+      errorBackgroundColor: other.errorBackgroundColor,
+      errorBorderColor: other.errorBorderColor,
+      defaultBorderWidth: other.defaultBorderWidth,
+      selectedBorderWidth: other.selectedBorderWidth,
+      borderRadius: other.borderRadius,
+      shadows: other.shadows,
+      defaultTextStyle: other.defaultTextStyle,
+      hoverBackgroundColor: other.hoverBackgroundColor,
+      hoverBorderColor: other.hoverBorderColor,
+      disabledBackgroundColor: other.disabledBackgroundColor,
+      disabledBorderColor: other.disabledBorderColor,
+      hoverBorderWidth: other.hoverBorderWidth,
+      animationDuration: other.animationDuration,
+      animationCurve: other.animationCurve,
+      defaultPadding: other.defaultPadding,
+      minWidth: other.minWidth,
+      minHeight: other.minHeight,
+      maxWidth: other.maxWidth,
+      maxHeight: other.maxHeight,
     );
   }
 

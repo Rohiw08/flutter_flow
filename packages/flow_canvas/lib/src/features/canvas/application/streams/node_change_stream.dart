@@ -3,11 +3,12 @@ import 'package:flow_canvas/src/features/canvas/application/events/node_change_e
 
 /// Streams for user-driven node interactions (click, drag, hover, context menu)
 class NodeInteractionStreams {
-  final StreamController<NodeInteractionEvent> _controller =
-      StreamController<NodeInteractionEvent>.broadcast();
+  // Controller now accepts the base event class to handle both single and batch events.
+  final StreamController<FlowCanvasEvent> _controller =
+      StreamController<FlowCanvasEvent>.broadcast();
 
   /// A stream of all node interaction events.
-  Stream<NodeInteractionEvent> get events => _controller.stream;
+  Stream<FlowCanvasEvent> get events => _controller.stream;
 
   // --- Type-Safe Filtered Streams ---
 
@@ -24,9 +25,10 @@ class NodeInteractionStreams {
   Stream<NodeDragStartEvent> get dragStartEvents =>
       events.where((e) => e is NodeDragStartEvent).cast<NodeDragStartEvent>();
 
-  /// A stream that emits events as a node is being dragged.
-  Stream<NodeDragEvent> get dragEvents =>
-      events.where((e) => e is NodeDragEvent).cast<NodeDragEvent>();
+  /// A stream that emits events as a group of nodes is being dragged.
+  /// This stream is batched for performance.
+  Stream<NodesDragEvent> get nodesDragEvents =>
+      events.where((e) => e is NodesDragEvent).cast<NodesDragEvent>();
 
   /// A stream that emits events when a node drag gesture stops.
   Stream<NodeDragStopEvent> get dragStopEvents =>
@@ -50,7 +52,7 @@ class NodeInteractionStreams {
       .cast<NodeContextMenuEvent>();
 
   /// Emits a new node interaction event to the appropriate stream.
-  void emitEvent(NodeInteractionEvent event) {
+  void emitEvent(FlowCanvasEvent event) {
     if (!_controller.isClosed) {
       _controller.add(event);
     }

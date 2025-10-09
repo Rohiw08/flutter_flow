@@ -29,6 +29,5 @@ export 'theme_resolver/controller_theme_resolver.dart';
 export 'theme_resolver/edge_label_theme_resolver.dart';
 export 'theme_resolver/edge_marker_theme_resolver.dart';
 export 'theme_resolver/edge_theme_resolver.dart';
-export 'theme_resolver/node_theme_resolver.dart';
 export 'theme_resolver/selection_theme_resolver.dart';
 export 'theme_resolver/theme_resolver.dart';

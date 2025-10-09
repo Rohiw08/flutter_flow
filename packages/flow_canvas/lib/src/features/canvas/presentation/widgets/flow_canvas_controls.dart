@@ -92,7 +92,7 @@ class FlowCanvasControls extends ConsumerWidget {
         ControlButton(
           icon: Icons.add,
           tooltip: 'Zoom In',
-          onPressed: () => controller.zoom(
+          onPressed: () => controller.viewport.zoom(
             zoomFactor: 0.2,
             minZoom: options.viewportOptions.minZoom,
             maxZoom: options.viewportOptions.maxZoom,
@@ -102,7 +102,7 @@ class FlowCanvasControls extends ConsumerWidget {
         ControlButton(
           icon: Icons.remove,
           tooltip: 'Zoom Out',
-          onPressed: () => controller.zoom(
+          onPressed: () => controller.viewport.zoom(
             zoomFactor: -0.2,
             minZoom: options.viewportOptions.minZoom,
             maxZoom: options.viewportOptions.maxZoom,
@@ -114,33 +114,31 @@ class FlowCanvasControls extends ConsumerWidget {
         ControlButton(
           icon: Icons.fit_screen,
           tooltip: 'Fit View',
-          onPressed: () => controller.fitView(),
+          onPressed: () => controller.viewport.fitView(),
         ),
         ControlButton(
           icon: Icons.center_focus_strong,
           tooltip: 'Center View',
-          onPressed: () => controller.centerOnPosition(Offset.zero),
+          onPressed: () => controller.viewport.centerOnPosition(Offset.zero),
         ),
       ],
       if (showLock)
         ControlButton(
             icon: isLocked ? Icons.lock : Icons.lock_open,
             tooltip: isLocked ? 'Unlock' : 'Lock',
-            onPressed: controller.toggleLock),
-      // --- SOLUTION ---
+            onPressed: controller.viewport.toggleLock),
       if (showUndoRedo) ...[
         ControlButton(
           icon: Icons.undo,
           tooltip: 'Undo',
-          onPressed: controller.undo,
+          onPressed: controller.history.undo,
         ),
         ControlButton(
           icon: Icons.redo,
           tooltip: 'Redo',
-          onPressed: controller.redo,
+          onPressed: controller.history.redo,
         ),
       ],
-      // --- END SOLUTION ---
       ...children,
     ];
   }

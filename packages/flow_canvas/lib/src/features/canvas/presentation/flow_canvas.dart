@@ -189,12 +189,12 @@ class _FlowCanvasCoreState extends ConsumerState<_FlowCanvasCore> {
           WidgetsBinding.instance.addPostFrameCallback(
             (_) {
               if (context.mounted) {
-                controller.setViewportSize(
+                controller.viewport.setViewportSize(
                   Size(constraints.maxWidth, constraints.maxHeight),
                 );
               }
               if (context.mounted && !_hasInitialized) {
-                controller.centerOnPosition(Offset.zero);
+                controller.viewport.centerOnPosition(Offset.zero);
                 _hasInitialized = true;
               }
             },
@@ -234,7 +234,6 @@ class _InteractiveViewerWrapper extends ConsumerWidget {
       internalControllerProvider.select((state) => state.dragMode),
     );
 
-    // --- SOLUTION IS HERE ---
     return InteractiveViewer(
       transformationController: controller.transformationController,
       constrained: false,
@@ -246,14 +245,16 @@ class _InteractiveViewerWrapper extends ConsumerWidget {
         key: controller.canvasKey,
         width: options.canvasWidth,
         height: options.canvasHeight,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ...backgroundOverlays,
-            const FlowEdgeLayer(),
-            const FlowNodesLayer(),
-            const SelectionLayer(),
-          ],
+        child: RepaintBoundary(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ...backgroundOverlays,
+              const FlowEdgeLayer(),
+              const FlowNodesLayer(),
+              const SelectionLayer(),
+            ],
+          ),
         ),
       ),
     );
