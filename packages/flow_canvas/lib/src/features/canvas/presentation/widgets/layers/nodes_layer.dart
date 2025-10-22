@@ -14,9 +14,16 @@ class FlowNodesLayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(internalControllerProvider);
-    final nodeIds = state.nodes.keys.toList();
-
+    ref.watch(
+      internalControllerProvider.select((state) => state.nodes.length),
+    );
+    final nodeIds = ref.watch(
+      internalControllerProvider.select((state) {
+        final keys = state.nodes.keys.toList();
+        return keys;
+      }),
+    );
+    print("---------------- built nodes layer ----------------");
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -85,7 +92,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
     final hitTestPadding = node.hitTestPadding > maxHandleSize
         ? node.hitTestPadding
         : maxHandleSize;
-
+    print("node: ${node.id} rebuilt");
     return FlowPositioned(
       dx: node.position.dx,
       dy: node.position.dy,

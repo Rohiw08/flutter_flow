@@ -14,7 +14,7 @@ class FitViewOptions {
   final List<String> nodes;
 
   const FitViewOptions({
-    this.padding = const EdgeInsets.all(0),
+    this.padding = const EdgeInsets.all(50),
     this.includeHiddenNodes = false,
     this.minZoom = 0.1,
     this.maxZoom = 2.0,

@@ -14,27 +14,83 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowEdge {
+  /// Unique identifier for this edge.
   String get id;
+
+  /// ID of the source node this edge originates from.
   String get sourceNodeId;
+
+  /// ID of the target node this edge points to.
   String get targetNodeId;
+
+  /// Optional handle ID on the source node where the edge connects.
+  /// If null, the edge connects to the node's center or default position.
   String? get sourceHandleId;
+
+  /// Optional handle ID on the target node where the edge connects.
+  /// If null, the edge connects to the node's center or default position.
   String? get targetHandleId;
+
+  /// Z-index for layering edges. Higher values render on top.
   int get zIndex;
+
+  /// The path rendering algorithm for this edge.
   EdgePathType get pathType;
+
+  /// Width of the invisible interaction area around the edge for easier selection.
+  /// Makes thin edges easier to click/hover.
   double get interactionWidth;
+
+  /// Optional widget to display as a label on the edge.
   Widget? get label;
-  BoxDecoration? get labelDecoration;
+
+  /// Optional decoration for the label container.
+  /// If null, uses a default decoration or no decoration.
+  FlowEdgeLabelStyle? get labelDecoration;
+
+  /// Optional custom marker style for the start of the edge.
+  /// Overrides the theme's start marker style.
   FlowEdgeMarkerStyle? get startMarkerStyle;
+
+  /// Optional custom marker style for the end of the edge.
+  /// Overrides the theme's end marker style.
   FlowEdgeMarkerStyle? get endMarkerStyle;
+
+  /// Optional custom style for this edge.
+  /// If null, uses the style from the current theme.
   FlowEdgeStyle? get style;
+
+  /// Custom data that can be attached to this edge.
+  /// Useful for storing application-specific metadata.
   Map<String, dynamic> get data;
+
+  /// Whether this edge should be animated (e.g., flowing dots).
+  /// If null, uses the global canvas setting.
   bool? get animated;
+
+  /// Whether this edge should be hidden from view.
+  /// Hidden edges are not rendered but remain in the data structure.
   bool? get hidden;
+
+  /// Whether this edge can be deleted by the user.
+  /// If null, uses the global canvas setting.
   bool? get deletable;
+
+  /// Whether this edge can be selected by the user.
+  /// If null, uses the global canvas setting.
   bool? get selectable;
+
+  /// Whether this edge can receive keyboard focus.
+  /// If null, uses the global canvas setting.
   bool? get focusable;
+
+  /// Whether this edge's connections can be changed by dragging.
+  /// If null, uses the global canvas setting.
   bool? get reconnectable;
-  bool? get elevateEdgeOnSelected;
+
+  /// Whether this edge should be elevated (z-index increased) when selected.
+  /// If null, uses the global canvas setting.
+  bool? get elevateEdgeOnSelect;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -82,8 +138,8 @@ mixin _$FlowEdge {
                 other.focusable == focusable) &&
             (identical(other.reconnectable, reconnectable) ||
                 other.reconnectable == reconnectable) &&
-            (identical(other.elevateEdgeOnSelected, elevateEdgeOnSelected) ||
-                other.elevateEdgeOnSelected == elevateEdgeOnSelected));
+            (identical(other.elevateEdgeOnSelect, elevateEdgeOnSelect) ||
+                other.elevateEdgeOnSelect == elevateEdgeOnSelect));
   }
 
   @override
@@ -109,12 +165,12 @@ mixin _$FlowEdge {
         selectable,
         focusable,
         reconnectable,
-        elevateEdgeOnSelected
+        elevateEdgeOnSelect
       ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelected: $elevateEdgeOnSelected)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelect: $elevateEdgeOnSelect)';
   }
 }
 
@@ -133,7 +189,7 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       EdgePathType pathType,
       double interactionWidth,
       Widget? label,
-      BoxDecoration? labelDecoration,
+      FlowEdgeLabelStyle? labelDecoration,
       FlowEdgeMarkerStyle? startMarkerStyle,
       FlowEdgeMarkerStyle? endMarkerStyle,
       FlowEdgeStyle? style,
@@ -144,7 +200,7 @@ abstract mixin class $FlowEdgeCopyWith<$Res> {
       bool? selectable,
       bool? focusable,
       bool? reconnectable,
-      bool? elevateEdgeOnSelected});
+      bool? elevateEdgeOnSelect});
 }
 
 /// @nodoc
@@ -179,7 +235,7 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
     Object? selectable = freezed,
     Object? focusable = freezed,
     Object? reconnectable = freezed,
-    Object? elevateEdgeOnSelected = freezed,
+    Object? elevateEdgeOnSelect = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -221,7 +277,7 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
       labelDecoration: freezed == labelDecoration
           ? _self.labelDecoration
           : labelDecoration // ignore: cast_nullable_to_non_nullable
-              as BoxDecoration?,
+              as FlowEdgeLabelStyle?,
       startMarkerStyle: freezed == startMarkerStyle
           ? _self.startMarkerStyle
           : startMarkerStyle // ignore: cast_nullable_to_non_nullable
@@ -262,9 +318,9 @@ class _$FlowEdgeCopyWithImpl<$Res> implements $FlowEdgeCopyWith<$Res> {
           ? _self.reconnectable
           : reconnectable // ignore: cast_nullable_to_non_nullable
               as bool?,
-      elevateEdgeOnSelected: freezed == elevateEdgeOnSelected
-          ? _self.elevateEdgeOnSelected
-          : elevateEdgeOnSelected // ignore: cast_nullable_to_non_nullable
+      elevateEdgeOnSelect: freezed == elevateEdgeOnSelect
+          ? _self.elevateEdgeOnSelect
+          : elevateEdgeOnSelect // ignore: cast_nullable_to_non_nullable
               as bool?,
     ));
   }
@@ -373,7 +429,7 @@ extension FlowEdgePatterns on FlowEdge {
             EdgePathType pathType,
             double interactionWidth,
             Widget? label,
-            BoxDecoration? labelDecoration,
+            FlowEdgeLabelStyle? labelDecoration,
             FlowEdgeMarkerStyle? startMarkerStyle,
             FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
@@ -384,7 +440,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool? selectable,
             bool? focusable,
             bool? reconnectable,
-            bool? elevateEdgeOnSelected)?
+            bool? elevateEdgeOnSelect)?
         $default, {
     required TResult orElse(),
   }) {
@@ -412,7 +468,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.focusable,
             _that.reconnectable,
-            _that.elevateEdgeOnSelected);
+            _that.elevateEdgeOnSelect);
       case _:
         return orElse();
     }
@@ -443,7 +499,7 @@ extension FlowEdgePatterns on FlowEdge {
             EdgePathType pathType,
             double interactionWidth,
             Widget? label,
-            BoxDecoration? labelDecoration,
+            FlowEdgeLabelStyle? labelDecoration,
             FlowEdgeMarkerStyle? startMarkerStyle,
             FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
@@ -454,7 +510,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool? selectable,
             bool? focusable,
             bool? reconnectable,
-            bool? elevateEdgeOnSelected)
+            bool? elevateEdgeOnSelect)
         $default,
   ) {
     final _that = this;
@@ -481,7 +537,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.focusable,
             _that.reconnectable,
-            _that.elevateEdgeOnSelected);
+            _that.elevateEdgeOnSelect);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -511,7 +567,7 @@ extension FlowEdgePatterns on FlowEdge {
             EdgePathType pathType,
             double interactionWidth,
             Widget? label,
-            BoxDecoration? labelDecoration,
+            FlowEdgeLabelStyle? labelDecoration,
             FlowEdgeMarkerStyle? startMarkerStyle,
             FlowEdgeMarkerStyle? endMarkerStyle,
             FlowEdgeStyle? style,
@@ -522,7 +578,7 @@ extension FlowEdgePatterns on FlowEdge {
             bool? selectable,
             bool? focusable,
             bool? reconnectable,
-            bool? elevateEdgeOnSelected)?
+            bool? elevateEdgeOnSelect)?
         $default,
   ) {
     final _that = this;
@@ -549,7 +605,7 @@ extension FlowEdgePatterns on FlowEdge {
             _that.selectable,
             _that.focusable,
             _that.reconnectable,
-            _that.elevateEdgeOnSelected);
+            _that.elevateEdgeOnSelect);
       case _:
         return null;
     }
@@ -563,8 +619,8 @@ class _FlowEdge extends FlowEdge {
       {required this.id,
       required this.sourceNodeId,
       required this.targetNodeId,
-      required this.sourceHandleId,
-      required this.targetHandleId,
+      this.sourceHandleId,
+      this.targetHandleId,
       this.zIndex = 0,
       this.pathType = EdgePathType.bezier,
       this.interactionWidth = 10.0,
@@ -580,42 +636,80 @@ class _FlowEdge extends FlowEdge {
       this.selectable,
       this.focusable,
       this.reconnectable,
-      this.elevateEdgeOnSelected})
+      this.elevateEdgeOnSelect})
       : assert(sourceNodeId != targetNodeId,
             'Source and target cannot be the same node'),
         _data = data,
         super._();
 
+  /// Unique identifier for this edge.
   @override
   final String id;
+
+  /// ID of the source node this edge originates from.
   @override
   final String sourceNodeId;
+
+  /// ID of the target node this edge points to.
   @override
   final String targetNodeId;
+
+  /// Optional handle ID on the source node where the edge connects.
+  /// If null, the edge connects to the node's center or default position.
   @override
   final String? sourceHandleId;
+
+  /// Optional handle ID on the target node where the edge connects.
+  /// If null, the edge connects to the node's center or default position.
   @override
   final String? targetHandleId;
+
+  /// Z-index for layering edges. Higher values render on top.
   @override
   @JsonKey()
   final int zIndex;
+
+  /// The path rendering algorithm for this edge.
   @override
   @JsonKey()
   final EdgePathType pathType;
+
+  /// Width of the invisible interaction area around the edge for easier selection.
+  /// Makes thin edges easier to click/hover.
   @override
   @JsonKey()
   final double interactionWidth;
+
+  /// Optional widget to display as a label on the edge.
   @override
   final Widget? label;
+
+  /// Optional decoration for the label container.
+  /// If null, uses a default decoration or no decoration.
   @override
-  final BoxDecoration? labelDecoration;
+  final FlowEdgeLabelStyle? labelDecoration;
+
+  /// Optional custom marker style for the start of the edge.
+  /// Overrides the theme's start marker style.
   @override
   final FlowEdgeMarkerStyle? startMarkerStyle;
+
+  /// Optional custom marker style for the end of the edge.
+  /// Overrides the theme's end marker style.
   @override
   final FlowEdgeMarkerStyle? endMarkerStyle;
+
+  /// Optional custom style for this edge.
+  /// If null, uses the style from the current theme.
   @override
   final FlowEdgeStyle? style;
+
+  /// Custom data that can be attached to this edge.
+  /// Useful for storing application-specific metadata.
   final Map<String, dynamic> _data;
+
+  /// Custom data that can be attached to this edge.
+  /// Useful for storing application-specific metadata.
   @override
   @JsonKey()
   Map<String, dynamic> get data {
@@ -624,20 +718,40 @@ class _FlowEdge extends FlowEdge {
     return EqualUnmodifiableMapView(_data);
   }
 
+  /// Whether this edge should be animated (e.g., flowing dots).
+  /// If null, uses the global canvas setting.
   @override
   final bool? animated;
+
+  /// Whether this edge should be hidden from view.
+  /// Hidden edges are not rendered but remain in the data structure.
   @override
   final bool? hidden;
+
+  /// Whether this edge can be deleted by the user.
+  /// If null, uses the global canvas setting.
   @override
   final bool? deletable;
+
+  /// Whether this edge can be selected by the user.
+  /// If null, uses the global canvas setting.
   @override
   final bool? selectable;
+
+  /// Whether this edge can receive keyboard focus.
+  /// If null, uses the global canvas setting.
   @override
   final bool? focusable;
+
+  /// Whether this edge's connections can be changed by dragging.
+  /// If null, uses the global canvas setting.
   @override
   final bool? reconnectable;
+
+  /// Whether this edge should be elevated (z-index increased) when selected.
+  /// If null, uses the global canvas setting.
   @override
-  final bool? elevateEdgeOnSelected;
+  final bool? elevateEdgeOnSelect;
 
   /// Create a copy of FlowEdge
   /// with the given fields replaced by the non-null parameter values.
@@ -686,8 +800,8 @@ class _FlowEdge extends FlowEdge {
                 other.focusable == focusable) &&
             (identical(other.reconnectable, reconnectable) ||
                 other.reconnectable == reconnectable) &&
-            (identical(other.elevateEdgeOnSelected, elevateEdgeOnSelected) ||
-                other.elevateEdgeOnSelected == elevateEdgeOnSelected));
+            (identical(other.elevateEdgeOnSelect, elevateEdgeOnSelect) ||
+                other.elevateEdgeOnSelect == elevateEdgeOnSelect));
   }
 
   @override
@@ -713,12 +827,12 @@ class _FlowEdge extends FlowEdge {
         selectable,
         focusable,
         reconnectable,
-        elevateEdgeOnSelected
+        elevateEdgeOnSelect
       ]);
 
   @override
   String toString() {
-    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelected: $elevateEdgeOnSelected)';
+    return 'FlowEdge(id: $id, sourceNodeId: $sourceNodeId, targetNodeId: $targetNodeId, sourceHandleId: $sourceHandleId, targetHandleId: $targetHandleId, zIndex: $zIndex, pathType: $pathType, interactionWidth: $interactionWidth, label: $label, labelDecoration: $labelDecoration, startMarkerStyle: $startMarkerStyle, endMarkerStyle: $endMarkerStyle, style: $style, data: $data, animated: $animated, hidden: $hidden, deletable: $deletable, selectable: $selectable, focusable: $focusable, reconnectable: $reconnectable, elevateEdgeOnSelect: $elevateEdgeOnSelect)';
   }
 }
 
@@ -739,7 +853,7 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       EdgePathType pathType,
       double interactionWidth,
       Widget? label,
-      BoxDecoration? labelDecoration,
+      FlowEdgeLabelStyle? labelDecoration,
       FlowEdgeMarkerStyle? startMarkerStyle,
       FlowEdgeMarkerStyle? endMarkerStyle,
       FlowEdgeStyle? style,
@@ -750,7 +864,7 @@ abstract mixin class _$FlowEdgeCopyWith<$Res>
       bool? selectable,
       bool? focusable,
       bool? reconnectable,
-      bool? elevateEdgeOnSelected});
+      bool? elevateEdgeOnSelect});
 }
 
 /// @nodoc
@@ -785,7 +899,7 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
     Object? selectable = freezed,
     Object? focusable = freezed,
     Object? reconnectable = freezed,
-    Object? elevateEdgeOnSelected = freezed,
+    Object? elevateEdgeOnSelect = freezed,
   }) {
     return _then(_FlowEdge(
       id: null == id
@@ -827,7 +941,7 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
       labelDecoration: freezed == labelDecoration
           ? _self.labelDecoration
           : labelDecoration // ignore: cast_nullable_to_non_nullable
-              as BoxDecoration?,
+              as FlowEdgeLabelStyle?,
       startMarkerStyle: freezed == startMarkerStyle
           ? _self.startMarkerStyle
           : startMarkerStyle // ignore: cast_nullable_to_non_nullable
@@ -868,9 +982,9 @@ class __$FlowEdgeCopyWithImpl<$Res> implements _$FlowEdgeCopyWith<$Res> {
           ? _self.reconnectable
           : reconnectable // ignore: cast_nullable_to_non_nullable
               as bool?,
-      elevateEdgeOnSelected: freezed == elevateEdgeOnSelected
-          ? _self.elevateEdgeOnSelected
-          : elevateEdgeOnSelected // ignore: cast_nullable_to_non_nullable
+      elevateEdgeOnSelect: freezed == elevateEdgeOnSelect
+          ? _self.elevateEdgeOnSelect
+          : elevateEdgeOnSelect // ignore: cast_nullable_to_non_nullable
               as bool?,
     ));
   }

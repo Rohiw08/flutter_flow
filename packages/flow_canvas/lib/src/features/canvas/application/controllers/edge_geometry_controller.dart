@@ -126,7 +126,6 @@ class EdgeGeometryController {
     return movedNodes;
   }
 
-  /// Optimized: Use cached positions/sizes for comparison
   Set<String> _getChangedNodesOptimized(FlowCanvasState current) {
     final changedNodes = <String>{};
 
@@ -149,29 +148,25 @@ class EdgeGeometryController {
     return changedNodes;
   }
 
-  /// Detect specific edge changes
   _EdgeChanges _detectEdgeChanges(
       Map<String, FlowEdge> oldEdges, Map<String, FlowEdge> newEdges) {
     final added = <String>{};
     final removed = <String>{};
     final modified = <String>{};
 
-    // Check for new edges
     for (final key in newEdges.keys) {
       if (!_previousEdgeKeys.contains(key)) {
         added.add(key);
       } else {
         final oldEdge = oldEdges[key];
         final newEdge = newEdges[key];
-        if (oldEdge != null && newEdge != null) {
-          if (oldEdges != newEdges) {
-            modified.add(key);
-          }
+
+        if (oldEdge != newEdge) {
+          modified.add(key);
         }
       }
     }
 
-    // Check for removed edges
     for (final key in _previousEdgeKeys) {
       if (!newEdges.containsKey(key)) {
         removed.add(key);

@@ -44,13 +44,6 @@ enum NodeEventType {
   change,
 }
 
-enum EdgeMarkerType {
-  none,
-  arrow,
-  circle,
-  arrowClosed,
-}
-
 enum ConnectionLineType {
   bezier,
   straight,
@@ -101,3 +94,5 @@ enum DefaultNodeType {
   inputNode,
   outputNode,
 }
+
+enum ConnectionValidity { none, valid, invalid }

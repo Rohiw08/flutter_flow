@@ -5,7 +5,6 @@ import 'package:flow_canvas/src/features/canvas/presentation/painters/background
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/background_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
 
-// Provider to asynchronously load the shader once and cache it.
 final _shaderProvider = FutureProvider<ui.FragmentProgram>((ref) {
   return ui.FragmentProgram.fromAsset(
     'packages/flow_canvas/lib/src/features/canvas/presentation/shaders/background.frag',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/node.dart';
-import '../../presentation/widgets/default_node_widget.dart';
+import '../../presentation/widgets/flow_node.dart';
 
 typedef NodeWidgetBuilder = Widget Function(FlowNode node);
 

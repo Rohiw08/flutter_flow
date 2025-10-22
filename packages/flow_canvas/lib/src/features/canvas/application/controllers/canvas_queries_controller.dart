@@ -49,10 +49,11 @@ class CanvasQuerier {
       _nodeQueryService.getConnectedNodes(_controller.currentState, nodeId);
 
   /// Calculates the total bounding box that encloses a given set of nodes.
-  NodeBounds getNodeBounds(
-          {List<String> nodeIds = const [], bool includeHidden = false}) =>
-      _viewportService.getNodeBounds(_controller.currentState,
-          nodeIds: nodeIds, includeHidden: includeHidden);
+  NodeBounds getNodeBounds({bool includeHidden = false}) =>
+      _viewportService.getNodeBounds(
+        nodes: _controller.currentState.nodes.values.toList(),
+        includeHidden: includeHidden,
+      );
 
   // =================================================================================
   // --- Edge Queries ---

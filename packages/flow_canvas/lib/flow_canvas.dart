@@ -19,21 +19,7 @@ export 'src/features/canvas/domain/registries/node_registry.dart';
 export 'src/features/canvas/domain/registries/edge_registry.dart';
 
 // --- Theming ---
-export 'src/features/canvas/presentation/theme/flow_theme.dart';
-export 'src/features/canvas/presentation/theme/flow_canvas_theme_data.dart';
-export 'src/features/canvas/presentation/theme/theme_builder.dart';
-export 'src/features/canvas/presentation/theme/theme_provider.dart';
-export 'src/features/canvas/presentation/theme/theme_extensions.dart';
-export 'src/features/canvas/presentation/theme/components/background_theme.dart';
-export 'src/features/canvas/presentation/theme/components/connection_theme.dart';
-export 'src/features/canvas/presentation/theme/components/controller_theme.dart';
-export 'src/features/canvas/presentation/theme/components/edge_label_theme.dart';
-export 'src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
-export 'src/features/canvas/presentation/theme/components/edge_theme.dart';
-export 'src/features/canvas/presentation/theme/components/handle_theme.dart';
-export 'src/features/canvas/presentation/theme/components/minimap_theme.dart';
-export 'src/features/canvas/presentation/theme/components/node_theme.dart';
-export 'src/features/canvas/presentation/theme/components/selection_theme.dart';
+export 'src/features/canvas/presentation/theme/theme_export.dart';
 
 // --- Options ---
 export 'src/features/canvas/presentation/options/flow_options.dart';
@@ -72,7 +58,9 @@ export 'src/features/canvas/presentation/widgets/flow_canvas_controls.dart';
 export 'src/features/canvas/presentation/widgets/control_button.dart';
 export 'src/features/canvas/presentation/widgets/flow_minimap.dart';
 export 'src/features/canvas/presentation/widgets/flow_handle.dart';
-export 'src/features/canvas/presentation/widgets/flow_background.dart';
+export 'src/features/canvas/presentation/widgets/layers/flow_background.dart';
+export 'src/features/canvas/presentation/widgets/flow_node.dart';
 
 // --- Utility ---
 export 'src/features/canvas/presentation/utility/flow_positioned.dart';
+export 'src/features/canvas/presentation/utility/typedefs.dart';

@@ -130,11 +130,12 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
         paneCallbacks: ref.read(paneCallbacksProvider),
         selectionController: selection);
     viewport = ViewportController(
-        controller: this,
-        viewportService: _viewportService,
-        coordinateConverter: coordinateConverter,
-        viewportStreams: _viewportStreams,
-        viewportCallbacks: ref.read(viewportCallbacksProvider));
+      controller: this,
+      viewportService: _viewportService,
+      coordinateConverter: coordinateConverter,
+      viewportStreams: _viewportStreams,
+      viewportCallbacks: ref.read(viewportCallbacksProvider),
+    );
     connection = ConnectionController(
         controller: this,
         connectionService: _connectionService,

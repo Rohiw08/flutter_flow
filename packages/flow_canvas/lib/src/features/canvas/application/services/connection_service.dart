@@ -5,7 +5,6 @@ import 'package:flow_canvas/src/features/canvas/domain/models/handle.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
-// ADDED: Import for HandleRuntimeState
 import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/random_id_generator.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
@@ -29,11 +28,14 @@ class ClosestHandleResult {
   final String nodeId;
   final NodeHandle handle;
   final double distance;
+  // It's often useful to also return the node itself
+  final FlowNode node;
 
   ClosestHandleResult({
     required this.nodeId,
     required this.handle,
     required this.distance,
+    required this.node,
   });
 }
 
@@ -79,11 +81,20 @@ class ConnectionService {
   }) {
     if (state.connection == null) return state;
 
+    // --- FIX: Define sourceNode and sourceHandle at the start ---
+    final sourceNode = state.nodes[state.connection!.fromNodeId];
+    final sourceHandle = sourceNode?.handles[state.connection!.fromHandleId];
+
+    // If the source is somehow invalid, cancel the connection
+    if (sourceNode == null || sourceHandle == null) {
+      return cancelConnection(state);
+    }
+    // --- END FIX ---
+
     final newHandleStates =
         Map<String, HandleRuntimeState>.from(state.handleStates);
     String? currentTargetHandleKey;
 
-    // Reset the state of the previously targeted handle
     if (state.connection?.toNodeId != null &&
         state.connection?.toHandleId != null) {
       final prevTargetKey =
@@ -95,7 +106,6 @@ class ConnectionService {
 
     String? targetNodeId;
     String? targetHandleId;
-    bool isConnectionValid = false;
 
     final closestHandle = _findClosestHandle(
       state,
@@ -104,16 +114,22 @@ class ConnectionService {
       validator: validator,
     );
 
+    ConnectionValidity validity = ConnectionValidity.none;
+
     if (closestHandle != null) {
-      targetNodeId = closestHandle.nodeId;
-      targetHandleId = closestHandle.handle.id;
-      currentTargetHandleKey = '$targetNodeId/$targetHandleId';
-      isConnectionValid = true;
-      // Mark the new target handle as valid
-      newHandleStates[currentTargetHandleKey] =
-          (newHandleStates[currentTargetHandleKey] ??
-                  const HandleRuntimeState())
-              .copyWith(isValidTarget: true);
+      if (_isValidConnection(sourceNode, sourceHandle, closestHandle.node,
+          closestHandle.handle, validator)) {
+        validity = ConnectionValidity.valid;
+        targetNodeId = closestHandle.nodeId;
+        targetHandleId = closestHandle.handle.id;
+        currentTargetHandleKey = '$targetNodeId/$targetHandleId';
+        newHandleStates[currentTargetHandleKey] =
+            (newHandleStates[currentTargetHandleKey] ??
+                    const HandleRuntimeState())
+                .copyWith(isValidTarget: true);
+      } else {
+        validity = ConnectionValidity.invalid;
+      }
     }
 
     return state.copyWith(
@@ -123,7 +139,7 @@ class ConnectionService {
         toNodeId: targetNodeId,
         toHandleId: targetHandleId,
       ),
-      connectionState: FlowConnectionRuntimeState(isValid: isConnectionValid),
+      connectionState: FlowConnectionRuntimeState(validity: validity),
     );
   }
 
@@ -140,7 +156,8 @@ class ConnectionService {
     final targetNodeId = pendingConnection.toNodeId;
     final targetHandleId = pendingConnection.toHandleId;
 
-    if (state.connectionState?.isValid == true &&
+    // Use the ConnectionValidity enum for the check
+    if (state.connectionState?.validity == ConnectionValidity.valid &&
         targetNodeId != null &&
         targetHandleId != null) {
       final sourceNode = state.nodes[pendingConnection.fromNodeId];
@@ -173,13 +190,13 @@ class ConnectionService {
           handleStates: newHandleStates,
           dragMode: DragMode.none,
         );
-        // --- END SOLUTION ---
       }
     }
 
     return cancelConnection(state);
   }
 
+  // ... The rest of the file (cancelConnection, _clearConnectionStates, etc.) is correct and can remain as is.
   FlowCanvasState cancelConnection(FlowCanvasState state) {
     if (state.connection == null) return state;
     return state.copyWith(
@@ -190,13 +207,11 @@ class ConnectionService {
     );
   }
 
-  // Resets all active/target flags on handles
   Map<String, HandleRuntimeState> _clearConnectionStates(
       FlowCanvasState state) {
     final newHandleStates =
         Map<String, HandleRuntimeState>.from(state.handleStates);
 
-    // Reset source handle
     if (state.connection?.fromNodeId != null &&
         state.connection?.fromHandleId != null) {
       final sourceKey =
@@ -206,7 +221,6 @@ class ConnectionService {
               .copyWith(isActive: false);
     }
 
-    // Reset target handle
     if (state.connection?.toNodeId != null &&
         state.connection?.toHandleId != null) {
       final targetKey =
@@ -224,7 +238,6 @@ class ConnectionService {
     Offset cursorPosition, {
     required double snapRadius,
     ConnectionValidator? validator,
-    bool ignoreValidation = false, // Added flag
   }) {
     final sourceNode = state.nodes[state.connection!.fromNodeId];
     final sourceHandle = sourceNode?.handles[state.connection!.fromHandleId];
@@ -251,23 +264,18 @@ class ConnectionService {
       }
       if (potentialTargetHandle.type == HandleType.source) continue;
 
-      // Convert handle's render-space offset to cartesian delta
-
       final handleCenter =
           potentialTargetNode.position + potentialTargetHandle.position;
       final distance = (cursorPosition - handleCenter).distance;
 
       if (distance <= snapRadius && distance < minDistance) {
-        if (ignoreValidation ||
-            _isValidConnection(sourceNode, sourceHandle, potentialTargetNode,
-                potentialTargetHandle, validator)) {
-          minDistance = distance;
-          closestHandle = ClosestHandleResult(
+        // We now check for invalid connections too, so we don't need ignoreValidation
+        minDistance = distance;
+        closestHandle = ClosestHandleResult(
             nodeId: potentialTargetNodeId,
             handle: potentialTargetHandle,
             distance: distance,
-          );
-        }
+            node: potentialTargetNode);
       }
     }
 

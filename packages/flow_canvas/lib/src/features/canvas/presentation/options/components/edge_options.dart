@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart' show BuildContext;
-import 'package:flow_canvas/flow_canvas.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,7 +11,7 @@ class EdgeOptions {
   final bool selectable;
   final bool reconnectable;
   final bool focusable;
-  final bool elevateEdgesOnSelect;
+  final bool elevateEdgeOnSelect;
 
   const EdgeOptions({
     this.type,
@@ -22,7 +21,7 @@ class EdgeOptions {
     this.selectable = true,
     this.reconnectable = true,
     this.focusable = true,
-    this.elevateEdgesOnSelect = true,
+    this.elevateEdgeOnSelect = true,
   });
 
   EdgeOptions copyWith({
@@ -33,7 +32,7 @@ class EdgeOptions {
     bool? selectable,
     bool? reconnectable,
     bool? focusable,
-    bool? elevateEdgesOnSelect,
+    bool? elevateEdgeOnSelect,
   }) {
     return EdgeOptions(
       type: type ?? this.type,
@@ -43,7 +42,7 @@ class EdgeOptions {
       selectable: selectable ?? this.selectable,
       reconnectable: reconnectable ?? this.reconnectable,
       focusable: focusable ?? this.focusable,
-      elevateEdgesOnSelect: elevateEdgesOnSelect ?? this.elevateEdgesOnSelect,
+      elevateEdgeOnSelect: elevateEdgeOnSelect ?? this.elevateEdgeOnSelect,
     );
   }
 
@@ -62,7 +61,7 @@ class EdgeOptions {
         other.selectable == selectable &&
         other.reconnectable == reconnectable &&
         other.focusable == focusable &&
-        other.elevateEdgesOnSelect == elevateEdgesOnSelect;
+        other.elevateEdgeOnSelect == elevateEdgeOnSelect;
   }
 
   @override
@@ -74,38 +73,6 @@ class EdgeOptions {
         selectable.hashCode ^
         reconnectable.hashCode ^
         focusable.hashCode ^
-        elevateEdgesOnSelect.hashCode;
-  }
-}
-
-extension ResolvedEdgeOptions on FlowEdge {
-  bool isSelectable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return selectable ?? globalOptions.selectable;
-  }
-
-  bool isDeletable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return deletable ?? globalOptions.deletable;
-  }
-
-  bool isAnimated(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return animated ?? globalOptions.animated;
-  }
-
-  bool isHidden(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return hidden ?? globalOptions.hidden;
-  }
-
-  bool isReconnectable(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return reconnectable ?? globalOptions.reconnectable;
-  }
-
-  bool elevateOnSelect(BuildContext context) {
-    final globalOptions = context.flowCanvasOptions.edgeOptions;
-    return elevateEdgeOnSelected ?? globalOptions.elevateEdgesOnSelect;
+        elevateEdgeOnSelect.hashCode;
   }
 }

@@ -6,6 +6,7 @@ import 'package:flow_canvas/src/features/canvas/application/services/viewport_se
 import 'package:flow_canvas/src/features/canvas/application/streams/viewport_change_stream.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/fitview_options.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/options/components/viewport_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 
 class ViewportController {
@@ -82,9 +83,13 @@ class ViewportController {
     _viewportCallbacks.onZoom(event);
   }
 
-  void fitView({FitViewOptions options = const FitViewOptions()}) {
-    final newState =
-        _viewportService.fitView(_controller.currentState, options: options);
+  void fitView(
+      {FitViewOptions fitviewOptions = const FitViewOptions(),
+      ViewportOptions viewportOptions = const ViewportOptions()}) {
+    final newState = _viewportService.fitView(
+        state: _controller.currentState,
+        viewportOptions: viewportOptions,
+        fitViewOptions: fitviewOptions);
     _controller.updateStateOnly(newState);
     final event = ViewportEvent(
       type: ViewportEventType.transform,
@@ -96,17 +101,11 @@ class ViewportController {
   }
 
   void centerOnPosition(Offset canvasPosition) {
-    final currentState = _controller.currentState;
-    if (currentState.viewportSize == null) return;
+    final newState = _viewportService.centerOnPosition(
+      _controller.currentState,
+      canvasPosition,
+    );
 
-    final renderPosition =
-        _coordinateConverter.toRenderPosition(canvasPosition);
-    final newOffset = (renderPosition * currentState.viewport.zoom * -1) +
-        Offset(currentState.viewportSize!.width / 2,
-            currentState.viewportSize!.height / 2);
-
-    final newState = currentState.copyWith(
-        viewport: currentState.viewport.copyWith(offset: newOffset));
     _controller.updateStateOnly(newState);
     final event = ViewportEvent(
       type: ViewportEventType.transform,

@@ -14,8 +14,7 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowConnectionRuntimeState {
-  bool get isAnimating;
-  bool get isValid;
+  ConnectionValidity get validity;
   String? get potentialTargetHandleKey;
 
   /// Create a copy of FlowConnectionRuntimeState
@@ -32,9 +31,8 @@ mixin _$FlowConnectionRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowConnectionRuntimeState &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating) &&
-            (identical(other.isValid, isValid) || other.isValid == isValid) &&
+            (identical(other.validity, validity) ||
+                other.validity == validity) &&
             (identical(
                     other.potentialTargetHandleKey, potentialTargetHandleKey) ||
                 other.potentialTargetHandleKey == potentialTargetHandleKey));
@@ -42,11 +40,11 @@ mixin _$FlowConnectionRuntimeState {
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, isAnimating, isValid, potentialTargetHandleKey);
+      Object.hash(runtimeType, validity, potentialTargetHandleKey);
 
   @override
   String toString() {
-    return 'FlowConnectionRuntimeState(isAnimating: $isAnimating, isValid: $isValid, potentialTargetHandleKey: $potentialTargetHandleKey)';
+    return 'FlowConnectionRuntimeState(validity: $validity, potentialTargetHandleKey: $potentialTargetHandleKey)';
   }
 }
 
@@ -56,7 +54,7 @@ abstract mixin class $FlowConnectionRuntimeStateCopyWith<$Res> {
           $Res Function(FlowConnectionRuntimeState) _then) =
       _$FlowConnectionRuntimeStateCopyWithImpl;
   @useResult
-  $Res call({bool isAnimating, bool isValid, String? potentialTargetHandleKey});
+  $Res call({ConnectionValidity validity, String? potentialTargetHandleKey});
 }
 
 /// @nodoc
@@ -72,19 +70,14 @@ class _$FlowConnectionRuntimeStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? isAnimating = null,
-    Object? isValid = null,
+    Object? validity = null,
     Object? potentialTargetHandleKey = freezed,
   }) {
     return _then(_self.copyWith(
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isValid: null == isValid
-          ? _self.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
+      validity: null == validity
+          ? _self.validity
+          : validity // ignore: cast_nullable_to_non_nullable
+              as ConnectionValidity,
       potentialTargetHandleKey: freezed == potentialTargetHandleKey
           ? _self.potentialTargetHandleKey
           : potentialTargetHandleKey // ignore: cast_nullable_to_non_nullable
@@ -187,15 +180,14 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
-            bool isAnimating, bool isValid, String? potentialTargetHandleKey)?
+            ConnectionValidity validity, String? potentialTargetHandleKey)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionRuntimeState() when $default != null:
-        return $default(
-            _that.isAnimating, _that.isValid, _that.potentialTargetHandleKey);
+        return $default(_that.validity, _that.potentialTargetHandleKey);
       case _:
         return orElse();
     }
@@ -217,14 +209,13 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            bool isAnimating, bool isValid, String? potentialTargetHandleKey)
+            ConnectionValidity validity, String? potentialTargetHandleKey)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionRuntimeState():
-        return $default(
-            _that.isAnimating, _that.isValid, _that.potentialTargetHandleKey);
+        return $default(_that.validity, _that.potentialTargetHandleKey);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -245,14 +236,13 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
-            bool isAnimating, bool isValid, String? potentialTargetHandleKey)?
+            ConnectionValidity validity, String? potentialTargetHandleKey)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _FlowConnectionRuntimeState() when $default != null:
-        return $default(
-            _that.isAnimating, _that.isValid, _that.potentialTargetHandleKey);
+        return $default(_that.validity, _that.potentialTargetHandleKey);
       case _:
         return null;
     }
@@ -263,16 +253,11 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
 
 class _FlowConnectionRuntimeState implements FlowConnectionRuntimeState {
   const _FlowConnectionRuntimeState(
-      {this.isAnimating = false,
-      this.isValid = false,
-      this.potentialTargetHandleKey});
+      {this.validity = ConnectionValidity.none, this.potentialTargetHandleKey});
 
   @override
   @JsonKey()
-  final bool isAnimating;
-  @override
-  @JsonKey()
-  final bool isValid;
+  final ConnectionValidity validity;
   @override
   final String? potentialTargetHandleKey;
 
@@ -290,9 +275,8 @@ class _FlowConnectionRuntimeState implements FlowConnectionRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowConnectionRuntimeState &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating) &&
-            (identical(other.isValid, isValid) || other.isValid == isValid) &&
+            (identical(other.validity, validity) ||
+                other.validity == validity) &&
             (identical(
                     other.potentialTargetHandleKey, potentialTargetHandleKey) ||
                 other.potentialTargetHandleKey == potentialTargetHandleKey));
@@ -300,11 +284,11 @@ class _FlowConnectionRuntimeState implements FlowConnectionRuntimeState {
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, isAnimating, isValid, potentialTargetHandleKey);
+      Object.hash(runtimeType, validity, potentialTargetHandleKey);
 
   @override
   String toString() {
-    return 'FlowConnectionRuntimeState(isAnimating: $isAnimating, isValid: $isValid, potentialTargetHandleKey: $potentialTargetHandleKey)';
+    return 'FlowConnectionRuntimeState(validity: $validity, potentialTargetHandleKey: $potentialTargetHandleKey)';
   }
 }
 
@@ -317,7 +301,7 @@ abstract mixin class _$FlowConnectionRuntimeStateCopyWith<$Res>
       __$FlowConnectionRuntimeStateCopyWithImpl;
   @override
   @useResult
-  $Res call({bool isAnimating, bool isValid, String? potentialTargetHandleKey});
+  $Res call({ConnectionValidity validity, String? potentialTargetHandleKey});
 }
 
 /// @nodoc
@@ -333,19 +317,14 @@ class __$FlowConnectionRuntimeStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? isAnimating = null,
-    Object? isValid = null,
+    Object? validity = null,
     Object? potentialTargetHandleKey = freezed,
   }) {
     return _then(_FlowConnectionRuntimeState(
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isValid: null == isValid
-          ? _self.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
-              as bool,
+      validity: null == validity
+          ? _self.validity
+          : validity // ignore: cast_nullable_to_non_nullable
+              as ConnectionValidity,
       potentialTargetHandleKey: freezed == potentialTargetHandleKey
           ? _self.potentialTargetHandleKey
           : potentialTargetHandleKey // ignore: cast_nullable_to_non_nullable

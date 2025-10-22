@@ -46,7 +46,7 @@ class MiniMapPainter extends CustomPainter {
         _nodePaint = Paint()..style = PaintingStyle.fill,
         _nodeStrokePaint = Paint()..style = PaintingStyle.stroke,
         _viewportStrokePaint = Paint()
-          ..color = theme.maskStrokeColor
+          ..color = theme.maskColor
           ..strokeWidth = theme.maskStrokeWidth
           ..style = PaintingStyle.stroke,
         _viewportFillPaint = Paint()
@@ -82,14 +82,17 @@ class MiniMapPainter extends CustomPainter {
           ..scale(transform.scale, -transform.scale);
         final transformedPath = customPath.transform(matrix.storage);
 
-        _nodePaint.color = nodeColor?.call(node) ?? theme.nodeColor;
+        _nodePaint.color = (nodeColor?.call(
+              node,
+            ) ??
+            theme.nodeColor);
         canvas.drawPath(transformedPath, _nodePaint);
 
         final strokeWidth =
             nodeStrokeWidth?.call(node) ?? theme.nodeStrokeWidth;
         if (strokeWidth > 0) {
           _nodeStrokePaint.color =
-              nodeStrokeColor?.call(node) ?? theme.nodeStrokeColor;
+              (nodeStrokeColor?.call(node) ?? theme.nodeStrokeColor);
           _nodeStrokePaint.strokeWidth = strokeWidth;
           canvas.drawPath(transformedPath, _nodeStrokePaint);
         }
@@ -104,12 +107,12 @@ class MiniMapPainter extends CustomPainter {
           math.max(transformedRect.height, minSize),
         );
         _nodePaint.color = nodeColor?.call(node) ?? theme.nodeColor;
-        final radius = nodeBorderRadius?.call(node) ?? theme.nodeBorderRadius;
+        final radius = nodeBorderRadius?.call(node) == null
+            ? theme.nodeBorderRadius
+            : BorderRadius.circular(nodeBorderRadius!.call(node));
 
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(adjustedRect, Radius.circular(radius)),
-          _nodePaint,
-        );
+        final rrect = RRect.fromRectAndRadius(adjustedRect, radius.topLeft);
+        canvas.drawRRect(rrect, _nodePaint);
 
         final strokeWidth =
             nodeStrokeWidth?.call(node) ?? theme.nodeStrokeWidth;
@@ -117,10 +120,7 @@ class MiniMapPainter extends CustomPainter {
           _nodeStrokePaint.color =
               nodeStrokeColor?.call(node) ?? theme.nodeStrokeColor;
           _nodeStrokePaint.strokeWidth = strokeWidth;
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(adjustedRect, Radius.circular(radius)),
-            _nodeStrokePaint,
-          );
+          canvas.drawRRect(rrect, _nodeStrokePaint);
         }
       }
     }
@@ -152,7 +152,6 @@ class MiniMapPainter extends CustomPainter {
         Rect.zero;
   }
 
-  // Keep these static as they are pure functions
   static MiniMapTransform calculateTransform(
       Rect contentBounds, Size minimapSize, FlowMinimapStyle theme) {
     if (contentBounds.isEmpty || minimapSize.isEmpty) {

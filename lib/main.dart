@@ -7,21 +7,40 @@ void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode =
+          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      themeMode: _themeMode,
+      darkTheme: ThemeData.dark(),
+      theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: Example(),
+        body: Example(onToggleTheme: _toggleTheme),
       ),
     );
   }
 }
 
 class Example extends StatefulWidget {
-  const Example({super.key});
+  final VoidCallback onToggleTheme;
+  const Example({super.key, required this.onToggleTheme});
 
   @override
   State<Example> createState() => _ExampleState();
@@ -29,16 +48,14 @@ class Example extends StatefulWidget {
 
 class _ExampleState extends State<Example> {
   FlowCanvasController? _controller;
-
-  bool _isSelectionMode = false; // default value
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
     super.initState();
-    _isSelectionMode = false; // or set based on some default mode
+    _isSelectionMode = false;
   }
 
-  // 1. Define initial nodes for the canvas.
   late final List<FlowNode> initialNodes = [
     FlowNode.create(
       id: '1',
@@ -61,11 +78,10 @@ class _ExampleState extends State<Example> {
         'label': 'My Custom Node',
       },
     ),
-    // This node will use the self-contained ColorPickerCard.
     FlowNode.create(
       id: '2',
       position: const Offset(50, 250),
-      size: const Size(200, 110), // Match the card's size
+      size: const Size(200, 110),
       type: 'colorPicker',
       handles: [
         const NodeHandle(
@@ -76,14 +92,13 @@ class _ExampleState extends State<Example> {
       ],
       data: {
         'label': 'Color Node',
-        'color': const Color(0xFF443a49), // Initial color for this node
+        'color': const Color(0xFF443a49),
       },
     ),
-
     FlowNode.create(
       id: '3',
       position: const Offset(100, 100),
-      size: const Size(150, 150), // Match the card's size
+      size: const Size(150, 150),
       type: 'colorPicker',
       handles: [
         const NodeHandle(
@@ -94,15 +109,14 @@ class _ExampleState extends State<Example> {
       ],
       data: {
         'label': 'Color Node',
-        'color': const Color(0xFF443a49), // Initial color for this node
+        'color': const Color(0xFF443a49),
       },
     ),
-
     FlowNode.create(
       id: '4',
       position: const Offset(100, 300),
-      size: const Size(150, 150), // Match the card's size
-      type: 'colorPicker',
+      size: const Size(150, 150),
+      type: 'InputNode',
       handles: [
         const NodeHandle(
           id: '4-both-1',
@@ -112,13 +126,11 @@ class _ExampleState extends State<Example> {
       ],
       data: {
         'label': 'Color Node',
-        'color': const Color.fromARGB(
-            255, 166, 87, 206), // Initial color for this node
+        'color': const Color.fromARGB(255, 166, 87, 206),
       },
     ),
   ];
 
-  // 2. Define initial edges (connections) for the canvas.
   final List<FlowEdge> initialEdges = [
     const FlowEdge(
       id: 'e1-2',
@@ -127,6 +139,14 @@ class _ExampleState extends State<Example> {
       sourceHandleId: '1-both-1',
       targetNodeId: '2',
       targetHandleId: '2-both-1',
+      endMarkerStyle: FlowEdgeMarkerStyle(
+        type: EdgeMarkerType.arrow,
+        decoration: FlowMarkerDecoration(size: Size(8, 8), color: Colors.black),
+      ),
+      startMarkerStyle: FlowEdgeMarkerStyle(
+        type: EdgeMarkerType.arrow,
+        decoration: FlowMarkerDecoration(size: Size(8, 8), color: Colors.black),
+      ),
     ),
     const FlowEdge(
       id: 'e3-1',
@@ -138,20 +158,24 @@ class _ExampleState extends State<Example> {
     ),
   ];
 
-  // 3. Set up the registries for custom node types.
   late final nodeRegistry = NodeRegistry()
     ..register(
       'colorPicker',
-      // The builder now passes the node and controller to the stateful card.
       (node) {
-        // We add a check to ensure the controller is initialized.
         if (_controller == null) return const SizedBox.shrink();
         return ColorPickerCard(
           node: node,
           controller: _controller!,
         );
       },
-    );
+    )
+    ..register('InputNode', (node) {
+      if (_controller == null) return const SizedBox.shrink();
+      return InputNode(
+        node: node,
+        controller: _controller!,
+      );
+    });
 
   final edgeRegistry = EdgeRegistry();
 
@@ -159,80 +183,54 @@ class _ExampleState extends State<Example> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Wrap(
-            spacing: 8.0,
-            runSpacing: 4.0,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  if (_controller == null) return;
-                  final newNode = FlowNode.create(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    position: const Offset(200, 300),
-                    size: const Size(150, 80),
-                    type: 'default',
-                    data: {'label': 'Added Node'},
-                  );
-                  _controller!.nodes.addNode(newNode);
-                },
-                child: const Text('Add Node'),
-              ),
-              ElevatedButton(
-                onPressed: () => _controller?.nodes.removeSelectedNodes(),
-                child: const Text('Remove Selected'),
-              ),
-              ElevatedButton(
-                onPressed: () => _controller?.viewport.fitView(),
-                child: const Text('Fit View'),
-              ),
-            ],
-          ),
-        ),
-        const Divider(),
         Expanded(
           child: FlowCanvas(
             nodeRegistry: nodeRegistry,
             edgeRegistry: edgeRegistry,
             initialNodes: initialNodes,
             initialEdges: initialEdges,
-            // We use setState here to trigger a rebuild once the controller is ready.
             onCanvasCreated: (controller) {
               setState(() => _controller = controller);
-              // for (int i = 10; i < 60; i++) {
-              //   _controller!.nodes.addNode(FlowNode.create(
-              //     id: i.toString(),
-              //     position: Offset(150.0 * (i % 10), 80.0 * (i / 10).toInt()),
-              //     size: const Size(150, 80),
-              //     type: 'default',
-              //     handles: [
-              //       NodeHandle(
-              //         id: '$i-both-1',
-              //         type: HandleType.both,
-              //         position: const Offset(75, 0),
-              //       )
-              //     ],
-              //     data: {'label': 'Added Node'},
-              //   ));
-              // }
             },
             options: const FlowOptions(
               viewportOptions: ViewportOptions(
                 maxZoom: 3.0,
                 minZoom: 0.3,
+                fitViewOptions: FitViewOptions(
+                  maxZoom: 3.0,
+                  minZoom: 0.3,
+                  padding: EdgeInsets.all(1000),
+                ),
               ),
               nodeOptions: NodeOptions(
                 elevateNodesOnSelected: true,
               ),
+              edgeOptions: EdgeOptions(
+                animated: true,
+              ),
+            ),
+            theme: FlowCanvasTheme.system(context).copyWith(
+              connection: FlowConnectionStyle.light().copyWith(
+                endMarkerStyle: const FlowEdgeMarkerStyle(
+                  type: EdgeMarkerType.arrow,
+                  decoration: FlowMarkerDecoration(
+                      size: Size(8, 8), color: Colors.black),
+                ),
+                startMarkerStyle: const FlowEdgeMarkerStyle(
+                  type: EdgeMarkerType.circle,
+                  decoration: FlowMarkerDecoration(
+                      size: Size(8, 8), color: Colors.black),
+                ),
+              ),
+            ),
+            connectionCallbacks: ConnectionCallbacks(
+              onConnectEnd: (connection) {
+                // Handle connection end
+              },
             ),
             overlays: [
               const FlowBackground(),
-              const FlowMiniMap(
-                minimapStyle: FlowMinimapStyle(
-                  maskStrokeWidth: 0,
-                ),
-              ),
+              const FlowMiniMap(),
               FlowCanvasControls(
                 children: [
                   ControlButton(
@@ -260,8 +258,6 @@ class _ExampleState extends State<Example> {
   }
 }
 
-/// A stateful widget that displays a color and handles opening a
-/// color picker dialog to update its own state and the associated flow node.
 class ColorPickerCard extends StatefulWidget {
   final FlowNode node;
   final FlowCanvasController controller;
@@ -277,21 +273,16 @@ class ColorPickerCard extends StatefulWidget {
 }
 
 class _ColorPickerCardState extends State<ColorPickerCard> {
-  // The card now manages its own color state.
   late Color currentColor;
-  // This is a temporary color used only by the dialog.
   late Color pickerColor;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the color from the node data passed in.
     currentColor = widget.node.data['color'] ?? Colors.pink;
     pickerColor = currentColor;
   }
 
-  // This lifecycle method ensures that if the node's color is changed
-  // by an external source, the card's UI will update to match.
   @override
   void didUpdateWidget(covariant ColorPickerCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -303,14 +294,11 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
     }
   }
 
-  // Callback for live color changes within the picker dialog.
   void changeColor(Color color) {
     setState(() => pickerColor = color);
   }
 
-  // This method now lives inside the widget that uses it.
   void _showColorPickerDialog() {
-    // Reset pickerColor to the current confirmed color when opening.
     pickerColor = currentColor;
     showDialog(
       context: context,
@@ -327,12 +315,10 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
           ElevatedButton(
             child: const Text('Got it'),
             onPressed: () {
-              // 1. Update the card's own state to reflect the change immediately.
               setState(() {
                 currentColor = pickerColor;
               });
 
-              // 2. Update the source of truth: the node's data in the controller.
               final newNodeData = Map<String, dynamic>.from(widget.node.data);
               newNodeData['color'] = currentColor;
               final updatedNode = widget.node.copyWith(data: newNodeData);
@@ -378,7 +364,7 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsetsGeometry.all(10),
+                  padding: EdgeInsets.all(10),
                   child: Text(
                     'shape color',
                     style: TextStyle(
@@ -399,14 +385,14 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: const EdgeInsetsGeometry.all(10),
+                        padding: const EdgeInsets.all(10),
                         child: Row(
                           children: [
                             Container(
                               width: 30,
                               height: 30,
                               decoration: BoxDecoration(
-                                color: currentColor, // Uses internal state
+                                color: currentColor,
                                 borderRadius:
                                     const BorderRadius.all(Radius.circular(6)),
                                 border: Border.all(
@@ -438,14 +424,135 @@ class _ColorPickerCardState extends State<ColorPickerCard> {
         ),
         ...widget.node.handles.values.map(
           (handle) => Handle(
-            handleStyle: FlowHandleStyle(size: handle.size),
+            handleStyle: const FlowHandleStyle(
+              idleDecoration: BoxDecoration(color: Colors.blue),
+            ),
             nodeId: widget.node.id,
-            handleId: handle.id, // Renamed for clarity
-            type: handle.type, // An output handle
+            handleId: handle.id,
+            type: handle.type,
             position: handle.position,
+            size: handle.size,
           ),
         ),
       ],
+    );
+  }
+}
+
+class InputNode extends StatelessWidget {
+  final FlowCanvasController _controller;
+  final FlowNode _flowNode;
+  const InputNode(
+      {super.key,
+      required FlowCanvasController controller,
+      required FlowNode node})
+      : _controller = controller,
+        _flowNode = node;
+
+  void addNode(Offset position) {
+    final node = FlowNode.create(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      position: position,
+      size: const Size(150, 80),
+      type: 'default',
+      data: {'label': 'Added Node'},
+    );
+    _controller.nodes.addNode(node);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextEditingController textEditingController = TextEditingController();
+    return DefaultNodeWidget(
+      node: _flowNode,
+      style: FlowNodeStyle.system(context).copyWith(
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(230),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color.fromARGB(230, 92, 92, 92),
+            width: 0.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        selectedDecoration: BoxDecoration(
+          color: Colors.blue.withAlpha(230),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color.fromARGB(230, 92, 92, 92),
+            width: 0.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        hoverDecoration: BoxDecoration(
+          color: Colors.green.withAlpha(230),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color.fromARGB(230, 92, 92, 92),
+            width: 0.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        disabledDecoration: BoxDecoration(
+          color: Colors.grey.withAlpha(230),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color.fromARGB(230, 92, 92, 92),
+            width: 0.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          const Text("Input"),
+          const Spacer(
+            flex: 1,
+          ),
+          TextField(
+            controller: textEditingController,
+            decoration: const InputDecoration(
+              labelText: 'Enter your name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const Spacer(
+            flex: 1,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              print(textEditingController.text);
+            },
+            child: const Text("Enter"),
+          ),
+        ],
+      ),
     );
   }
 }

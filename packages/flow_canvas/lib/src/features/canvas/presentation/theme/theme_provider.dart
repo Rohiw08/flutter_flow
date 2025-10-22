@@ -12,13 +12,11 @@ class FlowCanvasThemeProvider extends StatelessWidget {
     required this.child,
   });
 
-  /// Convenience constructor for light theme
   FlowCanvasThemeProvider.light({
     super.key,
     required this.child,
   }) : theme = FlowCanvasTheme.light();
 
-  /// Convenience constructor for dark theme
   FlowCanvasThemeProvider.dark({
     super.key,
     required this.child,

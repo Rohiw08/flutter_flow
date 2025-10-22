@@ -138,7 +138,7 @@ class SerializationService {
         'selectable': edge.selectable,
         'focusable': edge.focusable,
         'reconnectable': edge.reconnectable,
-        'elevateEdgeOnSelected': edge.elevateEdgeOnSelected,
+        'elevateEdgeOnSelected': edge.elevateOnSelect,
       };
 
   FlowEdge _edgeFromJson(Map<String, dynamic> json) => FlowEdge(
@@ -157,12 +157,12 @@ class SerializationService {
         data: (json['data'] as Map?)?.cast<String, dynamic>() ??
             <String, dynamic>{},
         animated: json['animated'] as bool?,
-        hidden: json['hidden'] as bool?,
+        hidden: json['hidden'] as bool,
         deletable: json['deletable'] as bool?,
         selectable: json['selectable'] as bool?,
         focusable: json['focusable'] as bool?,
         reconnectable: json['reconnectable'] as bool?,
-        elevateEdgeOnSelected: json['elevateEdgeOnSelected'] as bool?,
+        elevateEdgeOnSelect: json['elevateEdgeOnSelected'] as bool?,
       );
 
   Map<String, dynamic> _viewportToJson(FlowViewport vp) => {

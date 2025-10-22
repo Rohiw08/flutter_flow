@@ -130,7 +130,6 @@ class SelectionController {
     _controller.mutate((s) => s.copyWith(
           selectedNodes: finalSelectedNodes,
           selectionRect: null,
-          dragMode: DragMode.none, // It's good practice to reset the drag mode.
         ));
 
     _selectionStreams.emitEvent(SelectionChangeEvent(

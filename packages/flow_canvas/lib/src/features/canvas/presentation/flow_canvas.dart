@@ -25,7 +25,7 @@ import 'widgets/layers/edges_layer.dart';
 import 'widgets/layers/nodes_layer.dart';
 import 'adapters/controller_adapter.dart';
 import 'inputs/keymap.dart';
-import 'widgets/flow_background.dart';
+import 'widgets/layers/flow_background.dart';
 
 typedef FlowCanvasCreatedCallback = void Function(
     FlowCanvasController controller);

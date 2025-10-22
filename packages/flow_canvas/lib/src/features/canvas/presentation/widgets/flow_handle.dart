@@ -6,12 +6,15 @@ import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import '../../../../shared/providers.dart';
 
 /// A builder function for creating a custom handle widget.
-/// It receives the handle's current runtime state from the canvas controller
-/// and the resolved theme style for convenience.
+///
+/// It receives the handle's current runtime state and the resolved `FlowHandleStyle`.
+/// Passing the full style object allows the builder to use theme properties
+/// (e.g., `style.hovered?.color`) to create completely custom widgets that
+/// still respect the canvas theme.
 typedef HandleBuilder = Widget Function(
   BuildContext context,
   HandleRuntimeState state,
-  FlowHandleStyle theme,
+  FlowHandleStyle style,
 );
 
 /// A connection point on a node widget.
@@ -24,23 +27,48 @@ class Handle extends ConsumerWidget {
   final String handleId;
   final HandleType type;
   final Offset position;
-
-  /// An optional builder to render a completely custom widget for the handle.
-  final HandleBuilder? builder;
+  final Size size;
+  final bool? enableAnimations;
+  final Curve? animationCurve;
+  final Duration? animationDuration;
+  final double? animationScale;
   // Theming override
   final FlowHandleStyle? handleStyle;
+
+  /// An optional builder to render a completely custom widget for the handle.
+  final HandleBuilder? handleBuilder;
 
   const Handle({
     super.key,
     required this.nodeId,
     required this.handleId,
     this.position = Offset.zero,
+    this.size = const Size(10.0, 10.0),
     this.type = HandleType.both,
-    this.builder,
+    this.animationScale = 1.5, // Adjusted default for a more subtle effect
+    this.enableAnimations = true,
+    this.animationCurve = Curves.easeInOut,
+    this.animationDuration = const Duration(milliseconds: 200),
+    this.handleBuilder,
     this.handleStyle,
   });
 
   String get handleKey => '$nodeId/$handleId';
+
+  Set<FlowHandleState> _states(HandleRuntimeState handleState) {
+    final states = <FlowHandleState>{FlowHandleState.idle};
+
+    if (handleState.isValidTarget) {
+      states.add(FlowHandleState.validTarget);
+    }
+    if (handleState.isHovered) {
+      states.add(FlowHandleState.hovered);
+    }
+    if (handleState.isActive) {
+      states.add(FlowHandleState.active);
+    }
+    return states;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,21 +81,19 @@ class Handle extends ConsumerWidget {
     final controller = ref.read(internalControllerProvider.notifier);
 
     final baseTheme = context.flowCanvasTheme.handle;
-    final theme = baseTheme.merge(handleStyle);
+    final theme =
+        handleStyle != null ? baseTheme.merge(handleStyle) : baseTheme;
 
-    final finalColor = _getHandleColor(theme, handleState);
-    final scale = (handleState.isHovered ||
-            handleState.isActive ||
-            handleState.isValidTarget)
-        ? 1.4
-        : 1.0;
+    final decoration = theme.resolveDecoration(_states(handleState));
 
-    final handleCore = builder != null
-        ? builder!(context, handleState, theme)
+    final handleCore = handleBuilder != null
+        ? handleBuilder!(context, handleState, theme)
         : _DefaultHandle(
-            color: finalColor,
-            theme: theme,
+            decoration: decoration,
           );
+
+    final bool isAnimated = handleState.isHovered || handleState.isActive;
+    final double targetScale = isAnimated ? (animationScale ?? 1.5) : 1.0;
 
     return FlowPositioned(
       dx: position.dx,
@@ -103,61 +129,37 @@ class Handle extends ConsumerWidget {
             if (type == HandleType.target) return;
             controller.connection.endConnection();
           },
-          child: theme.enableAnimations
+          child: enableAnimations!
               ? AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
                   transformAlignment: Alignment.center,
-                  transform: Matrix4.identity()..scale(scale),
-                  width: theme.size.width,
-                  height: theme.size.height,
-                  color: Colors.transparent,
+                  duration: animationDuration!,
+                  transform: Matrix4.identity()..scale(targetScale),
+                  curve: animationCurve!,
+                  width: size.width,
+                  height: size.height,
                   child: Center(child: handleCore),
                 )
               : SizedBox(
-                  width: theme.size.width,
-                  height: theme.size.height,
+                  width: size.width,
+                  height: size.height,
                   child: Center(child: handleCore),
                 ),
         ),
       ),
     );
   }
-
-  Color _getHandleColor(FlowHandleStyle theme, HandleRuntimeState state) {
-    if (state.isActive) {
-      return theme.activeColor;
-    }
-    if (state.isValidTarget) {
-      return theme.validTargetColor;
-    }
-    if (state.isHovered) {
-      return theme.hoverColor;
-    }
-    return theme.idleColor;
-  }
 }
 
 /// The default widget for a handle, built purely from the theme.
 class _DefaultHandle extends StatelessWidget {
-  final Color color;
-  final FlowHandleStyle theme;
+  final Decoration decoration;
 
-  const _DefaultHandle({required this.color, required this.theme});
+  const _DefaultHandle({required this.decoration});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: theme.size.width,
-      height: theme.size.height,
-      decoration: BoxDecoration(
-        shape: theme.shape,
-        color: color,
-        border: Border.all(
-          color: theme.borderColor,
-          width: theme.borderWidth,
-        ),
-        boxShadow: theme.shadows,
-      ),
+      decoration: decoration,
     );
   }
 }

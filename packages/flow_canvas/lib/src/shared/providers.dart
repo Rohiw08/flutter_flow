@@ -1,13 +1,10 @@
 import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
+import 'package:flow_canvas/src/features/canvas/application/callbacks/edge_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/node_callbacks.dart';
-import 'package:flow_canvas/flow_canvas.dart'
-    show
-        EdgeInteractionCallbacks,
-        EdgeStateCallbacks,
-        FlowOptions,
-        PaneCallbacks;
+import 'package:flow_canvas/src/features/canvas/application/callbacks/pane_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/viewport_callbacks.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_geometry_service.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/options/flow_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
@@ -117,8 +114,9 @@ final nodeServiceProvider = Provider<NodeService>((ref) => NodeService());
 final edgeServiceProvider = Provider<EdgeService>((ref) => EdgeService());
 final selectionServiceProvider =
     Provider<SelectionService>((ref) => SelectionService());
-final viewportServiceProvider =
-    Provider<ViewportService>((ref) => ViewportService());
+final viewportServiceProvider = Provider<ViewportService>((ref) =>
+    ViewportService(
+        coordinateConverter: ref.watch(coordinateConverterProvider)));
 final connectionServiceProvider =
     Provider<ConnectionService>((ref) => ConnectionService());
 final zIndexServiceProvider = Provider<ZIndexService>((ref) => ZIndexService());

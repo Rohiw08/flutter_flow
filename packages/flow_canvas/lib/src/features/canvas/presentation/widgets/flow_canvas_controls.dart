@@ -1,46 +1,51 @@
 import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/flow_options.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controller_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/control_button.dart';
-
 import '../../../../shared/providers.dart';
-import '../theme/components/controller_button_theme.dart';
-import '../theme/theme_resolver/controller_theme_resolver.dart';
 
 class FlowCanvasControls extends ConsumerWidget {
   final bool showZoom;
   final bool showFitView;
   final bool showLock;
   final bool showUndoRedo;
-  final List<Widget> children;
   final Axis orientation;
   final Alignment alignment;
   final EdgeInsetsGeometry margin;
-  final double? spacing;
+  final EdgeInsetsGeometry padding;
+  final double spacing;
+  final List<Widget> children;
+  final BoxConstraints constraints;
 
   // THEME OVERRIDES
-  final FlowCanvasControlsStyle? controlsTheme;
+  final FlowCanvasControlsStyle? controlsStyle;
 
   const FlowCanvasControls({
     super.key,
     this.showZoom = true,
     this.showFitView = true,
     this.showLock = true,
-    this.showUndoRedo = true, // ADDED
+    this.showUndoRedo = true,
     this.orientation = Axis.vertical,
     this.alignment = Alignment.bottomLeft,
     this.margin = const EdgeInsets.all(20),
+    this.padding = const EdgeInsets.all(20),
     this.children = const [],
     this.spacing = 6.0,
-    this.controlsTheme,
+    this.controlsStyle,
+    this.constraints = const BoxConstraints(),
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Resolve the final theme
-    final theme = resolveControlTheme(context, controlsTheme);
+    // Theme
+    final contextTheme = context.flowCanvasTheme.controls;
+    final theme = contextTheme.merge(controlsStyle);
+
+    // logic
     final controller = ref.read(internalControllerProvider.notifier);
     final options = ref.read(flowOptionsProvider);
     final viewportSize =
@@ -49,26 +54,24 @@ class FlowCanvasControls extends ConsumerWidget {
       internalControllerProvider.select((s) => s.isPanZoomLocked),
     );
 
-    return ControlThemeProvider(
-      theme: theme,
-      child: Align(
-        alignment: alignment,
-        child: Container(
-          margin: margin,
-          padding: theme.effectivePadding, // Use container padding from theme
-          decoration: theme.effectiveContainerDecoration,
-          child: Flex(
-            direction: orientation,
-            spacing: spacing ?? 0.0,
-            mainAxisSize: MainAxisSize.min,
-            children: _buildButtons(
-              context,
-              theme,
-              controller,
-              isLocked,
-              options,
-              viewportSize,
-            ),
+    return Align(
+      alignment: alignment,
+      child: Container(
+        margin: margin,
+        padding: padding,
+        decoration: theme.containerDecoration,
+        constraints: constraints,
+        child: Wrap(
+          direction: orientation,
+          spacing: spacing,
+          runSpacing: spacing,
+          children: _buildButtons(
+            context,
+            theme,
+            controller,
+            isLocked,
+            options,
+            viewportSize,
           ),
         ),
       ),
@@ -124,9 +127,11 @@ class FlowCanvasControls extends ConsumerWidget {
       ],
       if (showLock)
         ControlButton(
-            icon: isLocked ? Icons.lock : Icons.lock_open,
-            tooltip: isLocked ? 'Unlock' : 'Lock',
-            onPressed: controller.viewport.toggleLock),
+          icon: isLocked ? Icons.lock : Icons.lock_open,
+          tooltip: isLocked ? 'Unlock' : 'Lock',
+          selected: isLocked, // Visually show the lock button as selected
+          onPressed: controller.viewport.toggleLock,
+        ),
       if (showUndoRedo) ...[
         ControlButton(
           icon: Icons.undo,

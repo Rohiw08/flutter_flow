@@ -33,7 +33,7 @@ class SelectionLayer extends ConsumerWidget {
     final isSelecting =
         ref.watch(internalControllerProvider.select((state) => state.dragMode));
 
-    final theme = FlowCanvasThemeProvider.of(context);
+    final theme = FlowCanvasThemeProvider.of(context).selection;
 
     return IgnorePointer(
       ignoring: isSelecting != DragMode.selection,
@@ -56,7 +56,7 @@ class SelectionLayer extends ConsumerWidget {
           size: Size.infinite,
           painter: SelectionRectanglePainter(
             selectionRect: selectionState.selectionRect,
-            style: theme.selection,
+            style: theme,
             zoom: selectionState.zoom,
           ),
         ),

@@ -9,7 +9,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// 1. Create a lean, equatable state class for the minimap
 class _MinimapViewModel extends Equatable {
   final List<FlowNode> nodes;
   final Rect viewportRect;
@@ -31,14 +30,14 @@ typedef MiniMapNodeBuilder = Path Function(FlowNode node);
 typedef MiniMapNodeOnClick = void Function(FlowNode node);
 
 class FlowMiniMap extends ConsumerWidget {
-  final double width;
-  final double height;
-  final Alignment alignment;
-  final EdgeInsetsGeometry margin;
-  final FlowMinimapStyle? minimapStyle;
   final bool pannable;
   final bool zoomable;
   final bool inversePan;
+  final Size size;
+  final Alignment alignment;
+  final EdgeInsetsGeometry margin;
+  final FlowMinimapStyle? minimapStyle;
+
   final MiniMapNodeColorFunc? nodeColor;
   final MiniMapNodeColorFunc? nodeStrokeColor;
   final MiniMapNodeProperty<double>? nodeStrokeWidth;
@@ -48,8 +47,7 @@ class FlowMiniMap extends ConsumerWidget {
 
   const FlowMiniMap({
     super.key,
-    this.width = 200,
-    this.height = 150,
+    this.size = const Size(200, 150),
     this.alignment = Alignment.bottomRight,
     this.margin = const EdgeInsets.all(20),
     this.minimapStyle,
@@ -66,7 +64,6 @@ class FlowMiniMap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 2. Watch the lean view model, not the entire controller state
     final viewModel = ref.watch(internalControllerProvider.select((s) {
       final viewportSize = s.viewportSize ?? Size.zero;
       final controller = ref.read(internalControllerProvider.notifier);
@@ -82,31 +79,27 @@ class FlowMiniMap extends ConsumerWidget {
     }));
 
     final controller = ref.read(internalControllerProvider.notifier);
-    final baseTheme = context.flowCanvasTheme.minimap;
-    final style = baseTheme.merge(minimapStyle);
-    final minimapSize = Size(width, height);
+    final theme = minimapStyle ?? context.flowCanvasTheme.minimap;
 
-    // 3. Calculate bounds and transform only ONCE per rebuild
     final bounds = MiniMapPainter.getCombinedBounds(
         viewModel.nodes, viewModel.viewportRect);
-    final transform =
-        MiniMapPainter.calculateTransform(bounds, minimapSize, style);
+    final transform = MiniMapPainter.calculateTransform(bounds, size, theme);
 
     return Align(
       alignment: alignment,
       child: Container(
         margin: margin,
-        width: width,
-        height: height,
+        width: size.width,
+        height: size.height,
         decoration: BoxDecoration(
-          color: style.backgroundColor,
-          borderRadius: BorderRadius.circular(style.borderRadius),
+          color: theme.backgroundColor,
+          borderRadius: theme.borderRadius,
           border:
-              Border.all(color: style.maskStrokeColor.withAlpha(125), width: 1),
-          boxShadow: style.shadows,
+              Border.all(color: theme.maskStrokeColor.withAlpha(125), width: 1),
+          boxShadow: theme.shadows,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(style.borderRadius),
+          borderRadius: theme.borderRadius,
           child: Listener(
             onPointerSignal: zoomable
                 ? (event) => _onPointerSignal(event, ref, controller)
@@ -114,12 +107,10 @@ class FlowMiniMap extends ConsumerWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: pannable
-                  // 4. Pass the pre-calculated transform to handlers
                   ? (details) =>
                       _onTapUp(details, viewModel.nodes, transform, controller)
                   : null,
               onPanUpdate: pannable
-                  // 4. Pass the pre-calculated transform to handlers
                   ? (details) => _onPanUpdate(
                       details, transform, controller, viewModel.mainCanvasZoom)
                   : null,
@@ -128,14 +119,14 @@ class FlowMiniMap extends ConsumerWidget {
                   painter: MiniMapPainter(
                     nodes: viewModel.nodes,
                     viewport: viewModel.viewportRect,
-                    theme: style,
+                    theme: theme,
                     nodeColor: nodeColor,
                     nodeStrokeColor: nodeStrokeColor,
                     nodeStrokeWidth: nodeStrokeWidth,
                     nodeBorderRadius: nodeBorderRadius,
                     nodeBuilder: nodeBuilder,
                   ),
-                  size: minimapSize,
+                  size: size,
                 ),
               ),
             ),
@@ -145,7 +136,6 @@ class FlowMiniMap extends ConsumerWidget {
     );
   }
 
-  // 5. Update handlers to accept the pre-calculated transform
   void _onTapUp(
     TapUpDetails details,
     List<FlowNode> nodes,
@@ -153,10 +143,9 @@ class FlowMiniMap extends ConsumerWidget {
     FlowCanvasController controller,
   ) {
     if (transform.scale <= 0) return;
-    final minimapSize = Size(width, height);
 
     final cartesianPosition = MiniMapPainter.fromMiniMapToCanvas(
-        details.localPosition, transform, minimapSize);
+        details.localPosition, transform, size);
 
     FlowNode? clickedNode;
     for (final node in nodes.reversed) {
@@ -180,7 +169,6 @@ class FlowMiniMap extends ConsumerWidget {
     double mainCanvasZoom,
   ) {
     if (transform.scale <= 0) return;
-
     final screenDelta = details.delta * (mainCanvasZoom / transform.scale);
     controller.viewport.panBy(inversePan ? screenDelta : -screenDelta);
   }

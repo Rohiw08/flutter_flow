@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:flow_canvas/src/features/canvas/presentation/options/components/viewport_options.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/utility/canvas_coordinate_converter.dart';
 import 'package:flutter/painting.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
@@ -10,7 +12,10 @@ typedef NodeBounds = ({Rect rect, List<FlowNode> nodes});
 
 /// A stateless service for handling viewport transformations like panning and zooming.
 class ViewportService {
-  // --- COORDINATE CONVERSION ---
+  final CanvasCoordinateConverter _coordinateConverter;
+
+  ViewportService({required CanvasCoordinateConverter coordinateConverter})
+      : _coordinateConverter = coordinateConverter;
 
   /// Converts a point from screen coordinates to canvas coordinates.
   Offset screenToCanvas(FlowCanvasState state, Offset screenPosition) {
@@ -52,43 +57,76 @@ class ViewportService {
     );
   }
 
+  FlowCanvasState centerOnPosition(
+      FlowCanvasState state, Offset canvasPosition) {
+    if (state.viewportSize == null) return state;
+
+    final renderPosition =
+        _coordinateConverter.toRenderPosition(canvasPosition);
+    final newOffset = (renderPosition * state.viewport.zoom * -1) +
+        Offset(state.viewportSize!.width / 2, state.viewportSize!.height / 2);
+
+    return state.copyWith(
+      viewport: state.viewport.copyWith(offset: newOffset),
+    );
+  }
+
   /// Adjusts the viewport to fit all or a subset of nodes within the screen.
-  FlowCanvasState fitView(
-    FlowCanvasState state, {
-    required FitViewOptions options,
+  FlowCanvasState fitView({
+    required FlowCanvasState state,
+    required ViewportOptions viewportOptions,
+    required FitViewOptions fitViewOptions,
   }) {
     final viewportSize = state.viewportSize;
     if (viewportSize == null || viewportSize.isEmpty) return state;
 
-    final bounds = getNodeBounds(state,
-        nodeIds: options.nodes, includeHidden: options.includeHiddenNodes);
-    if (bounds.nodes.isEmpty) return state; // No nodes to fit
+    final nodes = state.nodes.values.toList();
+    final bounds = getNodeBounds(
+        nodes: nodes, includeHidden: fitViewOptions.includeHiddenNodes);
+    if (bounds.nodes.isEmpty || bounds.rect.isEmpty) return state;
 
-    final paddedRect = options.padding.inflateRect(bounds.rect);
+    final availableWidth =
+        viewportSize.width - fitViewOptions.padding.horizontal;
+    final availableHeight =
+        viewportSize.height - fitViewOptions.padding.vertical;
 
-    final newZoom = _calculateZoomToFit(paddedRect.size, viewportSize)
-        .clamp(options.minZoom, options.maxZoom);
+    if (availableWidth <= 0 || availableHeight <= 0) return state;
 
-    final newOffset =
-        _calculateOffsetToCenter(paddedRect, viewportSize, newZoom);
+    final scaleX = availableWidth / bounds.rect.width;
+    final scaleY = availableHeight / bounds.rect.height;
+    final idealZoom = min(scaleX, scaleY);
+
+    final effectiveMinZoom =
+        max(viewportOptions.minZoom, fitViewOptions.minZoom);
+    final effectiveMaxZoom =
+        min(viewportOptions.maxZoom, fitViewOptions.maxZoom);
+
+    final newZoom = idealZoom.clamp(effectiveMinZoom, effectiveMaxZoom);
+
+    final scaledContentWidth = bounds.rect.width * newZoom;
+    final scaledContentHeight = bounds.rect.height * newZoom;
+
+    final newOffsetX = (viewportSize.width - scaledContentWidth) / 2 -
+        (bounds.rect.left * newZoom);
+    final newOffsetY = (viewportSize.height - scaledContentHeight) / 2 -
+        (bounds.rect.top * newZoom);
 
     return state.copyWith(
-      viewport: FlowViewport(offset: newOffset, zoom: newZoom),
+      viewport:
+          FlowViewport(offset: Offset(newOffsetX, newOffsetY), zoom: newZoom),
     );
   }
 
   // --- UTILITY METHODS ---
 
   /// Calculates the bounding box that encloses a given set of nodes.
-  NodeBounds getNodeBounds(
-    FlowCanvasState state, {
-    List<String> nodeIds = const [],
+  NodeBounds getNodeBounds({
+    List<FlowNode> nodes = const [],
     bool includeHidden = false,
   }) {
-    final nodesToConsider = state.nodes.values.where((node) {
-      final isIncluded = nodeIds.isEmpty || nodeIds.contains(node.id);
+    final nodesToConsider = nodes.where((node) {
       final isVisible = includeHidden || !(node.hidden ?? false);
-      return isIncluded && isVisible;
+      return isVisible;
     }).toList();
 
     if (nodesToConsider.isEmpty) {
@@ -101,37 +139,18 @@ class ViewportService {
     double maxY = double.negativeInfinity;
 
     for (final node in nodesToConsider) {
-      minX = min(minX, node.rect.left);
-      minY = min(minY, node.rect.top);
-      maxX = max(maxX, node.rect.right);
-      maxY = max(maxY, node.rect.bottom);
+      final nodeRect =
+          _coordinateConverter.cartesianRectToRenderRect(node.rect);
+
+      minX = min(minX, nodeRect.left);
+      minY = min(minY, nodeRect.top);
+      maxX = max(maxX, nodeRect.right);
+      maxY = max(maxY, nodeRect.bottom);
     }
 
     return (
       rect: Rect.fromLTRB(minX, minY, maxX, maxY),
       nodes: nodesToConsider
     );
-  }
-
-  // PRIVATE HELPERS
-
-  double _calculateZoomToFit(Size contentSize, Size viewportSize) {
-    if (contentSize.width <= 0 || contentSize.height <= 0) return 1.0;
-    final scaleX = viewportSize.width / contentSize.width;
-    final scaleY = viewportSize.height / contentSize.height;
-    return min(scaleX, scaleY);
-  }
-
-  Offset _calculateOffsetToCenter(
-      Rect contentRect, Size viewportSize, double zoom) {
-    final scaledContentWidth = contentRect.width * zoom;
-    final scaledContentHeight = contentRect.height * zoom;
-
-    final dx = (viewportSize.width - scaledContentWidth) / 2 -
-        (contentRect.left * zoom);
-    final dy = (viewportSize.height - scaledContentHeight) / 2 -
-        (contentRect.top * zoom);
-
-    return Offset(dx, dy);
   }
 }
