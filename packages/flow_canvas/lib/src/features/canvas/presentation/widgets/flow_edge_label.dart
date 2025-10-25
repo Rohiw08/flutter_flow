@@ -9,13 +9,19 @@ class FlowEdgeLabel extends ConsumerWidget {
   final String id;
   final Offset position;
   final String? parentId;
-  final bool? enableAnimations;
-  final Curve? animationCurve;
-  final Duration? animationDuration;
-  final EdgeInsetsGeometry? padding;
-  final FlowEdgeLabelStyle? style;
   final bool selected;
   final bool hovered;
+
+  // Styling
+  final FlowEdgeLabelStyle? style;
+  final EdgeInsetsGeometry? padding;
+
+  // Animation
+  final bool enableAnimations;
+  final Curve animationCurve;
+  final Duration animationDuration;
+
+  // Content (mutually exclusive - either text OR child)
   final String? text;
   final Widget? child;
 
@@ -26,14 +32,17 @@ class FlowEdgeLabel extends ConsumerWidget {
     this.parentId,
     this.selected = false,
     this.hovered = false,
+    this.style,
+    this.padding,
     this.enableAnimations = true,
     this.animationCurve = Curves.easeInOut,
     this.animationDuration = const Duration(milliseconds: 200),
-    this.padding = const EdgeInsets.all(12.0),
-    this.style,
-    this.child,
     this.text,
-  });
+    this.child,
+  }) : assert(
+          (text == null) != (child == null),
+          'Either text or child must be provided, but not both',
+        );
 
   Set<FlowEdgeState> _computeStates() {
     final states = <FlowEdgeState>{};
@@ -58,20 +67,23 @@ class FlowEdgeLabel extends ConsumerWidget {
     final textStyle = effectiveTheme.resolveTextStyle(states);
     final decoration = effectiveTheme.resolveDecoration(states);
 
+    // Use resolved padding from theme if not provided
+    final effectivePadding =
+        padding ?? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0);
+
     return FlowPositioned(
       dx: position.dx,
       dy: position.dy,
-      child: Material(
-        color: Colors.transparent, // Material needs a color, even transparent
-        textStyle: textStyle,
+      child: IgnorePointer(
         child: AnimatedContainer(
-          // Determine the duration once
-          duration:
-              enableAnimations == true ? animationDuration! : Duration.zero,
-          curve: animationCurve!,
-          padding: padding,
+          duration: enableAnimations ? animationDuration : Duration.zero,
+          curve: animationCurve,
+          padding: effectivePadding,
           decoration: decoration,
-          child: child ?? Text(text ?? ''),
+          child: DefaultTextStyle(
+            style: textStyle,
+            child: child ?? Text(text!),
+          ),
         ),
       ),
     );

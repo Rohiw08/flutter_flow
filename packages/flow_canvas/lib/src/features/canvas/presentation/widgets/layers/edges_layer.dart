@@ -173,6 +173,7 @@ class FlowEdgeLayer extends ConsumerWidget {
                 .where((entry) => entry.value.label != null)
                 .map((entry) => _buildEdgeLabel(
                       context,
+                      ref,
                       entry.key,
                       entry.value,
                       paintState,
@@ -197,20 +198,18 @@ class FlowEdgeLayer extends ConsumerWidget {
     );
   }
 
-  /// Builds a positioned label widget for an edge.
   Widget _buildEdgeLabel(
     BuildContext context,
+    WidgetRef ref,
     String edgeId,
     FlowEdge edge,
     PainterState paintState,
     Map<String, Path> precomputedPaths,
     FlowCanvasTheme theme,
   ) {
-    // Get the precomputed path for this edge
     final path = precomputedPaths[edgeId];
     if (path == null) return const SizedBox.shrink();
 
-    // Calculate the midpoint of the edge path
     final metrics = path.computeMetrics().firstOrNull;
     if (metrics == null) return const SizedBox.shrink();
 
@@ -218,9 +217,12 @@ class FlowEdgeLayer extends ConsumerWidget {
     final tangent = metrics.getTangentForOffset(midpoint);
     if (tangent == null) return const SizedBox.shrink();
 
-    final position = tangent.position;
+    final renderPosition = tangent.position;
+    final coordinateConverter = ref.read(coordinateConverterProvider);
 
-    // Resolve edge state for styling
+    final cartesianPosition =
+        coordinateConverter.toCartesianPosition(renderPosition);
+
     final edgeState = paintState.edgeStates[edgeId];
     final states = <FlowEdgeState>{};
     if (paintState.selectedEdges.contains(edgeId)) {
@@ -230,14 +232,12 @@ class FlowEdgeLayer extends ConsumerWidget {
       states.add(FlowEdgeState.hovered);
     }
 
-    // Resolve label style from edge or theme
     final labelStyle =
         edge.labelDecoration ?? edge.style?.labelStyle ?? theme.edge.labelStyle;
 
-    // Build the label widget with resolved styling
     return FlowEdgeLabel(
       id: 'label-$edgeId',
-      position: position - Offset(midpoint, midpoint),
+      position: cartesianPosition,
       parentId: edgeId,
       selected: edgeState?.selected ?? false,
       hovered: edgeState?.hovered ?? false,

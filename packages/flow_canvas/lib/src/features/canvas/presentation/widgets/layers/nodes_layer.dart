@@ -23,7 +23,13 @@ class FlowNodesLayer extends ConsumerWidget {
         return keys;
       }),
     );
-    print("---------------- built nodes layer ----------------");
+    // final nodes = ref.watch(
+    //   internalControllerProvider.select((state) {
+    //     final values = state.nodes.values.toList();
+    //     return values;
+    //   }),
+    // );
+    // print(nodes);
     return Stack(
       clipBehavior: Clip.none,
       children: [

@@ -60,7 +60,7 @@ export 'src/features/canvas/presentation/widgets/flow_minimap.dart';
 export 'src/features/canvas/presentation/widgets/flow_handle.dart';
 export 'src/features/canvas/presentation/widgets/layers/flow_background.dart';
 export 'src/features/canvas/presentation/widgets/flow_node.dart';
+export 'src/features/canvas/presentation/widgets/flow_edge_label.dart';
 
 // --- Utility ---
 export 'src/features/canvas/presentation/utility/flow_positioned.dart';
-export 'src/features/canvas/presentation/utility/typedefs.dart';

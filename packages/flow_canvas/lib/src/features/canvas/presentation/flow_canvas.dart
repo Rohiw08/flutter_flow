@@ -1,5 +1,7 @@
 import 'package:flow_canvas/src/features/canvas/domain/indexes/edge_index.dart';
 import 'package:flow_canvas/src/features/canvas/domain/indexes/node_index.dart';
+import 'package:flow_canvas/src/features/canvas/domain/state/edge_state.dart';
+import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/selection_layer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,10 +92,20 @@ class _FlowCanvasState extends State<FlowCanvas> {
     final initialEdgesMap = {
       for (var e in widget.initialEdges ?? []) e.id as String: e as FlowEdge
     };
+    final initialNodeStatesMap = {
+      for (var n in widget.initialNodes ?? [])
+        n.id as String: const NodeRuntimeState(),
+    };
+    final initialEdgesStatesMap = {
+      for (var e in widget.initialEdges ?? [])
+        e.id as String: const EdgeRuntimeState(),
+    };
 
     final initialState = FlowCanvasState.initial().copyWith(
       nodes: initialNodesMap,
       edges: initialEdgesMap,
+      nodeStates: initialNodeStatesMap,
+      edgeStates: initialEdgesStatesMap,
       nodeIndex: NodeIndex.fromNodes(initialNodesMap.values),
       edgeIndex: EdgeIndex.fromEdges(initialEdgesMap),
     );

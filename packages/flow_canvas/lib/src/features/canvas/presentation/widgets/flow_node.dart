@@ -43,7 +43,7 @@ class DefaultNodeWidget extends ConsumerStatefulWidget {
 class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
   bool _isHovered = false;
 
-  /// Computes the current set of states for this node
+  // /// Computes the current set of states for this node
   Set<FlowNodeState> _computeStates(
     NodeRuntimeState nodeRuntimeState,
     FlowNode node,
@@ -71,7 +71,7 @@ class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
   Widget build(BuildContext context) {
     // Get base node theme and merge with any custom style override
     final baseTheme = context.flowCanvasTheme.node;
-    final effectiveTheme = baseTheme.merge(widget.style);
+    final theme = baseTheme.merge(widget.style);
 
     // Watch node runtime state (selected, dragging, etc.)
     final nodeRuntimeState = ref.watch(
@@ -91,7 +91,7 @@ class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
     final states = _computeStates(nodeRuntimeState, node);
 
     // Resolve decoration based on current states
-    final decoration = effectiveTheme.resolveDecoration(states);
+    final decoration = theme.resolveDecoration(states);
 
     return Stack(
       clipBehavior: Clip.none,

@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.dark;
 
   void _toggleTheme() {
     setState(() {
@@ -139,6 +139,7 @@ class _ExampleState extends State<Example> {
       sourceHandleId: '1-both-1',
       targetNodeId: '2',
       targetHandleId: '2-both-1',
+      label: Text("Edge Label"),
       endMarkerStyle: FlowEdgeMarkerStyle(
         type: EdgeMarkerType.arrow,
         decoration: FlowMarkerDecoration(size: Size(8, 8), color: Colors.black),
@@ -148,13 +149,32 @@ class _ExampleState extends State<Example> {
         decoration: FlowMarkerDecoration(size: Size(8, 8), color: Colors.black),
       ),
     ),
-    const FlowEdge(
+    FlowEdge(
       id: 'e3-1',
       pathType: EdgePathType.straight,
       sourceNodeId: '3',
       sourceHandleId: '3-both-1',
       targetNodeId: '1',
       targetHandleId: '1-both-2',
+      label: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(25),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Text(
+          "Custom Label",
+          style: TextStyle(fontSize: 12, color: Colors.black),
+        ),
+      ),
+      labelDecoration: FlowEdgeLabelStyle.dark(),
     ),
   ];
 
@@ -232,6 +252,7 @@ class _ExampleState extends State<Example> {
               const FlowBackground(),
               const FlowMiniMap(),
               FlowCanvasControls(
+                showLock: false,
                 children: [
                   ControlButton(
                     icon: _isSelectionMode ? Icons.mouse : Icons.select_all,

@@ -7,7 +7,7 @@ export 'components/edge_marker_theme.dart';
 export 'components/edge_theme.dart';
 export 'components/connection_theme.dart';
 export 'components/background_theme.dart';
-export 'components/controls_theme.dart';
+export 'components/controls_button_theme.dart';
 export 'components/handle_theme.dart';
 export 'components/minimap_theme.dart';
 export 'components/node_theme.dart';

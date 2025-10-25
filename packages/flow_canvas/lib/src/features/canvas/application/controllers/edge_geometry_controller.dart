@@ -10,13 +10,17 @@ class _EdgeUpdateInfo {
   final bool needsUpdate;
   final bool fullUpdate;
   final Set<String> specificNodes;
-  final Set<String> specificEdges; // NEW: Track specific edges
+  final Set<String> addedEdges;
+  final Set<String> modifiedEdges;
+  final Set<String> removedEdges;
 
   _EdgeUpdateInfo({
     required this.needsUpdate,
     this.fullUpdate = false,
     this.specificNodes = const {},
-    this.specificEdges = const {},
+    this.addedEdges = const {},
+    this.modifiedEdges = const {},
+    this.removedEdges = const {},
   });
 }
 
@@ -27,7 +31,7 @@ class EdgeGeometryController {
   // Cache node positions for fast comparison
   Map<String, Offset> _previousNodePositions = {};
   Map<String, Size> _previousNodeSizes = {};
-  Set<String> _previousEdgeKeys = {};
+  Map<String, FlowEdge> _previousEdges = {};
 
   EdgeGeometryController({
     required FlowCanvasController controller,
@@ -38,21 +42,28 @@ class EdgeGeometryController {
     final updateInfo = _shouldUpdateEdgeGeometry(newState);
 
     if (updateInfo.needsUpdate) {
-      if (updateInfo.specificEdges.isNotEmpty) {
-        // MOST efficient: update only specific edges that changed
-        _edgeGeometryService.updateCache(newState, updateInfo.specificEdges);
-      } else if (updateInfo.specificNodes.isNotEmpty) {
-        // Efficient: update edges connected to changed nodes
-        _edgeGeometryService.updateEdgesForNodes(
-            newState, updateInfo.specificNodes);
-      } else if (updateInfo.fullUpdate) {
-        // Full update when necessary
+      if (updateInfo.fullUpdate) {
         _edgeGeometryService.updateCache(newState, newState.edges.keys);
+      } else {
+        if (updateInfo.removedEdges.isNotEmpty) {
+          _edgeGeometryService.removeEdges(updateInfo.removedEdges);
+        }
+        final edgesToUpdate = {
+          ...updateInfo.addedEdges,
+          ...updateInfo.modifiedEdges
+        };
+        if (edgesToUpdate.isNotEmpty) {
+          for (final edgeId in edgesToUpdate) {
+            _edgeGeometryService.updateEdge(newState, edgeId);
+          }
+        }
+        if (updateInfo.specificNodes.isNotEmpty) {
+          _edgeGeometryService.updateEdgesForNodes(
+              newState, updateInfo.specificNodes);
+        }
       }
     }
 
-    // Update caches
-    _previousState = newState;
     _updateCaches(newState);
   }
 
@@ -61,49 +72,33 @@ class EdgeGeometryController {
       return _EdgeUpdateInfo(needsUpdate: true, fullUpdate: true);
     }
 
-    final old = _previousState!;
+    final edgeChanges = _detectEdgeChanges(_previousEdges, newState.edges);
 
-    // Check for edge changes more efficiently
-    final edgeChanges = _detectEdgeChanges(old.edges, newState.edges);
-    if (edgeChanges.added.isNotEmpty || edgeChanges.removed.isNotEmpty) {
-      // Only update the specific edges that were added
-      if (edgeChanges.removed.isEmpty && edgeChanges.modified.isEmpty) {
-        return _EdgeUpdateInfo(
-          needsUpdate: true,
-          fullUpdate: false,
-          specificEdges: edgeChanges.added,
-        );
-      }
-      return _EdgeUpdateInfo(needsUpdate: true, fullUpdate: true);
-    }
-
-    // Check for edge property modifications (source/target changes)
-    if (edgeChanges.modified.isNotEmpty) {
+    if (edgeChanges.added.isNotEmpty ||
+        edgeChanges.removed.isNotEmpty ||
+        edgeChanges.modified.isNotEmpty) {
       return _EdgeUpdateInfo(
         needsUpdate: true,
-        fullUpdate: false,
-        specificEdges: edgeChanges.modified,
+        addedEdges: edgeChanges.added,
+        removedEdges: edgeChanges.removed,
+        modifiedEdges: edgeChanges.modified,
       );
     }
 
-    // During node drag, only update edges connected to moving nodes
     if (newState.dragMode == DragMode.node) {
       final movedNodes = _getMovedNodesOptimized(newState);
       if (movedNodes.isNotEmpty) {
         return _EdgeUpdateInfo(
           needsUpdate: true,
-          fullUpdate: false,
           specificNodes: movedNodes,
         );
       }
     }
 
-    // Check for node property changes using cached data
     final changedNodes = _getChangedNodesOptimized(newState);
     if (changedNodes.isNotEmpty) {
       return _EdgeUpdateInfo(
         needsUpdate: true,
-        fullUpdate: false,
         specificNodes: changedNodes,
       );
     }
@@ -113,38 +108,30 @@ class EdgeGeometryController {
 
   Set<String> _getMovedNodesOptimized(FlowCanvasState current) {
     final movedNodes = <String>{};
-
     for (final nodeId in current.selectedNodes) {
       final cachedPos = _previousNodePositions[nodeId];
       final currentPos = current.nodes[nodeId]?.position;
-
       if (cachedPos != null && currentPos != null && cachedPos != currentPos) {
         movedNodes.add(nodeId);
       }
     }
-
     return movedNodes;
   }
 
   Set<String> _getChangedNodesOptimized(FlowCanvasState current) {
     final changedNodes = <String>{};
+    final allNodeIds = {..._previousNodePositions.keys, ...current.nodes.keys};
 
-    // Only check nodes that exist in both states
-    for (final nodeId in current.nodes.keys) {
-      final cachedPos = _previousNodePositions[nodeId];
-      final cachedSize = _previousNodeSizes[nodeId];
-      final node = current.nodes[nodeId];
+    for (final nodeId in allNodeIds) {
+      final oldPos = _previousNodePositions[nodeId];
+      final newPos = current.nodes[nodeId]?.position;
+      final oldSize = _previousNodeSizes[nodeId];
+      final newSize = current.nodes[nodeId]?.size;
 
-      if (node == null) continue;
-
-      final posChanged = cachedPos != null && cachedPos != node.position;
-      final sizeChanged = cachedSize != null && cachedSize != node.size;
-
-      if (posChanged || sizeChanged) {
+      if (oldPos != newPos || oldSize != newSize) {
         changedNodes.add(nodeId);
       }
     }
-
     return changedNodes;
   }
 
@@ -154,22 +141,16 @@ class EdgeGeometryController {
     final removed = <String>{};
     final modified = <String>{};
 
-    for (final key in newEdges.keys) {
-      if (!_previousEdgeKeys.contains(key)) {
-        added.add(key);
-      } else {
-        final oldEdge = oldEdges[key];
-        final newEdge = newEdges[key];
+    final oldKeys = oldEdges.keys.toSet();
+    final newKeys = newEdges.keys.toSet();
 
-        if (oldEdge != newEdge) {
-          modified.add(key);
-        }
-      }
-    }
+    added.addAll(newKeys.difference(oldKeys));
+    removed.addAll(oldKeys.difference(newKeys));
 
-    for (final key in _previousEdgeKeys) {
-      if (!newEdges.containsKey(key)) {
-        removed.add(key);
+    final commonKeys = oldKeys.intersection(newKeys);
+    for (final key in commonKeys) {
+      if (oldEdges[key] != newEdges[key]) {
+        modified.add(key);
       }
     }
 
@@ -177,13 +158,14 @@ class EdgeGeometryController {
   }
 
   void _updateCaches(FlowCanvasState state) {
+    _previousState = state;
     _previousNodePositions = {
       for (final entry in state.nodes.entries) entry.key: entry.value.position
     };
     _previousNodeSizes = {
       for (final entry in state.nodes.entries) entry.key: entry.value.size
     };
-    _previousEdgeKeys = state.edges.keys.toSet();
+    _previousEdges = Map.from(state.edges);
   }
 }
 

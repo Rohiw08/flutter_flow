@@ -1,6 +1,6 @@
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_button_theme.dart';
 
 /// A styled button for flow canvas controls.
 ///
@@ -34,7 +34,7 @@ class ControlButton extends StatefulWidget {
   final bool selected;
 
   /// Optional custom style that overrides the theme.
-  final FlowCanvasControlsStyle? style;
+  final FlowControlsButtonStyle? style;
 
   const ControlButton({
     super.key,
@@ -79,7 +79,7 @@ class _ControlButtonState extends State<ControlButton> {
   @override
   Widget build(BuildContext context) {
     // Get base theme from context
-    final baseTheme = context.flowCanvasTheme.controls;
+    final baseTheme = context.flowCanvasTheme.button;
 
     // Merge with custom style if provided
     final theme =

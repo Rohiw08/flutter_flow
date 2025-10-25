@@ -8,6 +8,7 @@ import 'package:flow_canvas/src/features/canvas/presentation/widgets/control_but
 import '../../../../shared/providers.dart';
 
 class FlowCanvasControls extends ConsumerWidget {
+  final Size? size;
   final bool showZoom;
   final bool showFitView;
   final bool showLock;
@@ -18,10 +19,9 @@ class FlowCanvasControls extends ConsumerWidget {
   final EdgeInsetsGeometry padding;
   final double spacing;
   final List<Widget> children;
-  final BoxConstraints constraints;
 
   // THEME OVERRIDES
-  final FlowCanvasControlsStyle? controlsStyle;
+  final FlowControlsStyle? controlsStyle;
 
   const FlowCanvasControls({
     super.key,
@@ -36,7 +36,7 @@ class FlowCanvasControls extends ConsumerWidget {
     this.children = const [],
     this.spacing = 6.0,
     this.controlsStyle,
-    this.constraints = const BoxConstraints(),
+    this.size,
   });
 
   @override
@@ -59,15 +59,15 @@ class FlowCanvasControls extends ConsumerWidget {
       child: Container(
         margin: margin,
         padding: padding,
-        decoration: theme.containerDecoration,
-        constraints: constraints,
+        decoration: theme.decoration,
+        height: size?.height,
+        width: size?.width,
         child: Wrap(
           direction: orientation,
           spacing: spacing,
           runSpacing: spacing,
           children: _buildButtons(
             context,
-            theme,
             controller,
             isLocked,
             options,
@@ -80,7 +80,6 @@ class FlowCanvasControls extends ConsumerWidget {
 
   List<Widget> _buildButtons(
     BuildContext context,
-    FlowCanvasControlsStyle theme,
     FlowCanvasController controller,
     bool isLocked,
     FlowOptions options,

@@ -1,3 +1,4 @@
+import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_button_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/edge_label_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/edge_marker_theme.dart';
@@ -17,7 +18,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
   final FlowEdgeStyle edge;
   final FlowHandleStyle handle;
   final FlowSelectionStyle selection;
-  final FlowCanvasControlsStyle controls;
+  final FlowControlsStyle controls;
+  final FlowControlsButtonStyle button;
   final FlowMinimapStyle minimap;
   final FlowConnectionStyle connection;
   final FlowEdgeLabelStyle edgeLabel;
@@ -30,6 +32,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     required this.handle,
     required this.selection,
     required this.controls,
+    required this.button,
     required this.minimap,
     required this.connection,
     required this.edgeLabel,
@@ -43,7 +46,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       edge: FlowEdgeStyle.light(),
       handle: FlowHandleStyle.light(),
       selection: FlowSelectionStyle.light(),
-      controls: FlowCanvasControlsStyle.light(),
+      controls: FlowControlsStyle.light(),
+      button: FlowControlsButtonStyle.light(),
       minimap: FlowMinimapStyle.light(),
       connection: FlowConnectionStyle.light(),
       edgeLabel: FlowEdgeLabelStyle.light(),
@@ -58,7 +62,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       edge: FlowEdgeStyle.dark(),
       handle: FlowHandleStyle.dark(),
       selection: FlowSelectionStyle.dark(),
-      controls: FlowCanvasControlsStyle.dark(),
+      controls: FlowControlsStyle.dark(),
+      button: FlowControlsButtonStyle.dark(),
       minimap: FlowMinimapStyle.dark(),
       connection: FlowConnectionStyle.dark(),
       edgeLabel: FlowEdgeLabelStyle.dark(),
@@ -80,7 +85,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       edge: FlowEdgeStyle.fromColorScheme(colorScheme),
       handle: FlowHandleStyle.fromColorScheme(colorScheme),
       selection: FlowSelectionStyle.fromColorScheme(colorScheme),
-      controls: FlowCanvasControlsStyle.fromColorScheme(colorScheme),
+      controls: FlowControlsStyle.fromColorScheme(colorScheme),
+      button: FlowControlsButtonStyle.fromColorScheme(colorScheme),
       minimap: FlowMinimapStyle.fromColorScheme(colorScheme),
       connection: FlowConnectionStyle.fromColorScheme(colorScheme),
       edgeLabel: FlowEdgeLabelStyle.fromColorScheme(colorScheme),
@@ -97,6 +103,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       handle: other.handle,
       selection: other.selection,
       controls: other.controls,
+      button: other.button,
       minimap: other.minimap,
       connection: other.connection,
       edgeLabel: other.edgeLabel,
@@ -111,7 +118,8 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
     FlowEdgeStyle? edge,
     FlowHandleStyle? handle,
     FlowSelectionStyle? selection,
-    FlowCanvasControlsStyle? controls,
+    FlowControlsStyle? controls,
+    FlowControlsButtonStyle? button,
     FlowMinimapStyle? minimap,
     FlowConnectionStyle? connection,
     FlowEdgeLabelStyle? edgeLabel,
@@ -124,6 +132,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       handle: handle ?? this.handle,
       selection: selection ?? this.selection,
       controls: controls ?? this.controls,
+      button: button ?? this.button,
       minimap: minimap ?? this.minimap,
       connection: connection ?? this.connection,
       edgeLabel: edgeLabel ?? this.edgeLabel,
@@ -142,6 +151,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
       handle: handle.lerp(other.handle, t),
       selection: selection.lerp(other.selection, t),
       controls: controls.lerp(other.controls, t),
+      button: button.lerp(other.button, t),
       minimap: minimap.lerp(other.minimap, t),
       connection: connection.lerp(other.connection, t),
       edgeLabel: edgeLabel.lerp(other.edgeLabel, t),
@@ -159,6 +169,7 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         other.handle == handle &&
         other.selection == selection &&
         other.controls == controls &&
+        other.button == button &&
         other.minimap == minimap &&
         other.edgeLabel == edgeLabel &&
         other.edgeMarker == edgeMarker &&
@@ -177,5 +188,6 @@ class FlowCanvasTheme extends ThemeExtension<FlowCanvasTheme> {
         connection,
         edgeLabel,
         edgeMarker,
+        button,
       );
 }
