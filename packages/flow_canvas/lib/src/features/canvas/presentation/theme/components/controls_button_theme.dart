@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Represents the possible states of a flow canvas button.
@@ -5,34 +6,127 @@ enum FlowControlState { normal, hovered, selected, disabled }
 
 /// Defines the visual styling for flow canvas buttons.
 ///
-/// This style uses [Decoration] and [IconThemeData] to provide maximum
-/// flexibility while offering convenient factory constructors for common cases.
+/// Controls are interactive UI elements overlaid on the flow canvas, such as
+/// zoom in/out buttons, fit-to-view buttons, minimap toggles, and other
+/// canvas interaction controls. This style manages both their decoration
+/// (background, border, shadows) and icon appearance across different states.
+///
+/// ## Registration
+///
+/// Register the theme extension in your [MaterialApp]:
+///
+/// ```
+/// MaterialApp(
+///   theme: ThemeData(
+///     extensions: [FlowControlsButtonStyle.light()],
+///   ),
+///   darkTheme: ThemeData(
+///     extensions: [FlowControlsButtonStyle.dark()],
+///   ),
+/// )
+/// ```
+///
+/// ## Usage
+///
+/// Access the style using the extension method:
+///
+/// ```
+/// final style = Theme.of(context).flowControlsButtonStyle;
+/// final decoration = style.resolveDecoration({FlowControlState.hovered});
+/// final iconTheme = style.resolveIconTheme({FlowControlState.hovered});
+/// ```
+///
+/// ## Examples
+///
+/// Creating a custom button style:
+///
+/// ```
+/// FlowControlsButtonStyle(
+///   decoration: BoxDecoration(
+///     color: Colors.white,
+///     boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+///   ),
+///   iconTheme: IconThemeData(color: Colors.grey),
+///   hoverDecoration: BoxDecoration(color: Colors.grey.shade50),
+///   hoverIconTheme: IconThemeData(color: Colors.black),
+/// )
+/// ```
+///
+/// Using predefined styles:
+///
+/// ```
+/// // Light theme
+/// final light = FlowControlsButtonStyle.light();
+///
+/// // Dark theme
+/// final dark = FlowControlsButtonStyle.dark();
+///
+/// // From Material 3 color scheme
+/// final m3 = FlowControlsButtonStyle.fromColorScheme(
+///   Theme.of(context).colorScheme,
+/// );
+/// ```
+///
+/// ## State Resolution
+///
+/// Button appearance changes based on state:
+/// - Normal: Uses [decoration] and [iconTheme]
+/// - Hovered: Uses [hoverDecoration] and [hoverIconTheme] (falls back to base)
+/// - Selected: Uses [selectedDecoration] and [selectedIconTheme] (falls back to base)
+/// - Disabled: Uses [disabledDecoration] and [disabledIconTheme] (falls back to base)
+///
+/// See also:
+///
+///  * [FlowControlsStyle], for container styling around buttons
+///  * [IconThemeData], for icon styling options
+///  * [BoxDecoration], for decoration options
 @immutable
-class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
+class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle>
+    with Diagnosticable {
   /// Decoration for a button in its normal state.
+  ///
+  /// Required and serves as the fallback for all states.
   final Decoration decoration;
 
   /// Decoration for a button when hovered.
+  ///
+  /// If null, uses [decoration] during hover.
   final Decoration? hoverDecoration;
 
   /// Decoration for a button when selected.
+  ///
+  /// If null, uses [hoverDecoration] or [decoration] when selected.
   final Decoration? selectedDecoration;
 
   /// Decoration for a button when disabled.
+  ///
+  /// If null, uses [decoration] when disabled.
   final Decoration? disabledDecoration;
 
   /// Icon theme for the normal state.
+  ///
+  /// Required and serves as the fallback for all icon states.
   final IconThemeData iconTheme;
 
   /// Icon theme for the hovered state.
+  ///
+  /// If null, uses [iconTheme] during hover.
   final IconThemeData? hoverIconTheme;
 
   /// Icon theme for the selected state.
+  ///
+  /// If null, uses [iconTheme] when selected.
   final IconThemeData? selectedIconTheme;
 
   /// Icon theme for the disabled state.
+  ///
+  /// If null, uses [iconTheme] when disabled.
   final IconThemeData? disabledIconTheme;
 
+  /// Creates a flow controls button style.
+  ///
+  /// Both [decoration] and [iconTheme] are required as they provide the base styling.
+  /// State-specific properties are optional and fall back to base styles.
   const FlowControlsButtonStyle({
     required this.decoration,
     required this.iconTheme,
@@ -45,6 +139,21 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
   });
 
   /// Creates a button style from simple color values.
+  ///
+  /// This is a convenience factory for common use cases where you want
+  /// to specify colors for different states.
+  ///
+  /// Example:
+  /// ```
+  /// FlowControlsButtonStyle.colored(
+  ///   buttonColor: Colors.white,
+  ///   hoverColor: Colors.grey.shade50,
+  ///   selectedColor: Colors.blue.shade50,
+  ///   iconColor: Colors.grey.shade700,
+  ///   hoverIconColor: Colors.black,
+  ///   shadows: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+  /// )
+  /// ```
   factory FlowControlsButtonStyle.colored({
     Color? buttonColor,
     Color? hoverColor,
@@ -57,8 +166,12 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
     List<BoxShadow>? shadows,
     Border? border,
   }) {
-    BoxDecoration? createDecoration(Color? color) {
-      if (color == null && shadows == null && border == null) return null;
+    assert(
+      buttonColor != null || shadows != null || border != null,
+      'At least one of buttonColor, shadows, or border must be provided',
+    );
+
+    BoxDecoration createDecoration(Color? color) {
       return BoxDecoration(
         color: color,
         boxShadow: shadows,
@@ -67,10 +180,12 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
     }
 
     return FlowControlsButtonStyle(
-      decoration: createDecoration(buttonColor)!,
-      hoverDecoration: createDecoration(hoverColor),
-      selectedDecoration: createDecoration(selectedColor),
-      disabledDecoration: createDecoration(disabledColor),
+      decoration: createDecoration(buttonColor),
+      hoverDecoration: hoverColor != null ? createDecoration(hoverColor) : null,
+      selectedDecoration:
+          selectedColor != null ? createDecoration(selectedColor) : null,
+      disabledDecoration:
+          disabledColor != null ? createDecoration(disabledColor) : null,
       iconTheme: IconThemeData(color: iconColor),
       hoverIconTheme:
           hoverIconColor != null ? IconThemeData(color: hoverIconColor) : null,
@@ -84,6 +199,9 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
   }
 
   /// Creates a light theme button style.
+  ///
+  /// Uses subtle gray backgrounds that darken on interaction,
+  /// suitable for light canvases.
   factory FlowControlsButtonStyle.light() {
     return FlowControlsButtonStyle.colored(
       buttonColor: const Color(0xFFF9FAFB),
@@ -94,17 +212,20 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
       hoverIconColor: const Color(0xFF374151),
       selectedIconColor: const Color(0xFF111827),
       disabledIconColor: const Color(0xFFD1D5DB),
-      shadows: const [
+      shadows: [
         BoxShadow(
-          color: Color(0x1A000000),
+          color: Colors.black.withValues(alpha: 0.1), // ~10% opacity
           blurRadius: 10,
-          offset: Offset(0, 4),
+          offset: const Offset(0, 4),
         ),
       ],
     );
   }
 
   /// Creates a dark theme button style.
+  ///
+  /// Uses darker backgrounds that lighten on interaction,
+  /// suitable for dark canvases.
   factory FlowControlsButtonStyle.dark() {
     return FlowControlsButtonStyle.colored(
       buttonColor: const Color(0xFF374151),
@@ -115,17 +236,20 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
       hoverIconColor: const Color(0xFFF9FAFB),
       selectedIconColor: const Color(0xFFFFFFFF),
       disabledIconColor: const Color(0xFF6B7280),
-      shadows: const [
+      shadows: [
         BoxShadow(
-          color: Colors.black38,
+          color: Colors.black.withValues(alpha: 0.38), // ~38% opacity
           blurRadius: 12,
-          offset: Offset(0, 4),
+          offset: const Offset(0, 4),
         ),
       ],
     );
   }
 
   /// Creates a button style that adapts to the system brightness.
+  ///
+  /// Uses [Theme.of(context).brightness] to determine whether
+  /// to use light or dark styling.
   factory FlowControlsButtonStyle.system(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
@@ -134,6 +258,12 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
   }
 
   /// Creates a button style from Material 3 color scheme.
+  ///
+  /// Uses semantic colors for consistent theming:
+  /// - Normal: surfaceContainerHigh with onSurfaceVariant icon
+  /// - Hover: surfaceContainerHighest with onSurface icon
+  /// - Selected: primaryContainer with onPrimaryContainer icon
+  /// - Disabled: surfaceContainerLow with faded onSurfaceVariant icon
   factory FlowControlsButtonStyle.fromColorScheme(ColorScheme colorScheme) {
     return FlowControlsButtonStyle.colored(
       buttonColor: colorScheme.surfaceContainerHigh,
@@ -143,25 +273,108 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
       iconColor: colorScheme.onSurfaceVariant,
       hoverIconColor: colorScheme.onSurface,
       selectedIconColor: colorScheme.onPrimaryContainer,
-      disabledIconColor: colorScheme.onSurfaceVariant.withAlpha(100),
+      disabledIconColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.39),
+      shadows: [
+        BoxShadow(
+          color: colorScheme.shadow.withValues(alpha: 0.1),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
+  }
+
+  /// Creates a button style from a seed color using Material 3 guidelines.
+  ///
+  /// Generates a complete color scheme from the seed color and applies it
+  /// to the button styling.
+  factory FlowControlsButtonStyle.fromSeed(
+    Color seedColor, {
+    Brightness brightness = Brightness.light,
+  }) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    );
+    return FlowControlsButtonStyle.fromColorScheme(colorScheme);
+  }
+
+  /// Resolves the appropriate decoration based on button state.
+  ///
+  /// State priority (highest to lowest):
+  /// 1. Disabled - returns [disabledDecoration]
+  /// 2. Selected - returns [selectedDecoration]
+  /// 3. Hovered - returns [hoverDecoration]
+  /// 4. Normal - returns [decoration]
+  ///
+  /// Falls back to [decoration] if state-specific decoration is not defined.
+  Decoration resolveDecoration(Set<FlowControlState> states) {
+    if (states.contains(FlowControlState.disabled)) {
+      return disabledDecoration ?? decoration;
+    }
+    if (states.contains(FlowControlState.selected)) {
+      return selectedDecoration ?? hoverDecoration ?? decoration;
+    }
+    if (states.contains(FlowControlState.hovered)) {
+      return hoverDecoration ?? decoration;
+    }
+    return decoration;
+  }
+
+  /// Resolves the appropriate icon theme based on button state.
+  ///
+  /// State priority (highest to lowest):
+  /// 1. Disabled - returns [disabledIconTheme]
+  /// 2. Selected - returns [selectedIconTheme]
+  /// 3. Hovered - returns [hoverIconTheme]
+  /// 4. Normal - returns [iconTheme]
+  ///
+  /// Falls back to [iconTheme] if state-specific theme is not defined.
+  IconThemeData resolveIconTheme(Set<FlowControlState> states) {
+    if (states.contains(FlowControlState.disabled)) {
+      return disabledIconTheme ?? iconTheme;
+    }
+    if (states.contains(FlowControlState.selected)) {
+      return selectedIconTheme ?? iconTheme;
+    }
+    if (states.contains(FlowControlState.hovered)) {
+      return hoverIconTheme ?? iconTheme;
+    }
+    return iconTheme;
   }
 
   /// Merges this style with another, preferring the other's values.
+  ///
+  /// Non-null values from [other] override values from this style.
+  ///
+  /// Example:
+  /// ```
+  /// final base = FlowControlsButtonStyle.light();
+  /// final custom = FlowControlsButtonStyle.colored(
+  ///   buttonColor: Colors.purple.shade50,
+  ///   iconColor: Colors.purple,
+  /// );
+  ///
+  /// final merged = base.merge(custom);
+  /// // Result: custom's colors with base's state decorations
+  /// ```
   FlowControlsButtonStyle merge(FlowControlsButtonStyle? other) {
     if (other == null) return this;
-    return copyWith(
+    return FlowControlsButtonStyle(
       decoration: other.decoration,
-      hoverDecoration: other.hoverDecoration,
-      selectedDecoration: other.selectedDecoration,
-      disabledDecoration: other.disabledDecoration,
+      hoverDecoration: other.hoverDecoration ?? hoverDecoration,
+      selectedDecoration: other.selectedDecoration ?? selectedDecoration,
+      disabledDecoration: other.disabledDecoration ?? disabledDecoration,
       iconTheme: other.iconTheme,
-      hoverIconTheme: other.hoverIconTheme,
-      selectedIconTheme: other.selectedIconTheme,
-      disabledIconTheme: other.disabledIconTheme,
+      hoverIconTheme: other.hoverIconTheme ?? hoverIconTheme,
+      selectedIconTheme: other.selectedIconTheme ?? selectedIconTheme,
+      disabledIconTheme: other.disabledIconTheme ?? disabledIconTheme,
     );
   }
 
+  /// Creates a copy of this style with the given fields replaced.
+  ///
+  /// All parameters are optional. Null values retain the current value.
   @override
   FlowControlsButtonStyle copyWith({
     Decoration? decoration,
@@ -185,12 +398,23 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
     );
   }
 
+  /// Linearly interpolates between this style and another.
+  ///
+  /// Used by Flutter's animation system for smooth theme transitions.
+  /// The parameter [t] is the interpolation factor, from 0.0 to 1.0.
   @override
   FlowControlsButtonStyle lerp(
-      covariant ThemeExtension<FlowControlsButtonStyle>? other, double t) {
+    covariant ThemeExtension<FlowControlsButtonStyle>? other,
+    double t,
+  ) {
     if (other is! FlowControlsButtonStyle) return this;
+    if (identical(this, other)) return this;
+    if (t == 0.0) return this;
+    if (t == 1.0) return other;
+
     return FlowControlsButtonStyle(
-      decoration: Decoration.lerp(decoration, other.decoration, t)!,
+      decoration:
+          Decoration.lerp(decoration, other.decoration, t) ?? decoration,
       hoverDecoration:
           Decoration.lerp(hoverDecoration, other.hoverDecoration, t),
       selectedDecoration:
@@ -205,36 +429,6 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
       disabledIconTheme:
           IconThemeData.lerp(disabledIconTheme, other.disabledIconTheme, t),
     );
-  }
-
-// In controls_theme.dart
-  Decoration resolveDecoration(Set<FlowControlState> states) {
-    if (states.contains(FlowControlState.disabled)) {
-      return disabledDecoration ?? decoration;
-    }
-    if (states.contains(FlowControlState.selected)) {
-      return selectedDecoration ?? hoverDecoration ?? decoration;
-    }
-    if (states.contains(FlowControlState.hovered)) {
-      return hoverDecoration ?? decoration;
-    }
-    return decoration;
-  }
-
-  /// Resolves the appropriate icon theme based on button state.
-  IconThemeData resolveIconTheme(Set<FlowControlState> states) {
-    if (states.contains(FlowControlState.disabled)) {
-      return disabledIconTheme ?? iconTheme;
-    }
-    if (states.contains(FlowControlState.selected)) {
-      if (selectedIconTheme != null) return selectedIconTheme!;
-    }
-
-    if (states.contains(FlowControlState.hovered)) {
-      if (hoverIconTheme != null) return hoverIconTheme!;
-    }
-
-    return iconTheme;
   }
 
   @override
@@ -262,4 +456,63 @@ class FlowControlsButtonStyle extends ThemeExtension<FlowControlsButtonStyle> {
         selectedIconTheme,
         disabledIconTheme,
       );
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<Decoration>('decoration', decoration));
+    properties.add(DiagnosticsProperty<Decoration?>(
+      'hoverDecoration',
+      hoverDecoration,
+      defaultValue: null,
+    ));
+    properties.add(DiagnosticsProperty<Decoration?>(
+      'selectedDecoration',
+      selectedDecoration,
+      defaultValue: null,
+    ));
+    properties.add(DiagnosticsProperty<Decoration?>(
+      'disabledDecoration',
+      disabledDecoration,
+      defaultValue: null,
+    ));
+    properties.add(DiagnosticsProperty<IconThemeData>('iconTheme', iconTheme));
+    properties.add(DiagnosticsProperty<IconThemeData?>(
+      'hoverIconTheme',
+      hoverIconTheme,
+      defaultValue: null,
+    ));
+    properties.add(DiagnosticsProperty<IconThemeData?>(
+      'selectedIconTheme',
+      selectedIconTheme,
+      defaultValue: null,
+    ));
+    properties.add(DiagnosticsProperty<IconThemeData?>(
+      'disabledIconTheme',
+      disabledIconTheme,
+      defaultValue: null,
+    ));
+  }
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowControlsButtonStyle('
+        'decoration: $decoration, '
+        'iconTheme: $iconTheme'
+        ')';
+  }
+}
+
+/// Extension on [ThemeData] for convenient access to [FlowControlsButtonStyle].
+///
+/// Usage:
+/// ```
+/// final style = Theme.of(context).flowControlsButtonStyle;
+/// ```
+extension FlowControlsButtonStyleExtension on ThemeData {
+  /// Returns the [FlowControlsButtonStyle] from theme extensions.
+  ///
+  /// Falls back to [FlowControlsButtonStyle.light] if not registered.
+  FlowControlsButtonStyle get flowControlsButtonStyle =>
+      extension<FlowControlsButtonStyle>() ?? FlowControlsButtonStyle.light();
 }

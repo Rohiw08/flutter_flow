@@ -16,6 +16,5 @@ export 'components/selection_theme.dart';
 // Theme Management & Utilities
 export 'theme_animation.dart';
 export 'theme_builder.dart';
-export 'theme_extensions.dart';
 export 'theme_provider.dart';
 export 'theme_manager.dart';

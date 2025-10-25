@@ -8,21 +8,60 @@ enum MinimapNodeState { normal, selected }
 /// Defines the visual styling for the flow canvas minimap.
 ///
 /// The minimap provides a bird's-eye view of the entire canvas with:
-/// - Background and mask styling
-/// - Node representation (normal and selected states)
+/// - Background and mask styling for the container
+/// - Node representation with normal and selected states
 /// - Viewport indicator showing the current visible area
+/// - Customizable borders, shadows, and glow effects
 ///
-/// Example usage:
-/// ```dart
+/// ## Registration
+///
+/// Register the theme extension in your [MaterialApp]:
+///
+/// ```
+/// MaterialApp(
+///   theme: ThemeData(
+///     extensions: [FlowMinimapStyle.light()],
+///   ),
+///   darkTheme: ThemeData(
+///     extensions: [FlowMinimapStyle.dark()],
+///   ),
+/// )
+/// ```
+///
+/// ## Usage
+///
+/// Access the style using the extension method:
+///
+/// ```
+/// final style = Theme.of(context).flowMinimapStyle;
+/// final nodeColor = style.resolveNodeColor({MinimapNodeState.selected});
+/// ```
+///
+/// ## Examples
+///
+/// ```
+/// // Basic usage with defaults
+/// FlowMinimapStyle()
+///
+/// // Custom colors
 /// FlowMinimapStyle(
 ///   backgroundColor: Colors.white,
 ///   nodeColor: Colors.blue,
 ///   selectedNodeColor: Colors.orange,
-///   viewportColor: Colors.blue.withOpacity(0.2),
+///   viewportColor: Colors.blue.withValues(alpha: 0.2),
 /// )
+///
+/// // From Material 3 color scheme
+/// FlowMinimapStyle.fromColorScheme(
+///   Theme.of(context).colorScheme,
+/// )
+///
+/// // Adaptive to system theme
+/// FlowMinimapStyle.system(context)
 /// ```
 @immutable
-class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
+class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle>
+    with Diagnosticable {
   // ============================================================================
   // Overall minimap container styling
   // ============================================================================
@@ -34,6 +73,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   final Color backgroundColor;
 
   /// Color of the mask overlay (areas outside nodes).
+  ///
+  /// Typically semi-transparent to dim non-node areas.
   final Color maskColor;
 
   /// Stroke color for the mask border.
@@ -46,6 +87,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   final BorderRadius borderRadius;
 
   /// Shadow effects for the minimap container.
+  ///
+  /// Provides depth and elevation to the minimap.
   final List<BoxShadow> shadows;
 
   // ============================================================================
@@ -56,6 +99,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   final Color nodeColor;
 
   /// Color of nodes when selected.
+  ///
+  /// Should contrast with [nodeColor] for clear visual distinction.
   final Color selectedNodeColor;
 
   /// Stroke color for node borders.
@@ -72,6 +117,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   // ============================================================================
 
   /// Fill color of the viewport rectangle.
+  ///
+  /// Typically semi-transparent to show underlying nodes.
   final Color viewportColor;
 
   /// Border color of the viewport rectangle.
@@ -81,6 +128,7 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   final double viewportBorderWidth;
 
   /// Glow color around the viewport (for emphasis).
+  ///
   /// Set to transparent to disable glow effect.
   final Color viewportGlowColor;
 
@@ -118,6 +166,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   });
 
   /// Creates a light theme minimap style.
+  ///
+  /// Suitable for light mode applications with clear visibility.
   factory FlowMinimapStyle.light() {
     return const FlowMinimapStyle(
       backgroundColor: Colors.white,
@@ -140,6 +190,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   }
 
   /// Creates a dark theme minimap style.
+  ///
+  /// Suitable for dark mode applications with reduced eye strain.
   factory FlowMinimapStyle.dark() {
     return const FlowMinimapStyle(
       backgroundColor: Color(0xFF1E1E1E),
@@ -162,6 +214,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   }
 
   /// Creates a minimap style that adapts to the system brightness.
+  ///
+  /// Automatically selects [light] or [dark] based on the current theme.
   factory FlowMinimapStyle.system(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return brightness == Brightness.dark
@@ -170,6 +224,9 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   }
 
   /// Creates a minimap style from a Material 3 color scheme.
+  ///
+  /// Uses semantic colors from the color scheme for consistent theming
+  /// across your application.
   factory FlowMinimapStyle.fromColorScheme(ColorScheme colorScheme) {
     return FlowMinimapStyle(
       backgroundColor: colorScheme.surfaceContainerLow,
@@ -192,6 +249,8 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   }
 
   /// Creates a minimap style from a seed color using Material 3 guidelines.
+  ///
+  /// Generates a harmonious color scheme from a single seed color.
   factory FlowMinimapStyle.fromSeed(
     Color seedColor, {
     Brightness brightness = Brightness.light,
@@ -263,33 +322,44 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
     double t,
   ) {
     if (other is! FlowMinimapStyle) return this;
+    if (identical(this, other)) return this;
+    if (t == 0.0) return this;
+    if (t == 1.0) return other;
+
     return FlowMinimapStyle(
       padding: lerpDouble(padding, other.padding, t) ?? padding,
-      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
-      maskColor: Color.lerp(maskColor, other.maskColor, t)!,
-      maskStrokeColor: Color.lerp(maskStrokeColor, other.maskStrokeColor, t)!,
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t) ??
+          backgroundColor,
+      maskColor: Color.lerp(maskColor, other.maskColor, t) ?? maskColor,
+      maskStrokeColor: Color.lerp(maskStrokeColor, other.maskStrokeColor, t) ??
+          maskStrokeColor,
       maskStrokeWidth: lerpDouble(maskStrokeWidth, other.maskStrokeWidth, t) ??
           maskStrokeWidth,
       borderRadius: BorderRadius.lerp(borderRadius, other.borderRadius, t) ??
           borderRadius,
       shadows: BoxShadow.lerpList(shadows, other.shadows, t) ?? shadows,
-      nodeColor: Color.lerp(nodeColor, other.nodeColor, t)!,
+      nodeColor: Color.lerp(nodeColor, other.nodeColor, t) ?? nodeColor,
       selectedNodeColor:
-          Color.lerp(selectedNodeColor, other.selectedNodeColor, t)!,
-      nodeStrokeColor: Color.lerp(nodeStrokeColor, other.nodeStrokeColor, t)!,
+          Color.lerp(selectedNodeColor, other.selectedNodeColor, t) ??
+              selectedNodeColor,
+      nodeStrokeColor: Color.lerp(nodeStrokeColor, other.nodeStrokeColor, t) ??
+          nodeStrokeColor,
       nodeStrokeWidth: lerpDouble(nodeStrokeWidth, other.nodeStrokeWidth, t) ??
           nodeStrokeWidth,
       nodeBorderRadius:
           BorderRadius.lerp(nodeBorderRadius, other.nodeBorderRadius, t) ??
               nodeBorderRadius,
-      viewportColor: Color.lerp(viewportColor, other.viewportColor, t)!,
+      viewportColor:
+          Color.lerp(viewportColor, other.viewportColor, t) ?? viewportColor,
       viewportBorderColor:
-          Color.lerp(viewportBorderColor, other.viewportBorderColor, t)!,
+          Color.lerp(viewportBorderColor, other.viewportBorderColor, t) ??
+              viewportBorderColor,
       viewportBorderWidth:
           lerpDouble(viewportBorderWidth, other.viewportBorderWidth, t) ??
               viewportBorderWidth,
       viewportGlowColor:
-          Color.lerp(viewportGlowColor, other.viewportGlowColor, t)!,
+          Color.lerp(viewportGlowColor, other.viewportGlowColor, t) ??
+              viewportGlowColor,
       viewportGlowBlur:
           lerpDouble(viewportGlowBlur, other.viewportGlowBlur, t) ??
               viewportGlowBlur,
@@ -303,6 +373,7 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is FlowMinimapStyle &&
+        other.padding == padding &&
         other.backgroundColor == backgroundColor &&
         other.maskColor == maskColor &&
         other.maskStrokeColor == maskStrokeColor &&
@@ -315,29 +386,91 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle> {
         other.nodeStrokeWidth == nodeStrokeWidth &&
         other.nodeBorderRadius == nodeBorderRadius &&
         other.viewportColor == viewportColor &&
+        other.viewportBorderColor == viewportBorderColor &&
+        other.viewportBorderWidth == viewportBorderWidth &&
         other.viewportGlowColor == viewportGlowColor &&
         other.viewportGlowBlur == viewportGlowBlur &&
-        other.viewportBorderRadius == viewportBorderRadius &&
-        other.padding == padding;
+        other.viewportBorderRadius == viewportBorderRadius;
   }
 
   @override
   int get hashCode => Object.hash(
+        padding,
         backgroundColor,
         maskColor,
         maskStrokeColor,
         maskStrokeWidth,
         borderRadius,
-        shadows,
+        Object.hashAll(shadows),
         nodeColor,
         selectedNodeColor,
         nodeStrokeColor,
         nodeStrokeWidth,
         nodeBorderRadius,
         viewportColor,
-        viewportGlowColor,
-        viewportGlowBlur,
-        viewportBorderRadius,
-        padding,
+        viewportBorderColor,
+        viewportBorderWidth,
+        Object.hash(
+          viewportGlowColor,
+          viewportGlowBlur,
+          viewportBorderRadius,
+        ),
       );
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('padding', padding, defaultValue: 0));
+    properties.add(ColorProperty('backgroundColor', backgroundColor));
+    properties.add(ColorProperty('maskColor', maskColor));
+    properties.add(ColorProperty('maskStrokeColor', maskStrokeColor));
+    properties.add(
+        DoubleProperty('maskStrokeWidth', maskStrokeWidth, defaultValue: 1.0));
+    properties.add(DiagnosticsProperty<BorderRadius>(
+        'borderRadius', borderRadius,
+        defaultValue: null));
+    properties.add(IterableProperty<BoxShadow>('shadows', shadows));
+    properties.add(ColorProperty('nodeColor', nodeColor));
+    properties.add(ColorProperty('selectedNodeColor', selectedNodeColor));
+    properties.add(ColorProperty('nodeStrokeColor', nodeStrokeColor));
+    properties.add(
+        DoubleProperty('nodeStrokeWidth', nodeStrokeWidth, defaultValue: 1.0));
+    properties.add(DiagnosticsProperty<BorderRadius>(
+        'nodeBorderRadius', nodeBorderRadius,
+        defaultValue: null));
+    properties.add(ColorProperty('viewportColor', viewportColor));
+    properties.add(ColorProperty('viewportBorderColor', viewportBorderColor));
+    properties.add(DoubleProperty('viewportBorderWidth', viewportBorderWidth,
+        defaultValue: 1.5));
+    properties.add(ColorProperty('viewportGlowColor', viewportGlowColor));
+    properties.add(DoubleProperty('viewportGlowBlur', viewportGlowBlur,
+        defaultValue: 4.0));
+    properties.add(DiagnosticsProperty<BorderRadius>(
+        'viewportBorderRadius', viewportBorderRadius,
+        defaultValue: null));
+  }
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowMinimapStyle('
+        'backgroundColor: $backgroundColor, '
+        'nodeColor: $nodeColor, '
+        'selectedNodeColor: $selectedNodeColor, '
+        'viewportColor: $viewportColor'
+        ')';
+  }
+}
+
+/// Extension on [ThemeData] for convenient access to [FlowMinimapStyle].
+///
+/// Usage:
+/// ```
+/// final style = Theme.of(context).flowMinimapStyle;
+/// ```
+extension FlowMinimapStyleExtension on ThemeData {
+  /// Returns the [FlowMinimapStyle] from theme extensions.
+  ///
+  /// Falls back to [FlowMinimapStyle.light] if not registered.
+  FlowMinimapStyle get flowMinimapStyle =>
+      extension<FlowMinimapStyle>() ?? FlowMinimapStyle.light();
 }
