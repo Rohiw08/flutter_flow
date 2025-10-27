@@ -26,7 +26,7 @@ class SelectionController {
 
   Set<String> _getNodesInSelectionRect() {
     final rect = _controller.currentState.selectionRect;
-    if (rect == null) return {};
+    if (rect == Rect.zero) return {};
     final cartesianRect =
         _controller.coordinateConverter.renderRectToCartesianRect(rect);
     final foundNodes =
@@ -129,7 +129,7 @@ class SelectionController {
     // This mutation also removes the selection rectangle and resets the drag mode.
     _controller.mutate((s) => s.copyWith(
           selectedNodes: finalSelectedNodes,
-          selectionRect: null,
+          selectionRect: Rect.zero,
         ));
 
     _selectionStreams.emitEvent(SelectionChangeEvent(

@@ -14,15 +14,23 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$HandleRuntimeState {
-// Visual states
-  bool get isHovered;
-  bool get isActive; // Currently being used for connection
-  bool get isValidTarget; // Valid target for current connection
-// Connection state
-  int get currentConnections; // Number of current connections
-  List<String> get connectedEdgeIds; // IDs of connected edges
-// Animation state
-  bool get isAnimating;
+  /// Whether the handle is being hovered over.
+  bool get hovered;
+
+  /// Whether this handle is currently active in a connection drag.
+  bool get active;
+
+  /// Whether the handle is a valid target for the active connection.
+  bool get validTarget;
+
+  /// The number of edges currently connected to this handle.
+  int get connectionCount;
+
+  /// The IDs of connected edges (for fast graph lookup).
+  List<String> get connectedEdgeIds;
+
+  /// Whether the handle is playing an animation (e.g., pulsing).
+  bool get animating;
 
   /// Create a copy of HandleRuntimeState
   /// with the given fields replaced by the non-null parameter values.
@@ -37,33 +45,31 @@ mixin _$HandleRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is HandleRuntimeState &&
-            (identical(other.isHovered, isHovered) ||
-                other.isHovered == isHovered) &&
-            (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.isValidTarget, isValidTarget) ||
-                other.isValidTarget == isValidTarget) &&
-            (identical(other.currentConnections, currentConnections) ||
-                other.currentConnections == currentConnections) &&
+            (identical(other.hovered, hovered) || other.hovered == hovered) &&
+            (identical(other.active, active) || other.active == active) &&
+            (identical(other.validTarget, validTarget) ||
+                other.validTarget == validTarget) &&
+            (identical(other.connectionCount, connectionCount) ||
+                other.connectionCount == connectionCount) &&
             const DeepCollectionEquality()
                 .equals(other.connectedEdgeIds, connectedEdgeIds) &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating));
+            (identical(other.animating, animating) ||
+                other.animating == animating));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      isHovered,
-      isActive,
-      isValidTarget,
-      currentConnections,
+      hovered,
+      active,
+      validTarget,
+      connectionCount,
       const DeepCollectionEquality().hash(connectedEdgeIds),
-      isAnimating);
+      animating);
 
   @override
   String toString() {
-    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
+    return 'HandleRuntimeState(hovered: $hovered, active: $active, validTarget: $validTarget, connectionCount: $connectionCount, connectedEdgeIds: $connectedEdgeIds, animating: $animating)';
   }
 }
 
@@ -74,12 +80,12 @@ abstract mixin class $HandleRuntimeStateCopyWith<$Res> {
       _$HandleRuntimeStateCopyWithImpl;
   @useResult
   $Res call(
-      {bool isHovered,
-      bool isActive,
-      bool isValidTarget,
-      int currentConnections,
+      {bool hovered,
+      bool active,
+      bool validTarget,
+      int connectionCount,
       List<String> connectedEdgeIds,
-      bool isAnimating});
+      bool animating});
 }
 
 /// @nodoc
@@ -95,37 +101,37 @@ class _$HandleRuntimeStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? isHovered = null,
-    Object? isActive = null,
-    Object? isValidTarget = null,
-    Object? currentConnections = null,
+    Object? hovered = null,
+    Object? active = null,
+    Object? validTarget = null,
+    Object? connectionCount = null,
     Object? connectedEdgeIds = null,
-    Object? isAnimating = null,
+    Object? animating = null,
   }) {
     return _then(_self.copyWith(
-      isHovered: null == isHovered
-          ? _self.isHovered
-          : isHovered // ignore: cast_nullable_to_non_nullable
+      hovered: null == hovered
+          ? _self.hovered
+          : hovered // ignore: cast_nullable_to_non_nullable
               as bool,
-      isActive: null == isActive
-          ? _self.isActive
-          : isActive // ignore: cast_nullable_to_non_nullable
+      active: null == active
+          ? _self.active
+          : active // ignore: cast_nullable_to_non_nullable
               as bool,
-      isValidTarget: null == isValidTarget
-          ? _self.isValidTarget
-          : isValidTarget // ignore: cast_nullable_to_non_nullable
+      validTarget: null == validTarget
+          ? _self.validTarget
+          : validTarget // ignore: cast_nullable_to_non_nullable
               as bool,
-      currentConnections: null == currentConnections
-          ? _self.currentConnections
-          : currentConnections // ignore: cast_nullable_to_non_nullable
+      connectionCount: null == connectionCount
+          ? _self.connectionCount
+          : connectionCount // ignore: cast_nullable_to_non_nullable
               as int,
       connectedEdgeIds: null == connectedEdgeIds
           ? _self.connectedEdgeIds
           : connectedEdgeIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
+      animating: null == animating
+          ? _self.animating
+          : animating // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }
@@ -224,26 +230,16 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            bool isHovered,
-            bool isActive,
-            bool isValidTarget,
-            int currentConnections,
-            List<String> connectedEdgeIds,
-            bool isAnimating)?
+    TResult Function(bool hovered, bool active, bool validTarget,
+            int connectionCount, List<String> connectedEdgeIds, bool animating)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _HandleRuntimeState() when $default != null:
-        return $default(
-            _that.isHovered,
-            _that.isActive,
-            _that.isValidTarget,
-            _that.currentConnections,
-            _that.connectedEdgeIds,
-            _that.isAnimating);
+        return $default(_that.hovered, _that.active, _that.validTarget,
+            _that.connectionCount, _that.connectedEdgeIds, _that.animating);
       case _:
         return orElse();
     }
@@ -264,25 +260,15 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(
-            bool isHovered,
-            bool isActive,
-            bool isValidTarget,
-            int currentConnections,
-            List<String> connectedEdgeIds,
-            bool isAnimating)
+    TResult Function(bool hovered, bool active, bool validTarget,
+            int connectionCount, List<String> connectedEdgeIds, bool animating)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _HandleRuntimeState():
-        return $default(
-            _that.isHovered,
-            _that.isActive,
-            _that.isValidTarget,
-            _that.currentConnections,
-            _that.connectedEdgeIds,
-            _that.isAnimating);
+        return $default(_that.hovered, _that.active, _that.validTarget,
+            _that.connectionCount, _that.connectedEdgeIds, _that.animating);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -302,25 +288,15 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            bool isHovered,
-            bool isActive,
-            bool isValidTarget,
-            int currentConnections,
-            List<String> connectedEdgeIds,
-            bool isAnimating)?
+    TResult? Function(bool hovered, bool active, bool validTarget,
+            int connectionCount, List<String> connectedEdgeIds, bool animating)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _HandleRuntimeState() when $default != null:
-        return $default(
-            _that.isHovered,
-            _that.isActive,
-            _that.isValidTarget,
-            _that.currentConnections,
-            _that.connectedEdgeIds,
-            _that.isAnimating);
+        return $default(_that.hovered, _that.active, _that.validTarget,
+            _that.connectionCount, _that.connectedEdgeIds, _that.animating);
       case _:
         return null;
     }
@@ -331,33 +307,38 @@ extension HandleRuntimeStatePatterns on HandleRuntimeState {
 
 class _HandleRuntimeState implements HandleRuntimeState {
   const _HandleRuntimeState(
-      {this.isHovered = false,
-      this.isActive = false,
-      this.isValidTarget = false,
-      this.currentConnections = 0,
-      final List<String> connectedEdgeIds = const [],
-      this.isAnimating = false})
+      {this.hovered = false,
+      this.active = false,
+      this.validTarget = false,
+      this.connectionCount = 0,
+      final List<String> connectedEdgeIds = const <String>[],
+      this.animating = false})
       : _connectedEdgeIds = connectedEdgeIds;
 
-// Visual states
+  /// Whether the handle is being hovered over.
   @override
   @JsonKey()
-  final bool isHovered;
+  final bool hovered;
+
+  /// Whether this handle is currently active in a connection drag.
   @override
   @JsonKey()
-  final bool isActive;
-// Currently being used for connection
+  final bool active;
+
+  /// Whether the handle is a valid target for the active connection.
   @override
   @JsonKey()
-  final bool isValidTarget;
-// Valid target for current connection
-// Connection state
+  final bool validTarget;
+
+  /// The number of edges currently connected to this handle.
   @override
   @JsonKey()
-  final int currentConnections;
-// Number of current connections
+  final int connectionCount;
+
+  /// The IDs of connected edges (for fast graph lookup).
   final List<String> _connectedEdgeIds;
-// Number of current connections
+
+  /// The IDs of connected edges (for fast graph lookup).
   @override
   @JsonKey()
   List<String> get connectedEdgeIds {
@@ -367,11 +348,10 @@ class _HandleRuntimeState implements HandleRuntimeState {
     return EqualUnmodifiableListView(_connectedEdgeIds);
   }
 
-// IDs of connected edges
-// Animation state
+  /// Whether the handle is playing an animation (e.g., pulsing).
   @override
   @JsonKey()
-  final bool isAnimating;
+  final bool animating;
 
   /// Create a copy of HandleRuntimeState
   /// with the given fields replaced by the non-null parameter values.
@@ -386,33 +366,31 @@ class _HandleRuntimeState implements HandleRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _HandleRuntimeState &&
-            (identical(other.isHovered, isHovered) ||
-                other.isHovered == isHovered) &&
-            (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.isValidTarget, isValidTarget) ||
-                other.isValidTarget == isValidTarget) &&
-            (identical(other.currentConnections, currentConnections) ||
-                other.currentConnections == currentConnections) &&
+            (identical(other.hovered, hovered) || other.hovered == hovered) &&
+            (identical(other.active, active) || other.active == active) &&
+            (identical(other.validTarget, validTarget) ||
+                other.validTarget == validTarget) &&
+            (identical(other.connectionCount, connectionCount) ||
+                other.connectionCount == connectionCount) &&
             const DeepCollectionEquality()
                 .equals(other._connectedEdgeIds, _connectedEdgeIds) &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating));
+            (identical(other.animating, animating) ||
+                other.animating == animating));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      isHovered,
-      isActive,
-      isValidTarget,
-      currentConnections,
+      hovered,
+      active,
+      validTarget,
+      connectionCount,
       const DeepCollectionEquality().hash(_connectedEdgeIds),
-      isAnimating);
+      animating);
 
   @override
   String toString() {
-    return 'HandleRuntimeState(isHovered: $isHovered, isActive: $isActive, isValidTarget: $isValidTarget, currentConnections: $currentConnections, connectedEdgeIds: $connectedEdgeIds, isAnimating: $isAnimating)';
+    return 'HandleRuntimeState(hovered: $hovered, active: $active, validTarget: $validTarget, connectionCount: $connectionCount, connectedEdgeIds: $connectedEdgeIds, animating: $animating)';
   }
 }
 
@@ -425,12 +403,12 @@ abstract mixin class _$HandleRuntimeStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {bool isHovered,
-      bool isActive,
-      bool isValidTarget,
-      int currentConnections,
+      {bool hovered,
+      bool active,
+      bool validTarget,
+      int connectionCount,
       List<String> connectedEdgeIds,
-      bool isAnimating});
+      bool animating});
 }
 
 /// @nodoc
@@ -446,37 +424,37 @@ class __$HandleRuntimeStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? isHovered = null,
-    Object? isActive = null,
-    Object? isValidTarget = null,
-    Object? currentConnections = null,
+    Object? hovered = null,
+    Object? active = null,
+    Object? validTarget = null,
+    Object? connectionCount = null,
     Object? connectedEdgeIds = null,
-    Object? isAnimating = null,
+    Object? animating = null,
   }) {
     return _then(_HandleRuntimeState(
-      isHovered: null == isHovered
-          ? _self.isHovered
-          : isHovered // ignore: cast_nullable_to_non_nullable
+      hovered: null == hovered
+          ? _self.hovered
+          : hovered // ignore: cast_nullable_to_non_nullable
               as bool,
-      isActive: null == isActive
-          ? _self.isActive
-          : isActive // ignore: cast_nullable_to_non_nullable
+      active: null == active
+          ? _self.active
+          : active // ignore: cast_nullable_to_non_nullable
               as bool,
-      isValidTarget: null == isValidTarget
-          ? _self.isValidTarget
-          : isValidTarget // ignore: cast_nullable_to_non_nullable
+      validTarget: null == validTarget
+          ? _self.validTarget
+          : validTarget // ignore: cast_nullable_to_non_nullable
               as bool,
-      currentConnections: null == currentConnections
-          ? _self.currentConnections
-          : currentConnections // ignore: cast_nullable_to_non_nullable
+      connectionCount: null == connectionCount
+          ? _self.connectionCount
+          : connectionCount // ignore: cast_nullable_to_non_nullable
               as int,
       connectedEdgeIds: null == connectedEdgeIds
           ? _self._connectedEdgeIds
           : connectedEdgeIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
+      animating: null == animating
+          ? _self.animating
+          : animating // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }

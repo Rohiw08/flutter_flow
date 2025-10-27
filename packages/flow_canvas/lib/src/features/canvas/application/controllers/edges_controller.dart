@@ -151,7 +151,7 @@ class EdgesController {
 
     final currentHoveredId = state.hoveredEdgeId;
     if (hit != currentHoveredId) {
-      _controller.updateStateOnly(state.copyWith(hoveredEdgeId: hit));
+      _controller.updateStateOnly(state.copyWith(hoveredEdgeId: hit ?? ""));
 
       if (currentHoveredId != null) {
         _edgeInteractionCallbacks.onMouseLeave(currentHoveredId, event);
@@ -176,7 +176,7 @@ class EdgesController {
     final hit = _edgeGeometryService.hitTestEdgeAt(
         localPosition, state, state.viewport.zoom);
 
-    _controller.updateStateOnly(state.copyWith(lastClickedEdgeId: hit));
+    _controller.updateStateOnly(state.copyWith(lastClickedEdgeId: hit ?? ""));
 
     if (hit != null) {
       if (state.edges[hit]?.selectable ?? true) {

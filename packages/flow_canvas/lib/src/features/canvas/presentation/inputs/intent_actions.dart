@@ -45,7 +45,7 @@ class PasteIntent extends Intent {
 
 Map<Type, Action<Intent>> buildActions(
   FlowCanvasController controller,
-  FlowOptions options,
+  FlowCanvasOptions options,
 ) {
   return <Type, Action<Intent>>{
     ZoomInIntent: CallbackAction<ZoomInIntent>(

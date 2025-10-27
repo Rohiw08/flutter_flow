@@ -1,6 +1,6 @@
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/edge_label_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/edge_theme.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,7 +58,8 @@ class FlowEdgeLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final baseTheme = context.flowCanvasTheme.edgeLabel;
+    final baseTheme =
+        context.flowCanvasTheme.edgeLabel ?? FlowEdgeLabelStyle.system(context);
     final effectiveTheme = baseTheme.merge(style);
 
     // Compute current visual states

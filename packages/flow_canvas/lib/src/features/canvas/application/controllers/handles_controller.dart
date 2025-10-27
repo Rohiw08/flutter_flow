@@ -16,9 +16,9 @@ class HandleController {
     final currentState = currentStates[handleKey] ?? const HandleRuntimeState();
 
     // Avoid unnecessary state updates if the hover state is already correct.
-    if (currentState.isHovered == isHovered) return;
+    if (currentState.hovered == isHovered) return;
 
-    currentStates[handleKey] = currentState.copyWith(isHovered: isHovered);
+    currentStates[handleKey] = currentState.copyWith(hovered: isHovered);
 
     _controller.updateStateOnly(
       _controller.currentState.copyWith(handleStates: currentStates),

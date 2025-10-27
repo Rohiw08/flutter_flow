@@ -1,6 +1,6 @@
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_button_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
+import 'package:flutter/material.dart';
 
 /// A styled button for flow canvas controls.
 ///
@@ -79,11 +79,9 @@ class _ControlButtonState extends State<ControlButton> {
   @override
   Widget build(BuildContext context) {
     // Get base theme from context
-    final baseTheme = context.flowCanvasTheme.button;
-
-    // Merge with custom style if provided
-    final theme =
-        widget.style != null ? baseTheme.merge(widget.style) : baseTheme;
+    final baseTheme = context.flowCanvasTheme.button ??
+        FlowControlsButtonStyle.system(context);
+    final theme = baseTheme.merge(widget.style);
 
     // Resolve decoration and icon theme based on current state
     final buttonDecoration = theme.resolveDecoration(_states);

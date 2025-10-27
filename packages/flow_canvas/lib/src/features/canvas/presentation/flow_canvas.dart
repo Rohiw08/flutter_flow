@@ -39,7 +39,7 @@ class FlowCanvas extends StatefulWidget {
   final List<FlowEdge>? initialEdges;
   final NodeRegistry nodeRegistry;
   final EdgeRegistry edgeRegistry;
-  final FlowOptions options;
+  final FlowCanvasOptions options;
   final FlowCanvasTheme? theme;
 
   // --- CALLBACKS ---
@@ -63,7 +63,7 @@ class FlowCanvas extends StatefulWidget {
     this.initialNodes,
     this.initialEdges,
     this.theme,
-    this.options = const FlowOptions(),
+    this.options = const FlowCanvasOptions(),
     this.nodeInteractionCallbacks = const NodeInteractionCallbacks(),
     this.nodeStateCallbacks = const NodeStateCallbacks(),
     this.edgeInteractionCallbacks = const EdgeInteractionCallbacks(),
@@ -255,8 +255,8 @@ class _InteractiveViewerWrapper extends ConsumerWidget {
       scaleEnabled: !isLocked,
       child: SizedBox(
         key: controller.canvasKey,
-        width: options.canvasWidth,
-        height: options.canvasHeight,
+        width: options.canvasSize.width,
+        height: options.canvasSize.height,
         child: RepaintBoundary(
           child: Stack(
             clipBehavior: Clip.none,

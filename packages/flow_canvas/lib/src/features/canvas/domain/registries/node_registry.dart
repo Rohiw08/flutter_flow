@@ -4,72 +4,82 @@ import '../../presentation/widgets/flow_node.dart';
 
 typedef NodeWidgetBuilder = Widget Function(FlowNode node);
 
-/// A registry for managing node widget builders provided by the user.
+/// A registry for mapping FlowNode types to widget builders.
 ///
-/// An instance of this class is passed to the FlowCanvasController to make
-/// node types available to the canvas. If no builder is registered for a node type,
-/// it will fall back to the default node widget that uses FlowNodeStyle.
+/// Used by [FlowCanvasController] to resolve node visual widgets
+/// dynamically based on node type.
+///
+/// If no builder is registered for a given type, it uses
+/// the default node widget ([buildDefaultNode]).
+///
+/// ## Usage:
+///
+/// ```
+/// final registry = NodeRegistry()
+///   ..register('input', (node) => InputNodeWidget(node))
+///   ..register('custom', (node) => CustomNode(node));
+///
+/// final widget = registry.buildWidget(flowNode);
+/// ```
 class NodeRegistry {
-  final Map<String, NodeWidgetBuilder> _builders = {};
+  final Map<String, NodeWidgetBuilder> _builders;
 
-  /// Creates a NodeRegistry with the default node types ('default', 'input', 'output')
-  /// already registered.
-  NodeRegistry() {
+  /// Creates a registry with default node types registered.
+  NodeRegistry() : _builders = {} {
     _registerDefaultTypes();
   }
 
-  void clear() {
-    _builders.clear();
-  }
+  /// Creates an empty registry with no default node types.
+  NodeRegistry.empty() : _builders = {};
 
-  /// Creates a completely empty NodeRegistry with no default types.
-  NodeRegistry.empty();
-
+  /// Registers a new node type.
+  ///
+  /// If a type already exists, this will overwrite its builder.
   void register(String type, NodeWidgetBuilder builder) {
     assert(type.isNotEmpty, 'Node type cannot be empty');
-    // Allow overwriting if needed, but you could also assert here
-    // assert(!_builders.containsKey(type), 'Node type $type already registered');
     _builders[type] = builder;
   }
 
+  /// Unregisters a node type by its string key.
+  ///
+  /// Returns true if a type was removed.
+  bool unregister(String type) =>
+      type.isNotEmpty && _builders.remove(type) != null;
+
+  /// Checks whether a type is registered.
+  bool isRegistered(String type) => _builders.containsKey(type);
+
+  /// Removes all registered node types.
+  void clear() => _builders.clear();
+
+  /// Resolves a widget for a given FlowNode.
+  ///
+  /// Falls back to [buildDefaultNode] if no builder is found.
+  Widget buildWidget(FlowNode node) =>
+      _builders[node.type]?.call(node) ?? buildDefaultNode(node);
+
+  /// Registers the built-in/default node types.
   void _registerDefaultTypes() {
-    register('defaultNode', buildDefaultNode);
+    register('default', buildDefaultNode);
   }
 
-  Widget buildWidget(FlowNode node) {
-    final builder = _builders[node.type];
-    if (builder == null) {
-      // Use default node widget instead of showing error
-      return buildDefaultNode(node);
-    }
-    return builder.call(node);
-  }
+  /// Returns an immutable copy of the current registered type map.
+  Map<String, NodeWidgetBuilder> get builders => Map.unmodifiable(_builders);
 
-  bool unregister(String type) {
-    if (type.isEmpty) return false;
-    return _builders.remove(type) != null;
-  }
-
-  bool isRegistered(String type) {
-    return _builders.containsKey(type);
-  }
-
-  /// Build error widget for debugging purposes
-  Widget buildErrorWidget(Size size, String type) {
-    return Container(
-      width: size.width,
-      height: size.height,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.red, width: 2),
-        color: Colors.red.withAlpha(25),
-      ),
-      child: const Center(
-        child: Text(
-          'Missing Node Type:\n""',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.red, fontSize: 10),
+  /// Builds a red-outlined error widget for debugging missing node types.
+  Widget buildErrorWidget(Size size, String type) => Container(
+        width: size.width,
+        height: size.height,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.red, width: 2),
+          color: Colors.red.withAlpha(25),
         ),
-      ),
-    );
-  }
+        child: Center(
+          child: Text(
+            'Unregistered node type:\n"$type"',
+            style: const TextStyle(color: Colors.red, fontSize: 10),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
 }

@@ -3,7 +3,7 @@ import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controll
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/painters/minimap_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/minimap_theme.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +79,9 @@ class FlowMiniMap extends ConsumerWidget {
     }));
 
     final controller = ref.read(internalControllerProvider.notifier);
-    final theme = minimapStyle ?? context.flowCanvasTheme.minimap;
+    final baseTheme =
+        context.flowCanvasTheme.minimap ?? FlowMinimapStyle.system(context);
+    final theme = baseTheme.merge(minimapStyle);
 
     final bounds = MiniMapPainter.getCombinedBounds(
         viewModel.nodes, viewModel.viewportRect);

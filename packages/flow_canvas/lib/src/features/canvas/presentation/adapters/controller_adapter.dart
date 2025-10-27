@@ -7,7 +7,7 @@ import 'package:flow_canvas/src/features/canvas/presentation/inputs/keymap.dart'
 
 class KeyboardAdapter extends StatelessWidget {
   final FlowCanvasController controller;
-  final FlowOptions options;
+  final FlowCanvasOptions options;
   final Keymap keymap;
   final Widget child;
 

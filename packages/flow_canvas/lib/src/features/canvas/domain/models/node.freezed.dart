@@ -13,22 +13,99 @@ part of 'node.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$FlowNode {
-  String get type;
+mixin _$FlowNode implements DiagnosticableTreeMixin {
+  /// Unique identifier for this node.
   String get id;
+
+  /// Type identifier for this node (e.g., 'default', 'input', 'output').
+  ///
+  /// Used for applying type-specific styling or behavior.
+  String get type;
+
+  /// Position of the node's center in canvas coordinates.
+  ///
+  /// This is the reference point for the node. The visual representation
+  /// is rendered centered on this position.
   Offset get position;
+
+  /// Size of the node in logical pixels.
+  ///
+  /// Defines the width and height of the node's bounding box.
   Size get size;
+
+  /// Optional ID of the parent node (for nested/grouped nodes).
+  ///
+  /// When set, this node is a child of another node, creating a
+  /// parent-child hierarchy for grouping or nesting.
   String? get parentId;
-  Map<String, NodeHandle> get handles;
+
+  /// Map of handles attached to this node, keyed by handle ID.
+  ///
+  /// Handles define connection points where edges can attach.
+  /// Handle positions are relative to the node's top-left corner.
+  ///
+  /// Example:
+  /// ```
+  /// handles: {
+  ///   'input': FlowHandle(/* ... */),
+  ///   'output-1': FlowHandle(/* ... */),
+  ///   'output-2': FlowHandle(/* ... */),
+  /// }
+  /// ```
+  Map<String, FlowHandle> get handles;
+
+  /// Custom data that can be attached to this node.
+  ///
+  /// Store application-specific information like labels, values,
+  /// configuration, etc.
   Map<String, dynamic> get data;
+
+  /// Z-index for rendering order (higher values render on top).
+  ///
+  /// Used for layering nodes. Selected nodes are often elevated
+  /// temporarily by increasing their z-index.
   int get zIndex;
+
+  /// Padding around the node for easier hit testing in pixels.
+  ///
+  /// Expands the interactive area beyond the visual bounds, making
+  /// the node easier to click/select.
   double get hitTestPadding;
+
+  /// Whether this node should be hidden from view.
+  ///
+  /// Hidden nodes are not rendered but remain in the data structure.
+  /// If null, uses the global canvas setting.
   bool? get hidden;
+
+  /// Whether this node can be dragged by the user.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get draggable;
+
+  /// Whether this node can be selected by the user.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get selectable;
+
+  /// Whether edges can be connected to/from this node.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get connectable;
+
+  /// Whether this node can be deleted by the user.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get deletable;
+
+  /// Whether this node can receive keyboard focus.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get focusable;
+
+  /// Whether this node should be elevated when selected.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get elevateNodeOnSelected;
 
   /// Create a copy of FlowNode
@@ -39,12 +116,35 @@ mixin _$FlowNode {
       _$FlowNodeCopyWithImpl<FlowNode>(this as FlowNode, _$identity);
 
   @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'FlowNode'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('type', type))
+      ..add(DiagnosticsProperty('position', position))
+      ..add(DiagnosticsProperty('size', size))
+      ..add(DiagnosticsProperty('parentId', parentId))
+      ..add(DiagnosticsProperty('handles', handles))
+      ..add(DiagnosticsProperty('data', data))
+      ..add(DiagnosticsProperty('zIndex', zIndex))
+      ..add(DiagnosticsProperty('hitTestPadding', hitTestPadding))
+      ..add(DiagnosticsProperty('hidden', hidden))
+      ..add(DiagnosticsProperty('draggable', draggable))
+      ..add(DiagnosticsProperty('selectable', selectable))
+      ..add(DiagnosticsProperty('connectable', connectable))
+      ..add(DiagnosticsProperty('deletable', deletable))
+      ..add(DiagnosticsProperty('focusable', focusable))
+      ..add(
+          DiagnosticsProperty('elevateNodeOnSelected', elevateNodeOnSelected));
+  }
+
+  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is FlowNode &&
-            (identical(other.type, type) || other.type == type) &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
@@ -73,8 +173,8 @@ mixin _$FlowNode {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      type,
       id,
+      type,
       position,
       size,
       parentId,
@@ -91,8 +191,8 @@ mixin _$FlowNode {
       elevateNodeOnSelected);
 
   @override
-  String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -102,12 +202,12 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       _$FlowNodeCopyWithImpl;
   @useResult
   $Res call(
-      {String type,
-      String id,
+      {String id,
+      String type,
       Offset position,
       Size size,
       String? parentId,
-      Map<String, NodeHandle> handles,
+      Map<String, FlowHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
       double hitTestPadding,
@@ -132,8 +232,8 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? type = null,
     Object? id = null,
+    Object? type = null,
     Object? position = null,
     Object? size = null,
     Object? parentId = freezed,
@@ -150,13 +250,13 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? elevateNodeOnSelected = freezed,
   }) {
     return _then(_self.copyWith(
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
               as String,
       position: null == position
           ? _self.position
@@ -173,7 +273,7 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
       handles: null == handles
           ? _self.handles
           : handles // ignore: cast_nullable_to_non_nullable
-              as Map<String, NodeHandle>,
+              as Map<String, FlowHandle>,
       data: null == data
           ? _self.data
           : data // ignore: cast_nullable_to_non_nullable
@@ -312,12 +412,12 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
-            String type,
             String id,
+            String type,
             Offset position,
             Size size,
             String? parentId,
-            Map<String, NodeHandle> handles,
+            Map<String, FlowHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
             double hitTestPadding,
@@ -335,8 +435,8 @@ extension FlowNodePatterns on FlowNode {
     switch (_that) {
       case _FlowNode() when $default != null:
         return $default(
-            _that.type,
             _that.id,
+            _that.type,
             _that.position,
             _that.size,
             _that.parentId,
@@ -372,12 +472,12 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            String type,
             String id,
+            String type,
             Offset position,
             Size size,
             String? parentId,
-            Map<String, NodeHandle> handles,
+            Map<String, FlowHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
             double hitTestPadding,
@@ -394,8 +494,8 @@ extension FlowNodePatterns on FlowNode {
     switch (_that) {
       case _FlowNode():
         return $default(
-            _that.type,
             _that.id,
+            _that.type,
             _that.position,
             _that.size,
             _that.parentId,
@@ -430,12 +530,12 @@ extension FlowNodePatterns on FlowNode {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
-            String type,
             String id,
+            String type,
             Offset position,
             Size size,
             String? parentId,
-            Map<String, NodeHandle> handles,
+            Map<String, FlowHandle> handles,
             Map<String, dynamic> data,
             int zIndex,
             double hitTestPadding,
@@ -452,8 +552,8 @@ extension FlowNodePatterns on FlowNode {
     switch (_that) {
       case _FlowNode() when $default != null:
         return $default(
-            _that.type,
             _that.id,
+            _that.type,
             _that.position,
             _that.size,
             _that.parentId,
@@ -476,17 +576,17 @@ extension FlowNodePatterns on FlowNode {
 
 /// @nodoc
 
-class _FlowNode extends FlowNode {
+class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
   const _FlowNode(
-      {required this.type,
-      required this.id,
+      {required this.id,
+      required this.type,
       required this.position,
       required this.size,
       this.parentId,
-      final Map<String, NodeHandle> handles = const {},
+      final Map<String, FlowHandle> handles = const {},
       final Map<String, dynamic> data = const {},
       this.zIndex = 0,
-      this.hitTestPadding = 10,
+      this.hitTestPadding = 10.0,
       this.hidden,
       this.draggable,
       this.selectable,
@@ -498,26 +598,82 @@ class _FlowNode extends FlowNode {
         _data = data,
         super._();
 
-  @override
-  final String type;
+  /// Unique identifier for this node.
   @override
   final String id;
+
+  /// Type identifier for this node (e.g., 'default', 'input', 'output').
+  ///
+  /// Used for applying type-specific styling or behavior.
+  @override
+  final String type;
+
+  /// Position of the node's center in canvas coordinates.
+  ///
+  /// This is the reference point for the node. The visual representation
+  /// is rendered centered on this position.
   @override
   final Offset position;
+
+  /// Size of the node in logical pixels.
+  ///
+  /// Defines the width and height of the node's bounding box.
   @override
   final Size size;
+
+  /// Optional ID of the parent node (for nested/grouped nodes).
+  ///
+  /// When set, this node is a child of another node, creating a
+  /// parent-child hierarchy for grouping or nesting.
   @override
   final String? parentId;
-  final Map<String, NodeHandle> _handles;
+
+  /// Map of handles attached to this node, keyed by handle ID.
+  ///
+  /// Handles define connection points where edges can attach.
+  /// Handle positions are relative to the node's top-left corner.
+  ///
+  /// Example:
+  /// ```
+  /// handles: {
+  ///   'input': FlowHandle(/* ... */),
+  ///   'output-1': FlowHandle(/* ... */),
+  ///   'output-2': FlowHandle(/* ... */),
+  /// }
+  /// ```
+  final Map<String, FlowHandle> _handles;
+
+  /// Map of handles attached to this node, keyed by handle ID.
+  ///
+  /// Handles define connection points where edges can attach.
+  /// Handle positions are relative to the node's top-left corner.
+  ///
+  /// Example:
+  /// ```
+  /// handles: {
+  ///   'input': FlowHandle(/* ... */),
+  ///   'output-1': FlowHandle(/* ... */),
+  ///   'output-2': FlowHandle(/* ... */),
+  /// }
+  /// ```
   @override
   @JsonKey()
-  Map<String, NodeHandle> get handles {
+  Map<String, FlowHandle> get handles {
     if (_handles is EqualUnmodifiableMapView) return _handles;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_handles);
   }
 
+  /// Custom data that can be attached to this node.
+  ///
+  /// Store application-specific information like labels, values,
+  /// configuration, etc.
   final Map<String, dynamic> _data;
+
+  /// Custom data that can be attached to this node.
+  ///
+  /// Store application-specific information like labels, values,
+  /// configuration, etc.
   @override
   @JsonKey()
   Map<String, dynamic> get data {
@@ -526,24 +682,62 @@ class _FlowNode extends FlowNode {
     return EqualUnmodifiableMapView(_data);
   }
 
+  /// Z-index for rendering order (higher values render on top).
+  ///
+  /// Used for layering nodes. Selected nodes are often elevated
+  /// temporarily by increasing their z-index.
   @override
   @JsonKey()
   final int zIndex;
+
+  /// Padding around the node for easier hit testing in pixels.
+  ///
+  /// Expands the interactive area beyond the visual bounds, making
+  /// the node easier to click/select.
   @override
   @JsonKey()
   final double hitTestPadding;
+
+  /// Whether this node should be hidden from view.
+  ///
+  /// Hidden nodes are not rendered but remain in the data structure.
+  /// If null, uses the global canvas setting.
   @override
   final bool? hidden;
+
+  /// Whether this node can be dragged by the user.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? draggable;
+
+  /// Whether this node can be selected by the user.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? selectable;
+
+  /// Whether edges can be connected to/from this node.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? connectable;
+
+  /// Whether this node can be deleted by the user.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? deletable;
+
+  /// Whether this node can receive keyboard focus.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? focusable;
+
+  /// Whether this node should be elevated when selected.
+  ///
+  /// If null, uses the global canvas setting.
   @override
   final bool? elevateNodeOnSelected;
 
@@ -556,12 +750,35 @@ class _FlowNode extends FlowNode {
       __$FlowNodeCopyWithImpl<_FlowNode>(this, _$identity);
 
   @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'FlowNode'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('type', type))
+      ..add(DiagnosticsProperty('position', position))
+      ..add(DiagnosticsProperty('size', size))
+      ..add(DiagnosticsProperty('parentId', parentId))
+      ..add(DiagnosticsProperty('handles', handles))
+      ..add(DiagnosticsProperty('data', data))
+      ..add(DiagnosticsProperty('zIndex', zIndex))
+      ..add(DiagnosticsProperty('hitTestPadding', hitTestPadding))
+      ..add(DiagnosticsProperty('hidden', hidden))
+      ..add(DiagnosticsProperty('draggable', draggable))
+      ..add(DiagnosticsProperty('selectable', selectable))
+      ..add(DiagnosticsProperty('connectable', connectable))
+      ..add(DiagnosticsProperty('deletable', deletable))
+      ..add(DiagnosticsProperty('focusable', focusable))
+      ..add(
+          DiagnosticsProperty('elevateNodeOnSelected', elevateNodeOnSelected));
+  }
+
+  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _FlowNode &&
-            (identical(other.type, type) || other.type == type) &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.size, size) || other.size == size) &&
@@ -590,8 +807,8 @@ class _FlowNode extends FlowNode {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      type,
       id,
+      type,
       position,
       size,
       parentId,
@@ -608,8 +825,8 @@ class _FlowNode extends FlowNode {
       elevateNodeOnSelected);
 
   @override
-  String toString() {
-    return 'FlowNode(type: $type, id: $id, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -621,12 +838,12 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String type,
-      String id,
+      {String id,
+      String type,
       Offset position,
       Size size,
       String? parentId,
-      Map<String, NodeHandle> handles,
+      Map<String, FlowHandle> handles,
       Map<String, dynamic> data,
       int zIndex,
       double hitTestPadding,
@@ -651,8 +868,8 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? type = null,
     Object? id = null,
+    Object? type = null,
     Object? position = null,
     Object? size = null,
     Object? parentId = freezed,
@@ -669,13 +886,13 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? elevateNodeOnSelected = freezed,
   }) {
     return _then(_FlowNode(
-      type: null == type
-          ? _self.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
               as String,
       position: null == position
           ? _self.position
@@ -692,7 +909,7 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
       handles: null == handles
           ? _self._handles
           : handles // ignore: cast_nullable_to_non_nullable
-              as Map<String, NodeHandle>,
+              as Map<String, FlowHandle>,
       data: null == data
           ? _self._data
           : data // ignore: cast_nullable_to_non_nullable

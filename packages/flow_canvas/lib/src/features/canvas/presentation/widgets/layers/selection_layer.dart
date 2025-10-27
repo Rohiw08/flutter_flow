@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/components/selection_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/shared/providers.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_provider.dart';
 import '../../painters/selection_painter.dart';
 
 class SelectionState extends Equatable {
@@ -33,7 +34,8 @@ class SelectionLayer extends ConsumerWidget {
     final isSelecting =
         ref.watch(internalControllerProvider.select((state) => state.dragMode));
 
-    final theme = FlowCanvasThemeProvider.of(context).selection;
+    final theme =
+        context.flowCanvasTheme.selection ?? FlowSelectionStyle.system(context);
 
     return IgnorePointer(
       ignoring: isSelecting != DragMode.selection,

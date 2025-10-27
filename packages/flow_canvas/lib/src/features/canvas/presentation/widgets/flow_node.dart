@@ -1,11 +1,11 @@
 import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/node_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/handle_theme.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/flow_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/node_theme.dart';
 import '../../../../shared/providers.dart';
 
@@ -70,7 +70,8 @@ class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
   @override
   Widget build(BuildContext context) {
     // Get base node theme and merge with any custom style override
-    final baseTheme = context.flowCanvasTheme.node;
+    final baseTheme =
+        context.flowCanvasTheme.node ?? FlowNodeStyle.system(context);
     final theme = baseTheme.merge(widget.style);
 
     // Watch node runtime state (selected, dragging, etc.)

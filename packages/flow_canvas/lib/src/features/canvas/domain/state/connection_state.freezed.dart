@@ -14,76 +14,26 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowConnectionRuntimeState {
-  ConnectionValidity get validity;
-  String? get potentialTargetHandleKey;
-
-  /// Create a copy of FlowConnectionRuntimeState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $FlowConnectionRuntimeStateCopyWith<FlowConnectionRuntimeState>
-      get copyWith =>
-          _$FlowConnectionRuntimeStateCopyWithImpl<FlowConnectionRuntimeState>(
-              this as FlowConnectionRuntimeState, _$identity);
-
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is FlowConnectionRuntimeState &&
-            (identical(other.validity, validity) ||
-                other.validity == validity) &&
-            (identical(
-                    other.potentialTargetHandleKey, potentialTargetHandleKey) ||
-                other.potentialTargetHandleKey == potentialTargetHandleKey));
+            other is FlowConnectionRuntimeState);
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, validity, potentialTargetHandleKey);
+  int get hashCode => runtimeType.hashCode;
 
   @override
   String toString() {
-    return 'FlowConnectionRuntimeState(validity: $validity, potentialTargetHandleKey: $potentialTargetHandleKey)';
+    return 'FlowConnectionRuntimeState()';
   }
 }
 
 /// @nodoc
-abstract mixin class $FlowConnectionRuntimeStateCopyWith<$Res> {
-  factory $FlowConnectionRuntimeStateCopyWith(FlowConnectionRuntimeState value,
-          $Res Function(FlowConnectionRuntimeState) _then) =
-      _$FlowConnectionRuntimeStateCopyWithImpl;
-  @useResult
-  $Res call({ConnectionValidity validity, String? potentialTargetHandleKey});
-}
-
-/// @nodoc
-class _$FlowConnectionRuntimeStateCopyWithImpl<$Res>
-    implements $FlowConnectionRuntimeStateCopyWith<$Res> {
-  _$FlowConnectionRuntimeStateCopyWithImpl(this._self, this._then);
-
-  final FlowConnectionRuntimeState _self;
-  final $Res Function(FlowConnectionRuntimeState) _then;
-
-  /// Create a copy of FlowConnectionRuntimeState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? validity = null,
-    Object? potentialTargetHandleKey = freezed,
-  }) {
-    return _then(_self.copyWith(
-      validity: null == validity
-          ? _self.validity
-          : validity // ignore: cast_nullable_to_non_nullable
-              as ConnectionValidity,
-      potentialTargetHandleKey: freezed == potentialTargetHandleKey
-          ? _self.potentialTargetHandleKey
-          : potentialTargetHandleKey // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+class $FlowConnectionRuntimeStateCopyWith<$Res> {
+  $FlowConnectionRuntimeStateCopyWith(FlowConnectionRuntimeState _,
+      $Res Function(FlowConnectionRuntimeState) __);
 }
 
 /// Adds pattern-matching-related methods to [FlowConnectionRuntimeState].
@@ -101,14 +51,20 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_FlowConnectionRuntimeState value)? $default, {
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(IdleConnectionState value)? idle,
+    TResult Function(HoveringConnectionState value)? hovering,
+    TResult Function(ReleasedConnectionState value)? released,
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState() when $default != null:
-        return $default(_that);
+      case IdleConnectionState() when idle != null:
+        return idle(_that);
+      case HoveringConnectionState() when hovering != null:
+        return hovering(_that);
+      case ReleasedConnectionState() when released != null:
+        return released(_that);
       case _:
         return orElse();
     }
@@ -128,13 +84,19 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_FlowConnectionRuntimeState value) $default,
-  ) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(IdleConnectionState value) idle,
+    required TResult Function(HoveringConnectionState value) hovering,
+    required TResult Function(ReleasedConnectionState value) released,
+  }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState():
-        return $default(_that);
+      case IdleConnectionState():
+        return idle(_that);
+      case HoveringConnectionState():
+        return hovering(_that);
+      case ReleasedConnectionState():
+        return released(_that);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -153,13 +115,19 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_FlowConnectionRuntimeState value)? $default,
-  ) {
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(IdleConnectionState value)? idle,
+    TResult? Function(HoveringConnectionState value)? hovering,
+    TResult? Function(ReleasedConnectionState value)? released,
+  }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState() when $default != null:
-        return $default(_that);
+      case IdleConnectionState() when idle != null:
+        return idle(_that);
+      case HoveringConnectionState() when hovering != null:
+        return hovering(_that);
+      case ReleasedConnectionState() when released != null:
+        return released(_that);
       case _:
         return null;
     }
@@ -178,16 +146,20 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            ConnectionValidity validity, String? potentialTargetHandleKey)?
-        $default, {
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? idle,
+    TResult Function(String targetHandleKey, bool isValid)? hovering,
+    TResult Function(String? targetHandleKey, bool isValid)? released,
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState() when $default != null:
-        return $default(_that.validity, _that.potentialTargetHandleKey);
+      case IdleConnectionState() when idle != null:
+        return idle();
+      case HoveringConnectionState() when hovering != null:
+        return hovering(_that.targetHandleKey, _that.isValid);
+      case ReleasedConnectionState() when released != null:
+        return released(_that.targetHandleKey, _that.isValid);
       case _:
         return orElse();
     }
@@ -207,15 +179,19 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            ConnectionValidity validity, String? potentialTargetHandleKey)
-        $default,
-  ) {
+  TResult when<TResult extends Object?>({
+    required TResult Function() idle,
+    required TResult Function(String targetHandleKey, bool isValid) hovering,
+    required TResult Function(String? targetHandleKey, bool isValid) released,
+  }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState():
-        return $default(_that.validity, _that.potentialTargetHandleKey);
+      case IdleConnectionState():
+        return idle();
+      case HoveringConnectionState():
+        return hovering(_that.targetHandleKey, _that.isValid);
+      case ReleasedConnectionState():
+        return released(_that.targetHandleKey, _that.isValid);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -234,15 +210,19 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
   /// ```
 
   @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            ConnectionValidity validity, String? potentialTargetHandleKey)?
-        $default,
-  ) {
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? idle,
+    TResult? Function(String targetHandleKey, bool isValid)? hovering,
+    TResult? Function(String? targetHandleKey, bool isValid)? released,
+  }) {
     final _that = this;
     switch (_that) {
-      case _FlowConnectionRuntimeState() when $default != null:
-        return $default(_that.validity, _that.potentialTargetHandleKey);
+      case IdleConnectionState() when idle != null:
+        return idle();
+      case HoveringConnectionState() when hovering != null:
+        return hovering(_that.targetHandleKey, _that.isValid);
+      case ReleasedConnectionState() when released != null:
+        return released(_that.targetHandleKey, _that.isValid);
       case _:
         return null;
     }
@@ -251,84 +231,169 @@ extension FlowConnectionRuntimeStatePatterns on FlowConnectionRuntimeState {
 
 /// @nodoc
 
-class _FlowConnectionRuntimeState implements FlowConnectionRuntimeState {
-  const _FlowConnectionRuntimeState(
-      {this.validity = ConnectionValidity.none, this.potentialTargetHandleKey});
+class IdleConnectionState implements FlowConnectionRuntimeState {
+  const IdleConnectionState();
 
   @override
-  @JsonKey()
-  final ConnectionValidity validity;
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is IdleConnectionState);
+  }
+
   @override
-  final String? potentialTargetHandleKey;
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'FlowConnectionRuntimeState.idle()';
+  }
+}
+
+/// @nodoc
+
+class HoveringConnectionState implements FlowConnectionRuntimeState {
+  const HoveringConnectionState(
+      {required this.targetHandleKey, this.isValid = false});
+
+  final String targetHandleKey;
+  @JsonKey()
+  final bool isValid;
 
   /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
-  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$FlowConnectionRuntimeStateCopyWith<_FlowConnectionRuntimeState>
-      get copyWith => __$FlowConnectionRuntimeStateCopyWithImpl<
-          _FlowConnectionRuntimeState>(this, _$identity);
+  $HoveringConnectionStateCopyWith<HoveringConnectionState> get copyWith =>
+      _$HoveringConnectionStateCopyWithImpl<HoveringConnectionState>(
+          this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _FlowConnectionRuntimeState &&
-            (identical(other.validity, validity) ||
-                other.validity == validity) &&
-            (identical(
-                    other.potentialTargetHandleKey, potentialTargetHandleKey) ||
-                other.potentialTargetHandleKey == potentialTargetHandleKey));
+            other is HoveringConnectionState &&
+            (identical(other.targetHandleKey, targetHandleKey) ||
+                other.targetHandleKey == targetHandleKey) &&
+            (identical(other.isValid, isValid) || other.isValid == isValid));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, validity, potentialTargetHandleKey);
+  int get hashCode => Object.hash(runtimeType, targetHandleKey, isValid);
 
   @override
   String toString() {
-    return 'FlowConnectionRuntimeState(validity: $validity, potentialTargetHandleKey: $potentialTargetHandleKey)';
+    return 'FlowConnectionRuntimeState.hovering(targetHandleKey: $targetHandleKey, isValid: $isValid)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$FlowConnectionRuntimeStateCopyWith<$Res>
+abstract mixin class $HoveringConnectionStateCopyWith<$Res>
     implements $FlowConnectionRuntimeStateCopyWith<$Res> {
-  factory _$FlowConnectionRuntimeStateCopyWith(
-          _FlowConnectionRuntimeState value,
-          $Res Function(_FlowConnectionRuntimeState) _then) =
-      __$FlowConnectionRuntimeStateCopyWithImpl;
-  @override
+  factory $HoveringConnectionStateCopyWith(HoveringConnectionState value,
+          $Res Function(HoveringConnectionState) _then) =
+      _$HoveringConnectionStateCopyWithImpl;
   @useResult
-  $Res call({ConnectionValidity validity, String? potentialTargetHandleKey});
+  $Res call({String targetHandleKey, bool isValid});
 }
 
 /// @nodoc
-class __$FlowConnectionRuntimeStateCopyWithImpl<$Res>
-    implements _$FlowConnectionRuntimeStateCopyWith<$Res> {
-  __$FlowConnectionRuntimeStateCopyWithImpl(this._self, this._then);
+class _$HoveringConnectionStateCopyWithImpl<$Res>
+    implements $HoveringConnectionStateCopyWith<$Res> {
+  _$HoveringConnectionStateCopyWithImpl(this._self, this._then);
 
-  final _FlowConnectionRuntimeState _self;
-  final $Res Function(_FlowConnectionRuntimeState) _then;
+  final HoveringConnectionState _self;
+  final $Res Function(HoveringConnectionState) _then;
 
   /// Create a copy of FlowConnectionRuntimeState
   /// with the given fields replaced by the non-null parameter values.
-  @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? validity = null,
-    Object? potentialTargetHandleKey = freezed,
+    Object? targetHandleKey = null,
+    Object? isValid = null,
   }) {
-    return _then(_FlowConnectionRuntimeState(
-      validity: null == validity
-          ? _self.validity
-          : validity // ignore: cast_nullable_to_non_nullable
-              as ConnectionValidity,
-      potentialTargetHandleKey: freezed == potentialTargetHandleKey
-          ? _self.potentialTargetHandleKey
-          : potentialTargetHandleKey // ignore: cast_nullable_to_non_nullable
+    return _then(HoveringConnectionState(
+      targetHandleKey: null == targetHandleKey
+          ? _self.targetHandleKey
+          : targetHandleKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ReleasedConnectionState implements FlowConnectionRuntimeState {
+  const ReleasedConnectionState({this.targetHandleKey, this.isValid = false});
+
+  final String? targetHandleKey;
+  @JsonKey()
+  final bool isValid;
+
+  /// Create a copy of FlowConnectionRuntimeState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ReleasedConnectionStateCopyWith<ReleasedConnectionState> get copyWith =>
+      _$ReleasedConnectionStateCopyWithImpl<ReleasedConnectionState>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ReleasedConnectionState &&
+            (identical(other.targetHandleKey, targetHandleKey) ||
+                other.targetHandleKey == targetHandleKey) &&
+            (identical(other.isValid, isValid) || other.isValid == isValid));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, targetHandleKey, isValid);
+
+  @override
+  String toString() {
+    return 'FlowConnectionRuntimeState.released(targetHandleKey: $targetHandleKey, isValid: $isValid)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ReleasedConnectionStateCopyWith<$Res>
+    implements $FlowConnectionRuntimeStateCopyWith<$Res> {
+  factory $ReleasedConnectionStateCopyWith(ReleasedConnectionState value,
+          $Res Function(ReleasedConnectionState) _then) =
+      _$ReleasedConnectionStateCopyWithImpl;
+  @useResult
+  $Res call({String? targetHandleKey, bool isValid});
+}
+
+/// @nodoc
+class _$ReleasedConnectionStateCopyWithImpl<$Res>
+    implements $ReleasedConnectionStateCopyWith<$Res> {
+  _$ReleasedConnectionStateCopyWithImpl(this._self, this._then);
+
+  final ReleasedConnectionState _self;
+  final $Res Function(ReleasedConnectionState) _then;
+
+  /// Create a copy of FlowConnectionRuntimeState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? targetHandleKey = freezed,
+    Object? isValid = null,
+  }) {
+    return _then(ReleasedConnectionState(
+      targetHandleKey: freezed == targetHandleKey
+          ? _self.targetHandleKey
+          : targetHandleKey // ignore: cast_nullable_to_non_nullable
               as String?,
+      isValid: null == isValid
+          ? _self.isValid
+          : isValid // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }

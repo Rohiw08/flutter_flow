@@ -1,7 +1,7 @@
 import 'package:flow_canvas/flow_canvas.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/options/options_extensions.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/handle_state.dart';
 import '../../../../shared/providers.dart';
 
@@ -32,10 +32,7 @@ class Handle extends ConsumerWidget {
   final Curve? animationCurve;
   final Duration? animationDuration;
   final double? animationScale;
-  // Theming override
   final FlowHandleStyle? handleStyle;
-
-  /// An optional builder to render a completely custom widget for the handle.
   final HandleBuilder? handleBuilder;
 
   const Handle({
@@ -45,7 +42,7 @@ class Handle extends ConsumerWidget {
     this.position = Offset.zero,
     this.size = const Size(10.0, 10.0),
     this.type = HandleType.both,
-    this.animationScale = 1.5, // Adjusted default for a more subtle effect
+    this.animationScale = 1.5,
     this.enableAnimations = true,
     this.animationCurve = Curves.easeInOut,
     this.animationDuration = const Duration(milliseconds: 200),
@@ -55,18 +52,11 @@ class Handle extends ConsumerWidget {
 
   String get handleKey => '$nodeId/$handleId';
 
-  Set<FlowHandleState> _states(HandleRuntimeState handleState) {
+  Set<FlowHandleState> _states(HandleRuntimeState state) {
     final states = <FlowHandleState>{FlowHandleState.idle};
-
-    if (handleState.isValidTarget) {
-      states.add(FlowHandleState.validTarget);
-    }
-    if (handleState.isHovered) {
-      states.add(FlowHandleState.hovered);
-    }
-    if (handleState.isActive) {
-      states.add(FlowHandleState.active);
-    }
+    if (state.validTarget) states.add(FlowHandleState.validTarget);
+    if (state.hovered) states.add(FlowHandleState.hovered);
+    if (state.active) states.add(FlowHandleState.active);
     return states;
   }
 
@@ -80,19 +70,17 @@ class Handle extends ConsumerWidget {
 
     final controller = ref.read(internalControllerProvider.notifier);
 
-    final baseTheme = context.flowCanvasTheme.handle;
-    final theme =
-        handleStyle != null ? baseTheme.merge(handleStyle) : baseTheme;
+    final baseTheme =
+        context.flowCanvasTheme.handle ?? FlowHandleStyle.system(context);
+    final theme = baseTheme.merge(handleStyle);
 
     final decoration = theme.resolveDecoration(_states(handleState));
 
-    final handleCore = handleBuilder != null
+    final Widget handleCore = handleBuilder != null
         ? handleBuilder!(context, handleState, theme)
-        : _DefaultHandle(
-            decoration: decoration,
-          );
+        : _DefaultHandle(decoration: decoration);
 
-    final bool isAnimated = handleState.isHovered || handleState.isActive;
+    final bool isAnimated = handleState.hovered || handleState.active;
     final double targetScale = isAnimated ? (animationScale ?? 1.5) : 1.0;
 
     return FlowPositioned(
@@ -106,35 +94,30 @@ class Handle extends ConsumerWidget {
           behavior: HitTestBehavior.opaque,
           onPanStart: (details) {
             if (type == HandleType.target) return;
-            final flowOptions = context.flowCanvasOptions;
-            if (!flowOptions.enableConnectivity) return;
-
             controller.connection.startConnection(nodeId, handleId);
           },
           onPanUpdate: (details) {
             if (type == HandleType.target) return;
-
             final canvasKey = controller.canvasKey;
             final canvasRenderBox =
                 canvasKey.currentContext?.findRenderObject() as RenderBox?;
             if (canvasRenderBox == null) return;
-
             final localPosition =
                 canvasRenderBox.globalToLocal(details.globalPosition);
-
-            controller.connection
-                .updateConnection(localPosition, nodeId, handleId);
+            controller.connection.updateConnection(localPosition);
+            // , nodeId, handleId
           },
           onPanEnd: (details) {
             if (type == HandleType.target) return;
             controller.connection.endConnection();
           },
-          child: enableAnimations!
+          child: (enableAnimations ?? true)
               ? AnimatedContainer(
                   transformAlignment: Alignment.center,
-                  duration: animationDuration!,
+                  duration:
+                      animationDuration ?? const Duration(milliseconds: 200),
                   transform: Matrix4.identity()..scale(targetScale),
-                  curve: animationCurve!,
+                  curve: animationCurve ?? Curves.easeInOut,
                   width: size.width,
                   height: size.height,
                   child: Center(child: handleCore),
@@ -150,16 +133,12 @@ class Handle extends ConsumerWidget {
   }
 }
 
-/// The default widget for a handle, built purely from the theme.
 class _DefaultHandle extends StatelessWidget {
   final Decoration decoration;
-
   const _DefaultHandle({required this.decoration});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: decoration,
-    );
+    return Container(decoration: decoration);
   }
 }

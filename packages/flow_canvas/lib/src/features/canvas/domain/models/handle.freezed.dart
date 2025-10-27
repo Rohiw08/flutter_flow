@@ -13,66 +13,159 @@ part of 'handle.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$NodeHandle {
+mixin _$FlowHandle implements DiagnosticableTreeMixin {
+  /// Unique identifier for this handle within its parent node.
+  ///
+  /// Common patterns:
+  /// - 'input', 'output' for single handles
+  /// - 'input-1', 'input-2' for multiple handles
+  /// - 'port-a', 'port-b' for named ports
   String get id;
+
+  /// The type of handle (source or target).
+  ///
+  /// - [HandleType.source]: Output handle (edges originate here)
+  /// - [HandleType.target]: Input handle (edges terminate here)
   HandleType get type;
+
+  /// Position of the handle's center relative to the node's top-left corner.
+  ///
+  /// Example positions:
+  /// - Left side: Offset(0, nodeHeight / 2)
+  /// - Right side: Offset(nodeWidth, nodeHeight / 2)
+  /// - Top: Offset(nodeWidth / 2, 0)
   Offset get position;
+
+  /// Whether this handle can accept new connections.
+  ///
+  /// When false, users cannot create or connect edges to this handle.
+  /// Existing connections remain intact.
+  ///
+  /// Use cases for false:
+  /// - Maximum connections reached
+  /// - Handle is disabled/inactive
+  /// - Connection validation fails
+  ///
+  /// Default is true.
   bool get isConnectable;
+
+  /// The size of the handle's interaction area.
+  ///
+  /// Defines the clickable/hoverable region. The actual visual representation
+  /// may be smaller. Typical values: 8-16 pixels.
+  ///
+  /// Default is Size(10, 10).
   Size get size;
 
-  /// Create a copy of NodeHandle
+  /// Optional maximum number of connections allowed to this handle.
+  ///
+  /// When reached, [isConnectable] should be set to false.
+  ///
+  /// Examples:
+  /// - null: Unlimited connections (default)
+  /// - 1: Single connection only
+  /// - 5: Up to 5 connections
+  int? get maxConnections;
+
+  /// Optional validation group/category for this handle.
+  ///
+  /// Handles can only connect if their groups are compatible.
+  /// Use this for type-safe connections (e.g., 'number', 'string', 'any').
+  ///
+  /// Examples:
+  /// - null: Can connect to any handle (default)
+  /// - 'data': Only connects to other 'data' handles
+  /// - 'flow': Only connects to other 'flow' handles
+  String? get connectionGroup;
+
+  /// Optional custom data attached to this handle.
+  ///
+  /// Store application-specific metadata like port names, data types, etc.
+  Map<String, dynamic> get data;
+
+  /// Create a copy of FlowHandle
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $NodeHandleCopyWith<NodeHandle> get copyWith =>
-      _$NodeHandleCopyWithImpl<NodeHandle>(this as NodeHandle, _$identity);
+  $FlowHandleCopyWith<FlowHandle> get copyWith =>
+      _$FlowHandleCopyWithImpl<FlowHandle>(this as FlowHandle, _$identity);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'FlowHandle'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('type', type))
+      ..add(DiagnosticsProperty('position', position))
+      ..add(DiagnosticsProperty('isConnectable', isConnectable))
+      ..add(DiagnosticsProperty('size', size))
+      ..add(DiagnosticsProperty('maxConnections', maxConnections))
+      ..add(DiagnosticsProperty('connectionGroup', connectionGroup))
+      ..add(DiagnosticsProperty('data', data));
+  }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is NodeHandle &&
+            other is FlowHandle &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.isConnectable, isConnectable) ||
                 other.isConnectable == isConnectable) &&
-            (identical(other.size, size) || other.size == size));
+            (identical(other.size, size) || other.size == size) &&
+            (identical(other.maxConnections, maxConnections) ||
+                other.maxConnections == maxConnections) &&
+            (identical(other.connectionGroup, connectionGroup) ||
+                other.connectionGroup == connectionGroup) &&
+            const DeepCollectionEquality().equals(other.data, data));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, type, position, isConnectable, size);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      type,
+      position,
+      isConnectable,
+      size,
+      maxConnections,
+      connectionGroup,
+      const DeepCollectionEquality().hash(data));
 
   @override
-  String toString() {
-    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size, maxConnections: $maxConnections, connectionGroup: $connectionGroup, data: $data)';
   }
 }
 
 /// @nodoc
-abstract mixin class $NodeHandleCopyWith<$Res> {
-  factory $NodeHandleCopyWith(
-          NodeHandle value, $Res Function(NodeHandle) _then) =
-      _$NodeHandleCopyWithImpl;
+abstract mixin class $FlowHandleCopyWith<$Res> {
+  factory $FlowHandleCopyWith(
+          FlowHandle value, $Res Function(FlowHandle) _then) =
+      _$FlowHandleCopyWithImpl;
   @useResult
   $Res call(
       {String id,
       HandleType type,
       Offset position,
       bool isConnectable,
-      Size size});
+      Size size,
+      int? maxConnections,
+      String? connectionGroup,
+      Map<String, dynamic> data});
 }
 
 /// @nodoc
-class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
-  _$NodeHandleCopyWithImpl(this._self, this._then);
+class _$FlowHandleCopyWithImpl<$Res> implements $FlowHandleCopyWith<$Res> {
+  _$FlowHandleCopyWithImpl(this._self, this._then);
 
-  final NodeHandle _self;
-  final $Res Function(NodeHandle) _then;
+  final FlowHandle _self;
+  final $Res Function(FlowHandle) _then;
 
-  /// Create a copy of NodeHandle
+  /// Create a copy of FlowHandle
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -82,6 +175,9 @@ class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
     Object? position = null,
     Object? isConnectable = null,
     Object? size = null,
+    Object? maxConnections = freezed,
+    Object? connectionGroup = freezed,
+    Object? data = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -104,12 +200,24 @@ class _$NodeHandleCopyWithImpl<$Res> implements $NodeHandleCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
+      maxConnections: freezed == maxConnections
+          ? _self.maxConnections
+          : maxConnections // ignore: cast_nullable_to_non_nullable
+              as int?,
+      connectionGroup: freezed == connectionGroup
+          ? _self.connectionGroup
+          : connectionGroup // ignore: cast_nullable_to_non_nullable
+              as String?,
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }
 
-/// Adds pattern-matching-related methods to [NodeHandle].
-extension NodeHandlePatterns on NodeHandle {
+/// Adds pattern-matching-related methods to [FlowHandle].
+extension FlowHandlePatterns on FlowHandle {
   /// A variant of `map` that fallback to returning `orElse`.
   ///
   /// It is equivalent to doing:
@@ -124,12 +232,12 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>(
-    TResult Function(_NodeHandle value)? $default, {
+    TResult Function(_FlowHandle value)? $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle() when $default != null:
+      case _FlowHandle() when $default != null:
         return $default(_that);
       case _:
         return orElse();
@@ -151,11 +259,11 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>(
-    TResult Function(_NodeHandle value) $default,
+    TResult Function(_FlowHandle value) $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle():
+      case _FlowHandle():
         return $default(_that);
       case _:
         throw StateError('Unexpected subclass');
@@ -176,11 +284,11 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_NodeHandle value)? $default,
+    TResult? Function(_FlowHandle value)? $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle() when $default != null:
+      case _FlowHandle() when $default != null:
         return $default(_that);
       case _:
         return null;
@@ -201,16 +309,30 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)?
+    TResult Function(
+            String id,
+            HandleType type,
+            Offset position,
+            bool isConnectable,
+            Size size,
+            int? maxConnections,
+            String? connectionGroup,
+            Map<String, dynamic> data)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle() when $default != null:
-        return $default(_that.id, _that.type, _that.position,
-            _that.isConnectable, _that.size);
+      case _FlowHandle() when $default != null:
+        return $default(
+            _that.id,
+            _that.type,
+            _that.position,
+            _that.isConnectable,
+            _that.size,
+            _that.maxConnections,
+            _that.connectionGroup,
+            _that.data);
       case _:
         return orElse();
     }
@@ -231,15 +353,29 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)
+    TResult Function(
+            String id,
+            HandleType type,
+            Offset position,
+            bool isConnectable,
+            Size size,
+            int? maxConnections,
+            String? connectionGroup,
+            Map<String, dynamic> data)
         $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle():
-        return $default(_that.id, _that.type, _that.position,
-            _that.isConnectable, _that.size);
+      case _FlowHandle():
+        return $default(
+            _that.id,
+            _that.type,
+            _that.position,
+            _that.isConnectable,
+            _that.size,
+            _that.maxConnections,
+            _that.connectionGroup,
+            _that.data);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -259,15 +395,29 @@ extension NodeHandlePatterns on NodeHandle {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, HandleType type, Offset position,
-            bool isConnectable, Size size)?
+    TResult? Function(
+            String id,
+            HandleType type,
+            Offset position,
+            bool isConnectable,
+            Size size,
+            int? maxConnections,
+            String? connectionGroup,
+            Map<String, dynamic> data)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
-      case _NodeHandle() when $default != null:
-        return $default(_that.id, _that.type, _that.position,
-            _that.isConnectable, _that.size);
+      case _FlowHandle() when $default != null:
+        return $default(
+            _that.id,
+            _that.type,
+            _that.position,
+            _that.isConnectable,
+            _that.size,
+            _that.maxConnections,
+            _that.connectionGroup,
+            _that.data);
       case _:
         return null;
     }
@@ -276,66 +426,173 @@ extension NodeHandlePatterns on NodeHandle {
 
 /// @nodoc
 
-class _NodeHandle extends NodeHandle {
-  const _NodeHandle(
+class _FlowHandle extends FlowHandle with DiagnosticableTreeMixin {
+  const _FlowHandle(
       {required this.id,
       required this.type,
       required this.position,
       this.isConnectable = true,
-      this.size = const Size(10, 10)})
-      : super._();
+      this.size = const Size(10, 10),
+      this.maxConnections,
+      this.connectionGroup,
+      final Map<String, dynamic> data = const <String, dynamic>{}})
+      : _data = data,
+        super._();
 
+  /// Unique identifier for this handle within its parent node.
+  ///
+  /// Common patterns:
+  /// - 'input', 'output' for single handles
+  /// - 'input-1', 'input-2' for multiple handles
+  /// - 'port-a', 'port-b' for named ports
   @override
   final String id;
+
+  /// The type of handle (source or target).
+  ///
+  /// - [HandleType.source]: Output handle (edges originate here)
+  /// - [HandleType.target]: Input handle (edges terminate here)
   @override
   final HandleType type;
+
+  /// Position of the handle's center relative to the node's top-left corner.
+  ///
+  /// Example positions:
+  /// - Left side: Offset(0, nodeHeight / 2)
+  /// - Right side: Offset(nodeWidth, nodeHeight / 2)
+  /// - Top: Offset(nodeWidth / 2, 0)
   @override
   final Offset position;
+
+  /// Whether this handle can accept new connections.
+  ///
+  /// When false, users cannot create or connect edges to this handle.
+  /// Existing connections remain intact.
+  ///
+  /// Use cases for false:
+  /// - Maximum connections reached
+  /// - Handle is disabled/inactive
+  /// - Connection validation fails
+  ///
+  /// Default is true.
   @override
   @JsonKey()
   final bool isConnectable;
+
+  /// The size of the handle's interaction area.
+  ///
+  /// Defines the clickable/hoverable region. The actual visual representation
+  /// may be smaller. Typical values: 8-16 pixels.
+  ///
+  /// Default is Size(10, 10).
   @override
   @JsonKey()
   final Size size;
 
-  /// Create a copy of NodeHandle
+  /// Optional maximum number of connections allowed to this handle.
+  ///
+  /// When reached, [isConnectable] should be set to false.
+  ///
+  /// Examples:
+  /// - null: Unlimited connections (default)
+  /// - 1: Single connection only
+  /// - 5: Up to 5 connections
+  @override
+  final int? maxConnections;
+
+  /// Optional validation group/category for this handle.
+  ///
+  /// Handles can only connect if their groups are compatible.
+  /// Use this for type-safe connections (e.g., 'number', 'string', 'any').
+  ///
+  /// Examples:
+  /// - null: Can connect to any handle (default)
+  /// - 'data': Only connects to other 'data' handles
+  /// - 'flow': Only connects to other 'flow' handles
+  @override
+  final String? connectionGroup;
+
+  /// Optional custom data attached to this handle.
+  ///
+  /// Store application-specific metadata like port names, data types, etc.
+  final Map<String, dynamic> _data;
+
+  /// Optional custom data attached to this handle.
+  ///
+  /// Store application-specific metadata like port names, data types, etc.
+  @override
+  @JsonKey()
+  Map<String, dynamic> get data {
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_data);
+  }
+
+  /// Create a copy of FlowHandle
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$NodeHandleCopyWith<_NodeHandle> get copyWith =>
-      __$NodeHandleCopyWithImpl<_NodeHandle>(this, _$identity);
+  _$FlowHandleCopyWith<_FlowHandle> get copyWith =>
+      __$FlowHandleCopyWithImpl<_FlowHandle>(this, _$identity);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+      ..add(DiagnosticsProperty('type', 'FlowHandle'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('type', type))
+      ..add(DiagnosticsProperty('position', position))
+      ..add(DiagnosticsProperty('isConnectable', isConnectable))
+      ..add(DiagnosticsProperty('size', size))
+      ..add(DiagnosticsProperty('maxConnections', maxConnections))
+      ..add(DiagnosticsProperty('connectionGroup', connectionGroup))
+      ..add(DiagnosticsProperty('data', data));
+  }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _NodeHandle &&
+            other is _FlowHandle &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.position, position) ||
                 other.position == position) &&
             (identical(other.isConnectable, isConnectable) ||
                 other.isConnectable == isConnectable) &&
-            (identical(other.size, size) || other.size == size));
+            (identical(other.size, size) || other.size == size) &&
+            (identical(other.maxConnections, maxConnections) ||
+                other.maxConnections == maxConnections) &&
+            (identical(other.connectionGroup, connectionGroup) ||
+                other.connectionGroup == connectionGroup) &&
+            const DeepCollectionEquality().equals(other._data, _data));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, type, position, isConnectable, size);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      type,
+      position,
+      isConnectable,
+      size,
+      maxConnections,
+      connectionGroup,
+      const DeepCollectionEquality().hash(_data));
 
   @override
-  String toString() {
-    return 'NodeHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'FlowHandle(id: $id, type: $type, position: $position, isConnectable: $isConnectable, size: $size, maxConnections: $maxConnections, connectionGroup: $connectionGroup, data: $data)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$NodeHandleCopyWith<$Res>
-    implements $NodeHandleCopyWith<$Res> {
-  factory _$NodeHandleCopyWith(
-          _NodeHandle value, $Res Function(_NodeHandle) _then) =
-      __$NodeHandleCopyWithImpl;
+abstract mixin class _$FlowHandleCopyWith<$Res>
+    implements $FlowHandleCopyWith<$Res> {
+  factory _$FlowHandleCopyWith(
+          _FlowHandle value, $Res Function(_FlowHandle) _then) =
+      __$FlowHandleCopyWithImpl;
   @override
   @useResult
   $Res call(
@@ -343,17 +600,20 @@ abstract mixin class _$NodeHandleCopyWith<$Res>
       HandleType type,
       Offset position,
       bool isConnectable,
-      Size size});
+      Size size,
+      int? maxConnections,
+      String? connectionGroup,
+      Map<String, dynamic> data});
 }
 
 /// @nodoc
-class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
-  __$NodeHandleCopyWithImpl(this._self, this._then);
+class __$FlowHandleCopyWithImpl<$Res> implements _$FlowHandleCopyWith<$Res> {
+  __$FlowHandleCopyWithImpl(this._self, this._then);
 
-  final _NodeHandle _self;
-  final $Res Function(_NodeHandle) _then;
+  final _FlowHandle _self;
+  final $Res Function(_FlowHandle) _then;
 
-  /// Create a copy of NodeHandle
+  /// Create a copy of FlowHandle
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -363,8 +623,11 @@ class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
     Object? position = null,
     Object? isConnectable = null,
     Object? size = null,
+    Object? maxConnections = freezed,
+    Object? connectionGroup = freezed,
+    Object? data = null,
   }) {
-    return _then(_NodeHandle(
+    return _then(_FlowHandle(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -385,6 +648,18 @@ class __$NodeHandleCopyWithImpl<$Res> implements _$NodeHandleCopyWith<$Res> {
           ? _self.size
           : size // ignore: cast_nullable_to_non_nullable
               as Size,
+      maxConnections: freezed == maxConnections
+          ? _self.maxConnections
+          : maxConnections // ignore: cast_nullable_to_non_nullable
+              as int?,
+      connectionGroup: freezed == connectionGroup
+          ? _self.connectionGroup
+          : connectionGroup // ignore: cast_nullable_to_non_nullable
+              as String?,
+      data: null == data
+          ? _self._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }

@@ -139,7 +139,7 @@ class SelectionService {
     SelectionMode selectionMode = SelectionMode.partial,
     required NodeQueryService nodeQueryService,
   }) {
-    if (state.selectionRect == null) return state;
+    if (state.selectionRect == Rect.zero) return state;
 
     final newSelectionRect = Rect.fromPoints(origin, position);
     final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
@@ -178,7 +178,7 @@ class SelectionService {
 
   FlowCanvasState endBoxSelection(FlowCanvasState state) {
     return state.copyWith(
-      selectionRect: null,
+      selectionRect: Rect.zero,
     );
   }
 }

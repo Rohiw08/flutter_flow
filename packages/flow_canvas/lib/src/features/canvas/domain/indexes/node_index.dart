@@ -3,13 +3,17 @@ import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 
 typedef CellKey = String;
 
-/// Highly optimized, immutable spatial index for nodes and their handles.
+/// Immutable, spatial index optimized for fast node and handle lookups.
 ///
-/// **Coordinate System**: All positions use Cartesian coordinates where:
-/// - Origin (0,0) is at the canvas center
-/// - +X goes right, -X goes left
-/// - +Y goes UP, -Y goes DOWN
-/// - This matches the coordinate system used by FlowNode.position
+/// ### Coordinate System
+/// - Origin `(0, 0)` is at the **canvas center**
+/// - +X → right, -X → left
+/// - +Y → **up**, -Y → **down**
+/// - Matches [`FlowNode.position`]
+///
+/// This index supports efficient querying of nodes and handles in Cartesian space.
+/// It is **purely immutable**, making it safe for use with state management systems
+/// like Riverpod or Redux.
 class NodeIndex {
   static const double _defaultCellSize = 10.0;
 
@@ -28,15 +32,15 @@ class NodeIndex {
         _handleSpatialGrid = handleSpatialGrid,
         _cellSize = cellSize;
 
-  factory NodeIndex.empty({double cellSize = _defaultCellSize}) {
-    return NodeIndex._(
-      nodes: {},
-      nodeSpatialGrid: {},
-      handleSpatialGrid: {},
-      cellSize: cellSize,
-    );
-  }
+  /// Creates an empty spatial index.
+  factory NodeIndex.empty({double cellSize = _defaultCellSize}) => NodeIndex._(
+        nodes: const {},
+        nodeSpatialGrid: const {},
+        handleSpatialGrid: const {},
+        cellSize: cellSize,
+      );
 
+  /// Builds an index from an initial set of nodes.
   factory NodeIndex.fromNodes(
     Iterable<FlowNode> nodes, {
     double cellSize = _defaultCellSize,
@@ -58,50 +62,49 @@ class NodeIndex {
     );
   }
 
+  // --- PUBLIC API ---
+
+  /// Returns the node with the given [nodeId], or `null` if not found.
   FlowNode? getNode(String nodeId) => _nodes[nodeId];
 
+  /// Returns all nodes in this index.
   Iterable<FlowNode> get allNodes => _nodes.values;
 
-  /// Queries nodes that intersect with the given rectangle.
-  /// The rect parameter should be in Cartesian coordinates.
+  /// Queries nodes whose bounding boxes intersect the given [rect].
+  ///
+  /// The rectangle must be specified in **Cartesian coordinates**.
   Set<String> queryNodesInRect(Rect rect) {
     final resultIds = <String>{};
     final cells = _getCellsInRect(rect, _cellSize);
 
     for (final cellKey in cells) {
-      final nodeIds = _nodeSpatialGrid[cellKey];
-      if (nodeIds != null) {
-        resultIds.addAll(nodeIds);
-      }
+      final ids = _nodeSpatialGrid[cellKey];
+      if (ids != null) resultIds.addAll(ids);
     }
-
     return resultIds;
   }
 
-  /// Queries handles near the given position (within adjacent grid cells).
-  /// The position parameter should be in Cartesian coordinates.
+  /// Queries handles near the given [position] (checks surrounding 9 cells).
   Set<String> queryHandlesNear(Offset position) {
     final gridX = (position.dx / _cellSize).floor();
     final gridY = (position.dy / _cellSize).floor();
     final nearbyHandles = <String>{};
 
-    // Check the cell and all 8 adjacent cells
-    for (int x = -1; x <= 1; x++) {
-      for (int y = -1; y <= 1; y++) {
-        final key = '${gridX + x}:${gridY + y}';
-        final handlesInCell = _handleSpatialGrid[key];
-        if (handlesInCell != null) {
-          nearbyHandles.addAll(handlesInCell);
-        }
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        final key = '${gridX + dx}:${gridY + dy}';
+        final handles = _handleSpatialGrid[key];
+        if (handles != null) nearbyHandles.addAll(handles);
       }
     }
     return nearbyHandles;
   }
 
+  /// Adds [node] to the index and returns a new updated instance.
   NodeIndex addNode(FlowNode node) {
     final newNodeMap = Map<String, FlowNode>.from(_nodes)..[node.id] = node;
-    final newNodeGrid = _deepCopyGrid(_nodeSpatialGrid);
-    final newHandleGrid = _deepCopyGrid(_handleSpatialGrid);
+    final newNodeGrid = _cloneGrid(_nodeSpatialGrid);
+    final newHandleGrid = _cloneGrid(_handleSpatialGrid);
 
     _addNodeToGrids(node, newNodeGrid, newHandleGrid, _cellSize);
 
@@ -113,12 +116,13 @@ class NodeIndex {
     );
   }
 
+  /// Removes [node] from the index and returns a new updated instance.
   NodeIndex removeNode(FlowNode node) {
     if (!_nodes.containsKey(node.id)) return this;
 
     final newNodeMap = Map<String, FlowNode>.from(_nodes)..remove(node.id);
-    final newNodeGrid = _deepCopyGrid(_nodeSpatialGrid);
-    final newHandleGrid = _deepCopyGrid(_handleSpatialGrid);
+    final newNodeGrid = _cloneGrid(_nodeSpatialGrid);
+    final newHandleGrid = _cloneGrid(_handleSpatialGrid);
 
     _removeNodeFromGrids(node, newNodeGrid, newHandleGrid, _cellSize);
 
@@ -130,13 +134,19 @@ class NodeIndex {
     );
   }
 
+  /// Updates [oldNode] to [newNode] within the index.
+  ///
+  /// If [oldNode] does not exist, it behaves like [addNode].
   NodeIndex updateNode(FlowNode oldNode, FlowNode newNode) {
     if (!_nodes.containsKey(oldNode.id)) return addNode(newNode);
 
+    // Fast path: skip update if identical in geometry
+    if (identical(oldNode, newNode) || oldNode == newNode) return this;
+
     final newNodeMap = Map<String, FlowNode>.from(_nodes)
       ..[newNode.id] = newNode;
-    final newNodeGrid = _deepCopyGrid(_nodeSpatialGrid);
-    final newHandleGrid = _deepCopyGrid(_handleSpatialGrid);
+    final newNodeGrid = _cloneGrid(_nodeSpatialGrid);
+    final newHandleGrid = _cloneGrid(_handleSpatialGrid);
 
     _removeNodeFromGrids(oldNode, newNodeGrid, newHandleGrid, _cellSize);
     _addNodeToGrids(newNode, newNodeGrid, newHandleGrid, _cellSize);
@@ -149,7 +159,7 @@ class NodeIndex {
     );
   }
 
-  // --- PRIVATE HELPERS ---
+  // --- INTERNAL HELPERS ---
 
   static void _addNodeToGrids(
     FlowNode node,
@@ -157,20 +167,16 @@ class NodeIndex {
     Map<CellKey, Set<String>> handleGrid,
     double cellSize,
   ) {
-    // Add node to spatial grid based on its bounding rectangle
-    final cells = _getCellsInRect(node.rect, cellSize);
-    for (final cellKey in cells) {
-      nodeGrid.putIfAbsent(cellKey, () => {}).add(node.id);
+    final nodeCells = _getCellsInRect(node.rect, cellSize);
+    for (final key in nodeCells) {
+      nodeGrid.putIfAbsent(key, () => <String>{}).add(node.id);
     }
 
-    // Add each handle to the spatial grid
-    // Handle positions are relative to node center in Cartesian coordinates
     for (final handle in node.handles.values) {
-      // Calculate absolute handle position in Cartesian coordinates
-      final handlePosition = node.position + handle.position;
-      final handleCellKey = _getCellKey(handlePosition, cellSize);
+      final handlePos = node.position + handle.position;
+      final key = _getCellKey(handlePos, cellSize);
       handleGrid
-          .putIfAbsent(handleCellKey, () => {})
+          .putIfAbsent(key, () => <String>{})
           .add('${node.id}/${handle.id}');
     }
   }
@@ -181,17 +187,15 @@ class NodeIndex {
     Map<CellKey, Set<String>> handleGrid,
     double cellSize,
   ) {
-    // Remove node from spatial grid
-    final cells = _getCellsInRect(node.rect, cellSize);
-    for (final cellKey in cells) {
-      _removeFromGrid(nodeGrid, cellKey, node.id);
+    final nodeCells = _getCellsInRect(node.rect, cellSize);
+    for (final key in nodeCells) {
+      _removeFromGrid(nodeGrid, key, node.id);
     }
 
-    // Remove handles from spatial grid
     for (final handle in node.handles.values) {
-      final handlePosition = node.position + handle.position;
-      final handleCellKey = _getCellKey(handlePosition, cellSize);
-      _removeFromGrid(handleGrid, handleCellKey, '${node.id}/${handle.id}');
+      final handlePos = node.position + handle.position;
+      final key = _getCellKey(handlePos, cellSize);
+      _removeFromGrid(handleGrid, key, '${node.id}/${handle.id}');
     }
   }
 
@@ -201,19 +205,13 @@ class NodeIndex {
     String id,
   ) {
     final cell = grid[key];
-    if (cell != null) {
-      cell.remove(id);
-      if (cell.isEmpty) {
-        grid.remove(key);
-      }
-    }
+    if (cell == null) return;
+    cell.remove(id);
+    if (cell.isEmpty) grid.remove(key);
   }
 
-  /// Gets all grid cells that intersect with the given rectangle.
-  /// Works correctly in Cartesian coordinates.
   static Set<CellKey> _getCellsInRect(Rect rect, double cellSize) {
     final cells = <CellKey>{};
-
     final minX = (rect.left / cellSize).floor();
     final maxX = (rect.right / cellSize).floor();
     final minY = (rect.top / cellSize).floor();
@@ -227,18 +225,23 @@ class NodeIndex {
     return cells;
   }
 
-  /// Calculates which grid cell contains the given position.
   static CellKey _getCellKey(Offset pos, double cellSize) {
     final cx = (pos.dx / cellSize).floor();
     final cy = (pos.dy / cellSize).floor();
     return '$cx:$cy';
   }
 
-  Map<CellKey, Set<String>> _deepCopyGrid(Map<CellKey, Set<String>> original) {
+  static Map<CellKey, Set<String>> _cloneGrid(
+      Map<CellKey, Set<String>> original) {
+    if (original.isEmpty) return {};
     final copy = <CellKey, Set<String>>{};
     for (final entry in original.entries) {
       copy[entry.key] = Set<String>.from(entry.value);
     }
     return copy;
   }
+
+  @override
+  String toString() =>
+      'NodeIndex(nodes: ${_nodes.length}, cells: ${_nodeSpatialGrid.length}, handles: ${_handleSpatialGrid.length})';
 }

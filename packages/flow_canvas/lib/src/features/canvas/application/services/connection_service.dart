@@ -11,9 +11,9 @@ import 'package:flow_canvas/src/shared/enums.dart';
 
 typedef ConnectionValidator = bool Function(
   FlowNode sourceNode,
-  NodeHandle sourceHandle,
+  FlowHandle sourceHandle,
   FlowNode targetNode,
-  NodeHandle targetHandle,
+  FlowHandle targetHandle,
 );
 
 typedef EdgeFactory = FlowEdge Function({
@@ -26,7 +26,7 @@ typedef EdgeFactory = FlowEdge Function({
 
 class ClosestHandleResult {
   final String nodeId;
-  final NodeHandle handle;
+  final FlowHandle handle;
   final double distance;
   // It's often useful to also return the node itself
   final FlowNode node;
@@ -40,6 +40,7 @@ class ClosestHandleResult {
 }
 
 class ConnectionService {
+  // Starts a new drag connection from a handle.
   FlowCanvasState startConnection(
     FlowCanvasState state, {
     required String fromNodeId,
@@ -54,15 +55,15 @@ class ConnectionService {
 
     final handleKey = '$fromNodeId/$fromHandleId';
     final newHandleStates =
-        Map<String, HandleRuntimeState>.from(state.handleStates);
-    newHandleStates[handleKey] =
-        (newHandleStates[handleKey] ?? const HandleRuntimeState())
-            .copyWith(isActive: true);
+        Map<String, HandleRuntimeState>.from(state.handleStates)
+          ..[handleKey] =
+              (state.handleStates[handleKey] ?? const HandleRuntimeState())
+                  .copyWith(active: true);
 
     return state.copyWith(
       handleStates: newHandleStates,
-      connection: FlowConnection(
-        id: 'pending_${generateUniqueId()}',
+      activeConnection: FlowConnection(
+        id: IdGenerator.generateCompactId("pending_connection"),
         type: 'pending',
         startPoint: startPosition,
         endPoint: startPosition,
@@ -70,100 +71,105 @@ class ConnectionService {
         fromHandleId: fromHandleId,
       ),
       dragMode: DragMode.connection,
+      connectionState: const FlowConnectionRuntimeState.idle(),
     );
   }
 
+  // Tracks the connection drag; triggers hover status if close to valid handle.
   FlowCanvasState updateConnection(
     FlowCanvasState state,
     Offset cursorPosition, {
     double snapRadius = 20.0,
     ConnectionValidator? validator,
   }) {
-    if (state.connection == null) return state;
+    final connection = state.activeConnection;
+    if (connection == null) return state;
 
-    // --- FIX: Define sourceNode and sourceHandle at the start ---
-    final sourceNode = state.nodes[state.connection!.fromNodeId];
-    final sourceHandle = sourceNode?.handles[state.connection!.fromHandleId];
+    final sourceNode = state.nodes[connection.fromNodeId];
+    final sourceHandle = sourceNode?.handles[connection.fromHandleId];
 
-    // If the source is somehow invalid, cancel the connection
     if (sourceNode == null || sourceHandle == null) {
       return cancelConnection(state);
     }
-    // --- END FIX ---
 
     final newHandleStates =
         Map<String, HandleRuntimeState>.from(state.handleStates);
-    String? currentTargetHandleKey;
 
-    if (state.connection?.toNodeId != null &&
-        state.connection?.toHandleId != null) {
-      final prevTargetKey =
-          '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
-      newHandleStates[prevTargetKey] =
-          (newHandleStates[prevTargetKey] ?? const HandleRuntimeState())
-              .copyWith(isValidTarget: false);
+    // Remove previous target highlight if needed.
+    if (connection.toNodeId != null && connection.toHandleId != null) {
+      final prevHandleKey = '${connection.toNodeId}/${connection.toHandleId}';
+      newHandleStates[prevHandleKey] =
+          (newHandleStates[prevHandleKey] ?? const HandleRuntimeState())
+              .copyWith(validTarget: false);
     }
 
     String? targetNodeId;
     String? targetHandleId;
+    String? currentTargetHandleKey;
+    bool isValid = false;
 
-    final closestHandle = _findClosestHandle(
+    final closest = _findClosestHandle(
       state,
       cursorPosition,
       snapRadius: snapRadius,
       validator: validator,
     );
 
-    ConnectionValidity validity = ConnectionValidity.none;
-
-    if (closestHandle != null) {
-      if (_isValidConnection(sourceNode, sourceHandle, closestHandle.node,
-          closestHandle.handle, validator)) {
-        validity = ConnectionValidity.valid;
-        targetNodeId = closestHandle.nodeId;
-        targetHandleId = closestHandle.handle.id;
+    if (closest != null) {
+      if (_isValidConnection(
+          sourceNode, sourceHandle, closest.node, closest.handle, validator)) {
+        targetNodeId = closest.nodeId;
+        targetHandleId = closest.handle.id;
         currentTargetHandleKey = '$targetNodeId/$targetHandleId';
         newHandleStates[currentTargetHandleKey] =
             (newHandleStates[currentTargetHandleKey] ??
                     const HandleRuntimeState())
-                .copyWith(isValidTarget: true);
-      } else {
-        validity = ConnectionValidity.invalid;
+                .copyWith(validTarget: true);
+        isValid = true;
       }
     }
 
+    final nextConnection = connection.copyWith(
+      endPoint: cursorPosition,
+      toNodeId: targetNodeId,
+      toHandleId: targetHandleId,
+    );
+
     return state.copyWith(
       handleStates: newHandleStates,
-      connection: state.connection!.copyWith(
-        endPoint: cursorPosition,
-        toNodeId: targetNodeId,
-        toHandleId: targetHandleId,
+      activeConnection: nextConnection,
+      connectionState: FlowConnectionRuntimeState.hovering(
+        targetHandleKey: currentTargetHandleKey ?? '',
+        isValid: isValid,
       ),
-      connectionState: FlowConnectionRuntimeState(validity: validity),
     );
   }
 
+  // Drops the connection; checks validity for creating edge, otherwise cancels.
   FlowCanvasState endConnection(
     FlowCanvasState state, {
     EdgeFactory? edgeFactory,
     ConnectionValidator? validator,
   }) {
-    final pendingConnection = state.connection;
-    if (pendingConnection == null) return state;
+    final connection = state.activeConnection;
+    if (connection == null) return state;
+
+    final isComplete = connection.isComplete;
+    final validState = state.connectionState is HoveringConnectionState &&
+        (state.connectionState as HoveringConnectionState).isValid;
 
     final newHandleStates = _clearConnectionStates(state);
 
-    final targetNodeId = pendingConnection.toNodeId;
-    final targetHandleId = pendingConnection.toHandleId;
-
-    // Use the ConnectionValidity enum for the check
-    if (state.connectionState?.validity == ConnectionValidity.valid &&
-        targetNodeId != null &&
-        targetHandleId != null) {
-      final sourceNode = state.nodes[pendingConnection.fromNodeId];
-      final sourceHandle = sourceNode?.handles[pendingConnection.fromHandleId];
-      final targetNode = state.nodes[targetNodeId];
-      final targetHandle = targetNode?.handles[targetHandleId];
+    if (isComplete &&
+        validState &&
+        connection.fromNodeId != null &&
+        connection.fromHandleId != null &&
+        connection.toNodeId != null &&
+        connection.toHandleId != null) {
+      final sourceNode = state.nodes[connection.fromNodeId!];
+      final sourceHandle = sourceNode?.handles[connection.fromHandleId!];
+      final targetNode = state.nodes[connection.toNodeId!];
+      final targetHandle = targetNode?.handles[connection.toHandleId!];
 
       if (sourceNode != null &&
           sourceHandle != null &&
@@ -172,36 +178,47 @@ class ConnectionService {
           _isValidConnection(
               sourceNode, sourceHandle, targetNode, targetHandle, validator)) {
         final newEdge = _createEdge(
-            sourceNodeId: pendingConnection.fromNodeId!,
-            sourceHandleId: pendingConnection.fromHandleId!,
-            targetNodeId: targetNodeId,
-            targetHandleId: targetHandleId,
-            factory: edgeFactory);
+          sourceNodeId: connection.fromNodeId!,
+          sourceHandleId: connection.fromHandleId!,
+          targetNodeId: connection.toNodeId!,
+          targetHandleId: connection.toHandleId!,
+          factory: edgeFactory,
+        );
         final newEdges = Map<String, FlowEdge>.from(state.edges)
           ..[newEdge.id] = newEdge;
-
         final newEdgeIndex = state.edgeIndex.addEdge(newEdge, newEdge.id);
 
         return state.copyWith(
           edges: newEdges,
           edgeIndex: newEdgeIndex,
-          connection: null,
-          connectionState: null,
+          activeConnection: null,
+          connectionState: const FlowConnectionRuntimeState.idle(),
           handleStates: newHandleStates,
           dragMode: DragMode.none,
         );
       }
     }
 
-    return cancelConnection(state);
+    // Mark state as released/cancelled.
+    return state.copyWith(
+      activeConnection: null,
+      connectionState: FlowConnectionRuntimeState.released(
+        targetHandleKey: connection.hasTarget
+            ? '${connection.toNodeId}/${connection.toHandleId}'
+            : null,
+        isValid: false,
+      ),
+      handleStates: newHandleStates,
+      dragMode: DragMode.none,
+    );
   }
 
-  // ... The rest of the file (cancelConnection, _clearConnectionStates, etc.) is correct and can remain as is.
+  // Cancels current connection.
   FlowCanvasState cancelConnection(FlowCanvasState state) {
-    if (state.connection == null) return state;
+    if (state.activeConnection == null) return state;
     return state.copyWith(
-      connection: null,
-      connectionState: null,
+      activeConnection: null,
+      connectionState: const FlowConnectionRuntimeState.idle(),
       handleStates: _clearConnectionStates(state),
       dragMode: DragMode.none,
     );
@@ -212,40 +229,40 @@ class ConnectionService {
     final newHandleStates =
         Map<String, HandleRuntimeState>.from(state.handleStates);
 
-    if (state.connection?.fromNodeId != null &&
-        state.connection?.fromHandleId != null) {
-      final sourceKey =
-          '${state.connection!.fromNodeId}/${state.connection!.fromHandleId}';
-      newHandleStates[sourceKey] =
-          (newHandleStates[sourceKey] ?? const HandleRuntimeState())
-              .copyWith(isActive: false);
+    if (state.activeConnection?.fromNodeId != null &&
+        state.activeConnection?.fromHandleId != null) {
+      final srcKey =
+          '${state.activeConnection!.fromNodeId}/${state.activeConnection!.fromHandleId}';
+      newHandleStates[srcKey] =
+          (newHandleStates[srcKey] ?? const HandleRuntimeState())
+              .copyWith(active: false);
     }
-
-    if (state.connection?.toNodeId != null &&
-        state.connection?.toHandleId != null) {
-      final targetKey =
-          '${state.connection!.toNodeId}/${state.connection!.toHandleId}';
-      newHandleStates[targetKey] =
-          (newHandleStates[targetKey] ?? const HandleRuntimeState())
-              .copyWith(isValidTarget: false);
+    if (state.activeConnection?.toNodeId != null &&
+        state.activeConnection?.toHandleId != null) {
+      final tgtKey =
+          '${state.activeConnection!.toNodeId}/${state.activeConnection!.toHandleId}';
+      newHandleStates[tgtKey] =
+          (newHandleStates[tgtKey] ?? const HandleRuntimeState())
+              .copyWith(validTarget: false);
     }
-
     return newHandleStates;
   }
 
+  // Finds closest target handle, if any.
   ClosestHandleResult? _findClosestHandle(
     FlowCanvasState state,
     Offset cursorPosition, {
     required double snapRadius,
     ConnectionValidator? validator,
   }) {
-    final sourceNode = state.nodes[state.connection!.fromNodeId];
-    final sourceHandle = sourceNode?.handles[state.connection!.fromHandleId];
+    final connection = state.activeConnection;
+    final sourceNode = state.nodes[connection!.fromNodeId];
+    final sourceHandle = sourceNode?.handles[connection.fromHandleId];
 
     if (sourceNode == null || sourceHandle == null) return null;
 
     final nearbyHandles = state.nodeIndex.queryHandlesNear(cursorPosition);
-    ClosestHandleResult? closestHandle;
+    ClosestHandleResult? closest;
     double minDistance = double.infinity;
 
     for (final handleKey in nearbyHandles) {
@@ -258,35 +275,33 @@ class ConnectionService {
       final potentialTargetNode = state.nodes[potentialTargetNodeId];
       final potentialTargetHandle =
           potentialTargetNode?.handles[potentialTargetHandleId];
-
-      if (potentialTargetNode == null || potentialTargetHandle == null) {
+      if (potentialTargetNode == null || potentialTargetHandle == null)
         continue;
-      }
       if (potentialTargetHandle.type == HandleType.source) continue;
 
       final handleCenter =
           potentialTargetNode.position + potentialTargetHandle.position;
-      final distance = (cursorPosition - handleCenter).distance;
+      final dist = (cursorPosition - handleCenter).distance;
 
-      if (distance <= snapRadius && distance < minDistance) {
-        // We now check for invalid connections too, so we don't need ignoreValidation
-        minDistance = distance;
-        closestHandle = ClosestHandleResult(
-            nodeId: potentialTargetNodeId,
-            handle: potentialTargetHandle,
-            distance: distance,
-            node: potentialTargetNode);
+      if (dist <= snapRadius && dist < minDistance) {
+        minDistance = dist;
+        closest = ClosestHandleResult(
+          nodeId: potentialTargetNodeId,
+          handle: potentialTargetHandle,
+          distance: dist,
+          node: potentialTargetNode,
+        );
       }
     }
 
-    return closestHandle;
+    return closest;
   }
 
   bool _isValidConnection(
     FlowNode sourceNode,
-    NodeHandle sourceHandle,
+    FlowHandle sourceHandle,
     FlowNode targetNode,
-    NodeHandle targetHandle,
+    FlowHandle targetHandle,
     ConnectionValidator? customValidator,
   ) {
     if (sourceNode.id == targetNode.id) return false;
@@ -309,21 +324,23 @@ class ConnectionService {
     required String targetHandleId,
     EdgeFactory? factory,
   }) {
-    final edgeId = generateUniqueId();
+    final edgeId = IdGenerator.generateEdgeId();
     if (factory != null) {
       return factory(
-          id: edgeId,
-          sourceNodeId: sourceNodeId,
-          sourceHandleId: sourceHandleId,
-          targetNodeId: targetNodeId,
-          targetHandleId: targetHandleId);
-    }
-    return FlowEdge(
         id: edgeId,
         sourceNodeId: sourceNodeId,
         sourceHandleId: sourceHandleId,
         targetNodeId: targetNodeId,
-        targetHandleId: targetHandleId);
+        targetHandleId: targetHandleId,
+      );
+    }
+    return FlowEdge(
+      id: edgeId,
+      sourceNodeId: sourceNodeId,
+      sourceHandleId: sourceHandleId,
+      targetNodeId: targetNodeId,
+      targetHandleId: targetHandleId,
+    );
   }
 
   List<FlowEdge> getConnectedEdges(

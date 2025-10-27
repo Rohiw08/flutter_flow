@@ -14,17 +14,70 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowConnection {
+  /// Unique identifier for this connection (typically temporary).
   String get id;
+
+  /// The edge type identifier for styling (e.g., 'default', 'bezier', 'step').
+  ///
+  /// This is used to determine the path rendering algorithm when the
+  /// connection is converted to an edge.
   String get type;
+
+  /// Screen position where the connection starts (source handle position).
+  ///
+  /// This is typically the center of the source handle and remains
+  /// fixed during the drag operation.
   Offset get startPoint;
+
+  /// Screen position where the connection ends (current pointer position).
+  ///
+  /// This updates continuously as the user drags, following the pointer
+  /// or snapping to target handles when hovering over valid targets.
   Offset get endPoint;
+
+  /// ID of the source node, if dragging from a node handle.
+  ///
+  /// Null when creating a reverse connection (dragging from empty space).
   String? get fromNodeId;
+
+  /// ID of the source handle on the source node.
+  ///
+  /// Null when connecting from the node center or when creating a
+  /// reverse connection.
   String? get fromHandleId;
+
+  /// ID of the target node, set when hovering over a valid target.
+  ///
+  /// Updated in real-time as the user drags over connectable nodes.
+  /// Null while dragging in empty space.
   String? get toNodeId;
+
+  /// ID of the target handle, set when hovering over a valid target handle.
+  ///
+  /// Updated in real-time as the user drags over connectable handles.
+  /// Null when connecting to the node center or while dragging in empty space.
   String? get toHandleId;
+
+  /// Z-index for rendering order (higher values render on top).
+  ///
+  /// Connections are typically rendered above edges but below nodes.
+  /// Default is 0.
   int get zIndex;
+
+  /// Custom styling for this connection.
+  ///
+  /// If null, uses the default connection style from the theme.
+  /// The style includes stroke width, color, dash pattern, etc.
   FlowConnectionStyle? get connectionStyle;
+
+  /// Marker (arrow, dot, etc.) to render at the start of the connection.
+  ///
+  /// Typically null for connections since they usually only have end markers.
   FlowEdgeMarkerStyle? get startMarker;
+
+  /// Marker (arrow, dot, etc.) to render at the end of the connection.
+  ///
+  /// Usually an arrow to indicate direction. If null, no marker is rendered.
   FlowEdgeMarkerStyle? get endMarker;
 
   /// Create a copy of FlowConnection
@@ -435,29 +488,82 @@ class _FlowConnection extends FlowConnection {
       this.endMarker})
       : super._();
 
+  /// Unique identifier for this connection (typically temporary).
   @override
   final String id;
+
+  /// The edge type identifier for styling (e.g., 'default', 'bezier', 'step').
+  ///
+  /// This is used to determine the path rendering algorithm when the
+  /// connection is converted to an edge.
   @override
   final String type;
+
+  /// Screen position where the connection starts (source handle position).
+  ///
+  /// This is typically the center of the source handle and remains
+  /// fixed during the drag operation.
   @override
   final Offset startPoint;
+
+  /// Screen position where the connection ends (current pointer position).
+  ///
+  /// This updates continuously as the user drags, following the pointer
+  /// or snapping to target handles when hovering over valid targets.
   @override
   final Offset endPoint;
+
+  /// ID of the source node, if dragging from a node handle.
+  ///
+  /// Null when creating a reverse connection (dragging from empty space).
   @override
   final String? fromNodeId;
+
+  /// ID of the source handle on the source node.
+  ///
+  /// Null when connecting from the node center or when creating a
+  /// reverse connection.
   @override
   final String? fromHandleId;
+
+  /// ID of the target node, set when hovering over a valid target.
+  ///
+  /// Updated in real-time as the user drags over connectable nodes.
+  /// Null while dragging in empty space.
   @override
   final String? toNodeId;
+
+  /// ID of the target handle, set when hovering over a valid target handle.
+  ///
+  /// Updated in real-time as the user drags over connectable handles.
+  /// Null when connecting to the node center or while dragging in empty space.
   @override
   final String? toHandleId;
+
+  /// Z-index for rendering order (higher values render on top).
+  ///
+  /// Connections are typically rendered above edges but below nodes.
+  /// Default is 0.
   @override
   @JsonKey()
   final int zIndex;
+
+  /// Custom styling for this connection.
+  ///
+  /// If null, uses the default connection style from the theme.
+  /// The style includes stroke width, color, dash pattern, etc.
   @override
   final FlowConnectionStyle? connectionStyle;
+
+  /// Marker (arrow, dot, etc.) to render at the start of the connection.
+  ///
+  /// Typically null for connections since they usually only have end markers.
   @override
   final FlowEdgeMarkerStyle? startMarker;
+
+  /// Marker (arrow, dot, etc.) to render at the end of the connection.
+  ///
+  /// Usually an arrow to indicate direction. If null, no marker is rendered.
   @override
   final FlowEdgeMarkerStyle? endMarker;
 

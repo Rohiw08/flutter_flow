@@ -14,11 +14,20 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$EdgeRuntimeState {
-  bool get isValid;
+  /// Whether this edge is currently valid (e.g., connection rules pass).
+  bool get valid;
+
+  /// Whether the edge is highlighted as selected.
   bool get selected;
+
+  /// Whether the edge is being hovered over (UI effect trigger).
   bool get hovered;
-  bool get isAnimating;
-  bool get isReconnecting;
+
+  /// Whether the edge has an active animation effect running.
+  bool get animating;
+
+  /// Whether the edge is currently being reconnected to another node.
+  bool get reconnecting;
 
   /// Create a copy of EdgeRuntimeState
   /// with the given fields replaced by the non-null parameter values.
@@ -33,23 +42,23 @@ mixin _$EdgeRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is EdgeRuntimeState &&
-            (identical(other.isValid, isValid) || other.isValid == isValid) &&
+            (identical(other.valid, valid) || other.valid == valid) &&
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.hovered, hovered) || other.hovered == hovered) &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating) &&
-            (identical(other.isReconnecting, isReconnecting) ||
-                other.isReconnecting == isReconnecting));
+            (identical(other.animating, animating) ||
+                other.animating == animating) &&
+            (identical(other.reconnecting, reconnecting) ||
+                other.reconnecting == reconnecting));
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, isValid, selected, hovered, isAnimating, isReconnecting);
+      runtimeType, valid, selected, hovered, animating, reconnecting);
 
   @override
   String toString() {
-    return 'EdgeRuntimeState(isValid: $isValid, selected: $selected, hovered: $hovered, isAnimating: $isAnimating, isReconnecting: $isReconnecting)';
+    return 'EdgeRuntimeState(valid: $valid, selected: $selected, hovered: $hovered, animating: $animating, reconnecting: $reconnecting)';
   }
 }
 
@@ -60,11 +69,11 @@ abstract mixin class $EdgeRuntimeStateCopyWith<$Res> {
       _$EdgeRuntimeStateCopyWithImpl;
   @useResult
   $Res call(
-      {bool isValid,
+      {bool valid,
       bool selected,
       bool hovered,
-      bool isAnimating,
-      bool isReconnecting});
+      bool animating,
+      bool reconnecting});
 }
 
 /// @nodoc
@@ -80,16 +89,16 @@ class _$EdgeRuntimeStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? isValid = null,
+    Object? valid = null,
     Object? selected = null,
     Object? hovered = null,
-    Object? isAnimating = null,
-    Object? isReconnecting = null,
+    Object? animating = null,
+    Object? reconnecting = null,
   }) {
     return _then(_self.copyWith(
-      isValid: null == isValid
-          ? _self.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
+      valid: null == valid
+          ? _self.valid
+          : valid // ignore: cast_nullable_to_non_nullable
               as bool,
       selected: null == selected
           ? _self.selected
@@ -99,13 +108,13 @@ class _$EdgeRuntimeStateCopyWithImpl<$Res>
           ? _self.hovered
           : hovered // ignore: cast_nullable_to_non_nullable
               as bool,
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
+      animating: null == animating
+          ? _self.animating
+          : animating // ignore: cast_nullable_to_non_nullable
               as bool,
-      isReconnecting: null == isReconnecting
-          ? _self.isReconnecting
-          : isReconnecting // ignore: cast_nullable_to_non_nullable
+      reconnecting: null == reconnecting
+          ? _self.reconnecting
+          : reconnecting // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }
@@ -204,16 +213,16 @@ extension EdgeRuntimeStatePatterns on EdgeRuntimeState {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(bool isValid, bool selected, bool hovered,
-            bool isAnimating, bool isReconnecting)?
+    TResult Function(bool valid, bool selected, bool hovered, bool animating,
+            bool reconnecting)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _EdgeRuntimeState() when $default != null:
-        return $default(_that.isValid, _that.selected, _that.hovered,
-            _that.isAnimating, _that.isReconnecting);
+        return $default(_that.valid, _that.selected, _that.hovered,
+            _that.animating, _that.reconnecting);
       case _:
         return orElse();
     }
@@ -234,15 +243,15 @@ extension EdgeRuntimeStatePatterns on EdgeRuntimeState {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(bool isValid, bool selected, bool hovered,
-            bool isAnimating, bool isReconnecting)
+    TResult Function(bool valid, bool selected, bool hovered, bool animating,
+            bool reconnecting)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _EdgeRuntimeState():
-        return $default(_that.isValid, _that.selected, _that.hovered,
-            _that.isAnimating, _that.isReconnecting);
+        return $default(_that.valid, _that.selected, _that.hovered,
+            _that.animating, _that.reconnecting);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -262,15 +271,15 @@ extension EdgeRuntimeStatePatterns on EdgeRuntimeState {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(bool isValid, bool selected, bool hovered,
-            bool isAnimating, bool isReconnecting)?
+    TResult? Function(bool valid, bool selected, bool hovered, bool animating,
+            bool reconnecting)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _EdgeRuntimeState() when $default != null:
-        return $default(_that.isValid, _that.selected, _that.hovered,
-            _that.isAnimating, _that.isReconnecting);
+        return $default(_that.valid, _that.selected, _that.hovered,
+            _that.animating, _that.reconnecting);
       case _:
         return null;
     }
@@ -281,27 +290,36 @@ extension EdgeRuntimeStatePatterns on EdgeRuntimeState {
 
 class _EdgeRuntimeState implements EdgeRuntimeState {
   const _EdgeRuntimeState(
-      {this.isValid = true,
+      {this.valid = true,
       this.selected = false,
       this.hovered = false,
-      this.isAnimating = false,
-      this.isReconnecting = false});
+      this.animating = false,
+      this.reconnecting = false});
 
+  /// Whether this edge is currently valid (e.g., connection rules pass).
   @override
   @JsonKey()
-  final bool isValid;
+  final bool valid;
+
+  /// Whether the edge is highlighted as selected.
   @override
   @JsonKey()
   final bool selected;
+
+  /// Whether the edge is being hovered over (UI effect trigger).
   @override
   @JsonKey()
   final bool hovered;
+
+  /// Whether the edge has an active animation effect running.
   @override
   @JsonKey()
-  final bool isAnimating;
+  final bool animating;
+
+  /// Whether the edge is currently being reconnected to another node.
   @override
   @JsonKey()
-  final bool isReconnecting;
+  final bool reconnecting;
 
   /// Create a copy of EdgeRuntimeState
   /// with the given fields replaced by the non-null parameter values.
@@ -316,23 +334,23 @@ class _EdgeRuntimeState implements EdgeRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _EdgeRuntimeState &&
-            (identical(other.isValid, isValid) || other.isValid == isValid) &&
+            (identical(other.valid, valid) || other.valid == valid) &&
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.hovered, hovered) || other.hovered == hovered) &&
-            (identical(other.isAnimating, isAnimating) ||
-                other.isAnimating == isAnimating) &&
-            (identical(other.isReconnecting, isReconnecting) ||
-                other.isReconnecting == isReconnecting));
+            (identical(other.animating, animating) ||
+                other.animating == animating) &&
+            (identical(other.reconnecting, reconnecting) ||
+                other.reconnecting == reconnecting));
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, isValid, selected, hovered, isAnimating, isReconnecting);
+      runtimeType, valid, selected, hovered, animating, reconnecting);
 
   @override
   String toString() {
-    return 'EdgeRuntimeState(isValid: $isValid, selected: $selected, hovered: $hovered, isAnimating: $isAnimating, isReconnecting: $isReconnecting)';
+    return 'EdgeRuntimeState(valid: $valid, selected: $selected, hovered: $hovered, animating: $animating, reconnecting: $reconnecting)';
   }
 }
 
@@ -345,11 +363,11 @@ abstract mixin class _$EdgeRuntimeStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {bool isValid,
+      {bool valid,
       bool selected,
       bool hovered,
-      bool isAnimating,
-      bool isReconnecting});
+      bool animating,
+      bool reconnecting});
 }
 
 /// @nodoc
@@ -365,16 +383,16 @@ class __$EdgeRuntimeStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? isValid = null,
+    Object? valid = null,
     Object? selected = null,
     Object? hovered = null,
-    Object? isAnimating = null,
-    Object? isReconnecting = null,
+    Object? animating = null,
+    Object? reconnecting = null,
   }) {
     return _then(_EdgeRuntimeState(
-      isValid: null == isValid
-          ? _self.isValid
-          : isValid // ignore: cast_nullable_to_non_nullable
+      valid: null == valid
+          ? _self.valid
+          : valid // ignore: cast_nullable_to_non_nullable
               as bool,
       selected: null == selected
           ? _self.selected
@@ -384,13 +402,13 @@ class __$EdgeRuntimeStateCopyWithImpl<$Res>
           ? _self.hovered
           : hovered // ignore: cast_nullable_to_non_nullable
               as bool,
-      isAnimating: null == isAnimating
-          ? _self.isAnimating
-          : isAnimating // ignore: cast_nullable_to_non_nullable
+      animating: null == animating
+          ? _self.animating
+          : animating // ignore: cast_nullable_to_non_nullable
               as bool,
-      isReconnecting: null == isReconnecting
-          ? _self.isReconnecting
-          : isReconnecting // ignore: cast_nullable_to_non_nullable
+      reconnecting: null == reconnecting
+          ? _self.reconnecting
+          : reconnecting // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }

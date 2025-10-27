@@ -51,7 +51,7 @@ class ClipboardService {
 
     // Prepare new nodes with new IDs and positions
     for (final node in originalNodes) {
-      final newId = generateUniqueId();
+      final newId = IdGenerator.generateNodeId();
       idMap[node.id] = newId;
       newNodes.add(node.copyWith(
         id: newId,
@@ -65,7 +65,7 @@ class ClipboardService {
       final newTarget = idMap[edge.targetNodeId];
       if (newSource == null || newTarget == null) continue;
 
-      final newId = generateUniqueId();
+      final newId = IdGenerator.generateEdgeId();
       newEdges.add(edge.copyWith(
         id: newId,
         sourceNodeId: newSource,

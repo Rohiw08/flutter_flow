@@ -4,6 +4,7 @@ import 'package:flow_canvas/src/features/canvas/domain/models/handle.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/flow_handle.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 
 class SerializationService {
@@ -47,7 +48,8 @@ class SerializationService {
         'y': node.position.dy,
         'w': node.size.width,
         'h': node.size.height,
-        'handles': node.handles.values.map(_handleToJson).toList(),
+        // TODO: Update when Handle model is finalized
+        // 'handles': node.handles.values.map(_handleToJson).toList(),
         'parentId': node.parentId,
         'data': node.data,
         'z': node.zIndex,
@@ -74,7 +76,8 @@ class SerializationService {
       position:
           Offset((json['x'] as num).toDouble(), (json['y'] as num).toDouble()),
       size: Size((json['w'] as num).toDouble(), (json['h'] as num).toDouble()),
-      handles: handles,
+      // TODO: Update when Handle model is finalized
+      // handles: handles,
       parentId: json['parentId'] as String?,
       data: (json['data'] as Map?)?.cast<String, dynamic>() ??
           <String, dynamic>{},
@@ -90,20 +93,21 @@ class SerializationService {
     );
   }
 
-  // --- Handle Serialization (Updated for new NodeHandle model) ---
+  // --- Handle Serialization (Updated for new Handle model) ---
 
-  Map<String, dynamic> _handleToJson(NodeHandle handle) => {
-        'id': handle.id,
+  Map<String, dynamic> _handleToJson(Handle handle) => {
+        'handleId': handle.handleId,
+        'nodeId': handle.nodeId,
         'x': handle.position.dx,
         'y': handle.position.dy,
         's': handle.size,
         'type': handle.type.name,
-        'isConnectable': handle.isConnectable,
       };
 
-  NodeHandle _handleFromJson(Map<String, dynamic> json) {
-    return NodeHandle(
-      id: json['id'] as String,
+  Handle _handleFromJson(Map<String, dynamic> json) {
+    return Handle(
+      handleId: json['handleId'] as String,
+      nodeId: json['nodeId'] as String,
       position: Offset(
         (json['x'] as num).toDouble(),
         (json['y'] as num).toDouble(),
@@ -116,7 +120,7 @@ class SerializationService {
         (e) => e.name == (json['type'] as String? ?? 'both'),
         orElse: () => HandleType.both,
       ),
-      isConnectable: json['isConnectable'] as bool? ?? true,
+      // isConnectable: json['isConnectable'] as bool? ?? true,
     );
   }
 
@@ -129,16 +133,16 @@ class SerializationService {
         'sourceHandle': edge.sourceHandleId,
         'targetHandle': edge.targetHandleId,
         'z': edge.zIndex,
-        'pathType': edge.pathType.name,
+        'pathType': edge.type.name,
         'interactionWidth': edge.interactionWidth,
         'data': edge.data,
-        'animated': edge.animated,
+        // 'animated': edge.animated,
         'hidden': edge.hidden,
         'deletable': edge.deletable,
         'selectable': edge.selectable,
         'focusable': edge.focusable,
         'reconnectable': edge.reconnectable,
-        'elevateEdgeOnSelected': edge.elevateOnSelect,
+        'elevateEdgeOnSelect': edge.elevateEdgeOnSelect,
       };
 
   FlowEdge _edgeFromJson(Map<String, dynamic> json) => FlowEdge(
@@ -148,7 +152,7 @@ class SerializationService {
         sourceHandleId: json['sourceHandle'] as String?,
         targetHandleId: json['targetHandle'] as String?,
         zIndex: (json['z'] as num?)?.toInt() ?? 0,
-        pathType: EdgePathType.values.firstWhere(
+        type: EdgePathType.values.firstWhere(
           (e) => e.name == (json['pathType'] as String? ?? 'bezier'),
           orElse: () => EdgePathType.bezier,
         ),
@@ -156,13 +160,13 @@ class SerializationService {
             (json['interactionWidth'] as num?)?.toDouble() ?? 10.0,
         data: (json['data'] as Map?)?.cast<String, dynamic>() ??
             <String, dynamic>{},
-        animated: json['animated'] as bool?,
+        // animated: json['animated'] as bool?,
         hidden: json['hidden'] as bool,
         deletable: json['deletable'] as bool?,
         selectable: json['selectable'] as bool?,
         focusable: json['focusable'] as bool?,
         reconnectable: json['reconnectable'] as bool?,
-        elevateEdgeOnSelect: json['elevateEdgeOnSelected'] as bool?,
+        elevateEdgeOnSelect: json['elevateEdgeOnSelect'] as bool?,
       );
 
   Map<String, dynamic> _viewportToJson(FlowViewport vp) => {

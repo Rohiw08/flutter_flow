@@ -95,4 +95,8 @@ enum DefaultNodeType {
   outputNode,
 }
 
-enum ConnectionValidity { none, valid, invalid }
+enum ConnectionValidity {
+  valid,
+  invalid,
+  none,
+}

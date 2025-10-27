@@ -95,7 +95,7 @@ class EdgeGeometryService {
       targetNode.position,
       edge.sourceHandleId,
       edge.targetHandleId,
-      edge.pathType,
+      edge.type,
     );
 
     final oldVersion = _edgeVersion[edgeId];
@@ -115,7 +115,7 @@ class EdgeGeometryService {
         .toRenderPosition(targetNode.center + targetHandle.center);
 
     final path = EdgePathCreator.createPath(
-      edge.pathType,
+      edge.type,
       sourceHandlePosition,
       targetHandlePosition,
     );

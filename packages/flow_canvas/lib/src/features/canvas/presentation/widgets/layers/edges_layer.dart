@@ -1,21 +1,21 @@
 import 'package:equatable/equatable.dart';
+import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flow_canvas/src/features/canvas/domain/models/connection.dart';
+import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
+import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/connection_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/edge_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/options/components/edge_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/painters/connection_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/painters/edge_painter.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/edge_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/flow_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_provider.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/flow_edge_label.dart';
+import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../shared/providers.dart';
-import '../../../domain/flow_canvas_state.dart';
-import '../../../domain/models/connection.dart';
-import '../../../domain/models/edge.dart';
-import '../../../domain/models/node.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/options/components/edge_options.dart';
 
 /// A lean state class derived from FlowCanvasState, used to trigger repaints
 /// of the painters efficiently.
@@ -61,7 +61,7 @@ class PainterState extends Equatable {
       selectedEdges: s.selectedEdges,
       nodeStates: s.nodeStates,
       edgeStates: s.edgeStates,
-      connection: s.connection,
+      connection: s.activeConnection,
       connectionState: s.connectionState,
       selectionRect: s.selectionRect,
       zoom: s.viewport.zoom,
@@ -160,10 +160,10 @@ class FlowEdgeLayer extends ConsumerWidget {
                 nodes: paintState.nodes,
                 edges: Map.fromEntries(orderedEdges),
                 edgeStates: paintState.edgeStates,
-                style: theme,
+                theme: theme,
                 precomputedPaths: precomputedPaths,
-                canvasHeight: options.canvasHeight,
-                canvasWidth: options.canvasWidth,
+                canvasHeight: options.canvasSize.height,
+                canvasWidth: options.canvasSize.width,
               ),
               size: Size.infinite,
             ),
@@ -186,9 +186,9 @@ class FlowEdgeLayer extends ConsumerWidget {
               painter: ConnectionPainter(
                 connection: paintState.connection,
                 connectionState: paintState.connectionState,
-                style: theme.connection,
-                canvasHeight: options.canvasHeight,
-                canvasWidth: options.canvasWidth,
+                style: theme.connection!,
+                canvasHeight: options.canvasSize.height,
+                canvasWidth: options.canvasSize.width,
               ),
               size: Size.infinite,
             ),
@@ -232,8 +232,9 @@ class FlowEdgeLayer extends ConsumerWidget {
       states.add(FlowEdgeState.hovered);
     }
 
-    final labelStyle =
-        edge.labelDecoration ?? edge.style?.labelStyle ?? theme.edge.labelStyle;
+    final labelStyle = edge.labelDecoration ??
+        edge.style?.labelStyle ??
+        theme.edge!.labelStyle;
 
     return FlowEdgeLabel(
       id: 'label-$edgeId',

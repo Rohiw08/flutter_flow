@@ -9,9 +9,9 @@ typedef ConnectStartCallback = void Function(FlowConnection pendingConnection);
 typedef ConnectEndCallback = void Function(FlowConnection pendingConnection);
 typedef ConnectionValidator = bool Function({
   required FlowNode sourceNode,
-  required NodeHandle sourceHandle,
+  required FlowHandle sourceHandle,
   required FlowNode targetNode,
-  required NodeHandle targetHandle,
+  required FlowHandle targetHandle,
 });
 
 @immutable
@@ -36,9 +36,9 @@ class ConnectionCallbacks {
   static void _defaultOnConnectEnd(FlowConnection pendingConnection) {}
   static bool _defaultIsValidConnection({
     required FlowNode sourceNode,
-    required NodeHandle sourceHandle,
+    required FlowHandle sourceHandle,
     required FlowNode targetNode,
-    required NodeHandle targetHandle,
+    required FlowHandle targetHandle,
   }) =>
       true;
 

@@ -95,16 +95,15 @@ final viewportCallbacksProvider = Provider<ViewportCallbacks>((ref) {
   throw UnimplementedError('ViewportCallbacks must be overridden');
 });
 
-// --- Options Provider ---
-final flowOptionsProvider = Provider<FlowOptions>((ref) {
+final flowOptionsProvider = Provider<FlowCanvasOptions>((ref) {
   throw UnimplementedError('FlowOptionsProvider must be overridden');
 });
 
 final coordinateConverterProvider = Provider<CanvasCoordinateConverter>((ref) {
   final options = ref.watch(flowOptionsProvider);
   return CanvasCoordinateConverter(
-    canvasWidth: options.canvasWidth,
-    canvasHeight: options.canvasHeight,
+    canvasWidth: options.canvasSize.width,
+    canvasHeight: options.canvasSize.height,
   );
 });
 

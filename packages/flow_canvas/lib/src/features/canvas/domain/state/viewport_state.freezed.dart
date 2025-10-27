@@ -14,7 +14,12 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowViewport {
+  /// Canvas translation offset in Cartesian space.
   Offset get offset;
+
+  /// Current zoom level (1.0 = 100%) — affects all scale-related rendering.
+  ///
+  /// Lower values zoom out, higher zoom in.
   double get zoom;
 
   /// Create a copy of FlowViewport
@@ -242,9 +247,14 @@ extension FlowViewportPatterns on FlowViewport {
 class _FlowViewport implements FlowViewport {
   const _FlowViewport({this.offset = Offset.zero, this.zoom = 1.0});
 
+  /// Canvas translation offset in Cartesian space.
   @override
   @JsonKey()
   final Offset offset;
+
+  /// Current zoom level (1.0 = 100%) — affects all scale-related rendering.
+  ///
+  /// Lower values zoom out, higher zoom in.
   @override
   @JsonKey()
   final double zoom;
@@ -272,6 +282,13 @@ class _FlowViewport implements FlowViewport {
   @override
   String toString() {
     return 'FlowViewport(offset: $offset, zoom: $zoom)';
+  }
+
+  @override
+  FlowViewport clampZoom({double minZoom = 0.25, double maxZoom = 2.5}) {
+    return copyWith(
+      zoom: zoom.clamp(minZoom, maxZoom),
+    );
   }
 }
 

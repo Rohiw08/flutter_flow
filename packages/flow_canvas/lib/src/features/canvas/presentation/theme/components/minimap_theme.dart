@@ -273,6 +273,31 @@ class FlowMinimapStyle extends ThemeExtension<FlowMinimapStyle>
     return nodeColor;
   }
 
+  /// Merges this (parent) style with [other] (child), letting [other]'s non-null values override.
+  FlowMinimapStyle merge(FlowMinimapStyle? other) {
+    if (other == null) return this;
+    return FlowMinimapStyle(
+      padding: other.padding,
+      backgroundColor: other.backgroundColor,
+      maskColor: other.maskColor,
+      maskStrokeColor: other.maskStrokeColor,
+      maskStrokeWidth: other.maskStrokeWidth,
+      borderRadius: other.borderRadius,
+      shadows: other.shadows,
+      nodeColor: other.nodeColor,
+      selectedNodeColor: other.selectedNodeColor,
+      nodeStrokeColor: other.nodeStrokeColor,
+      nodeStrokeWidth: other.nodeStrokeWidth,
+      nodeBorderRadius: other.nodeBorderRadius,
+      viewportColor: other.viewportColor,
+      viewportBorderColor: other.viewportBorderColor,
+      viewportBorderWidth: other.viewportBorderWidth,
+      viewportGlowColor: other.viewportGlowColor,
+      viewportGlowBlur: other.viewportGlowBlur,
+      viewportBorderRadius: other.viewportBorderRadius,
+    );
+  }
+
   @override
   FlowMinimapStyle copyWith({
     double? padding,

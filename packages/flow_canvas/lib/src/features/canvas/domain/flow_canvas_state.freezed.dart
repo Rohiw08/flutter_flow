@@ -14,28 +14,27 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$FlowCanvasState {
-// Core data
+// Core graph data
   Map<String, FlowNode> get nodes;
-  Map<String, FlowEdge> get edges;
+  Map<String, FlowEdge> get edges; // Runtime node/edge/handle states
   Map<String, NodeRuntimeState> get nodeStates;
   Map<String, EdgeRuntimeState> get edgeStates;
-  Map<String, HandleRuntimeState> get handleStates;
+  Map<String, HandleRuntimeState> get handleStates; // Selection and z-ordering
   Set<String> get selectedNodes;
   Set<String> get selectedEdges;
-  Map<String, Set<String>> get spatialHash; // Edge indexing
-  EdgeIndex get edgeIndex;
-  NodeIndex get nodeIndex; // Z-index management
   int get minZIndex;
-  int get maxZIndex; // Viewport state
-  bool get isPanZoomLocked;
+  int get maxZIndex; // Spatial indexing
+  NodeIndex get nodeIndex;
+  EdgeIndex get edgeIndex; // Viewport
   FlowViewport get viewport;
-  Size? get viewportSize; // Interaction state
+  Size? get viewportSize;
+  bool get isPanZoomLocked; // Interaction state
   DragMode get dragMode;
-  FlowConnection? get connection;
-  FlowConnectionRuntimeState? get connectionState;
-  Rect? get selectionRect;
-  String? get hoveredEdgeId;
-  String? get lastClickedEdgeId;
+  FlowConnection? get activeConnection;
+  FlowConnectionRuntimeState get connectionState;
+  Rect get selectionRect;
+  String get hoveredEdgeId;
+  String get lastClickedEdgeId;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -62,26 +61,24 @@ mixin _$FlowCanvasState {
                 .equals(other.selectedNodes, selectedNodes) &&
             const DeepCollectionEquality()
                 .equals(other.selectedEdges, selectedEdges) &&
-            const DeepCollectionEquality()
-                .equals(other.spatialHash, spatialHash) &&
-            (identical(other.edgeIndex, edgeIndex) ||
-                other.edgeIndex == edgeIndex) &&
-            (identical(other.nodeIndex, nodeIndex) ||
-                other.nodeIndex == nodeIndex) &&
             (identical(other.minZIndex, minZIndex) ||
                 other.minZIndex == minZIndex) &&
             (identical(other.maxZIndex, maxZIndex) ||
                 other.maxZIndex == maxZIndex) &&
-            (identical(other.isPanZoomLocked, isPanZoomLocked) ||
-                other.isPanZoomLocked == isPanZoomLocked) &&
+            (identical(other.nodeIndex, nodeIndex) ||
+                other.nodeIndex == nodeIndex) &&
+            (identical(other.edgeIndex, edgeIndex) ||
+                other.edgeIndex == edgeIndex) &&
             (identical(other.viewport, viewport) ||
                 other.viewport == viewport) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
+            (identical(other.isPanZoomLocked, isPanZoomLocked) ||
+                other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.dragMode, dragMode) ||
                 other.dragMode == dragMode) &&
-            (identical(other.connection, connection) ||
-                other.connection == connection) &&
+            (identical(other.activeConnection, activeConnection) ||
+                other.activeConnection == activeConnection) &&
             (identical(other.connectionState, connectionState) ||
                 other.connectionState == connectionState) &&
             (identical(other.selectionRect, selectionRect) ||
@@ -102,16 +99,15 @@ mixin _$FlowCanvasState {
         const DeepCollectionEquality().hash(handleStates),
         const DeepCollectionEquality().hash(selectedNodes),
         const DeepCollectionEquality().hash(selectedEdges),
-        const DeepCollectionEquality().hash(spatialHash),
-        edgeIndex,
-        nodeIndex,
         minZIndex,
         maxZIndex,
-        isPanZoomLocked,
+        nodeIndex,
+        edgeIndex,
         viewport,
         viewportSize,
+        isPanZoomLocked,
         dragMode,
-        connection,
+        activeConnection,
         connectionState,
         selectionRect,
         hoveredEdgeId,
@@ -120,7 +116,7 @@ mixin _$FlowCanvasState {
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, dragMode: $dragMode, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, minZIndex: $minZIndex, maxZIndex: $maxZIndex, nodeIndex: $nodeIndex, edgeIndex: $edgeIndex, viewport: $viewport, viewportSize: $viewportSize, isPanZoomLocked: $isPanZoomLocked, dragMode: $dragMode, activeConnection: $activeConnection, connectionState: $connectionState, selectionRect: $selectionRect, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
   }
 }
 
@@ -138,24 +134,23 @@ abstract mixin class $FlowCanvasStateCopyWith<$Res> {
       Map<String, HandleRuntimeState> handleStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
-      Map<String, Set<String>> spatialHash,
-      EdgeIndex edgeIndex,
-      NodeIndex nodeIndex,
       int minZIndex,
       int maxZIndex,
-      bool isPanZoomLocked,
+      NodeIndex nodeIndex,
+      EdgeIndex edgeIndex,
       FlowViewport viewport,
       Size? viewportSize,
+      bool isPanZoomLocked,
       DragMode dragMode,
-      FlowConnection? connection,
-      FlowConnectionRuntimeState? connectionState,
-      Rect? selectionRect,
-      String? hoveredEdgeId,
-      String? lastClickedEdgeId});
+      FlowConnection? activeConnection,
+      FlowConnectionRuntimeState connectionState,
+      Rect selectionRect,
+      String hoveredEdgeId,
+      String lastClickedEdgeId});
 
   $FlowViewportCopyWith<$Res> get viewport;
-  $FlowConnectionCopyWith<$Res>? get connection;
-  $FlowConnectionRuntimeStateCopyWith<$Res>? get connectionState;
+  $FlowConnectionCopyWith<$Res>? get activeConnection;
+  $FlowConnectionRuntimeStateCopyWith<$Res> get connectionState;
 }
 
 /// @nodoc
@@ -178,20 +173,19 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
     Object? handleStates = null,
     Object? selectedNodes = null,
     Object? selectedEdges = null,
-    Object? spatialHash = null,
-    Object? edgeIndex = null,
-    Object? nodeIndex = null,
     Object? minZIndex = null,
     Object? maxZIndex = null,
-    Object? isPanZoomLocked = null,
+    Object? nodeIndex = null,
+    Object? edgeIndex = null,
     Object? viewport = null,
     Object? viewportSize = freezed,
+    Object? isPanZoomLocked = null,
     Object? dragMode = null,
-    Object? connection = freezed,
-    Object? connectionState = freezed,
-    Object? selectionRect = freezed,
-    Object? hoveredEdgeId = freezed,
-    Object? lastClickedEdgeId = freezed,
+    Object? activeConnection = freezed,
+    Object? connectionState = null,
+    Object? selectionRect = null,
+    Object? hoveredEdgeId = null,
+    Object? lastClickedEdgeId = null,
   }) {
     return _then(_self.copyWith(
       nodes: null == nodes
@@ -222,18 +216,6 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.selectedEdges
           : selectedEdges // ignore: cast_nullable_to_non_nullable
               as Set<String>,
-      spatialHash: null == spatialHash
-          ? _self.spatialHash
-          : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, Set<String>>,
-      edgeIndex: null == edgeIndex
-          ? _self.edgeIndex
-          : edgeIndex // ignore: cast_nullable_to_non_nullable
-              as EdgeIndex,
-      nodeIndex: null == nodeIndex
-          ? _self.nodeIndex
-          : nodeIndex // ignore: cast_nullable_to_non_nullable
-              as NodeIndex,
       minZIndex: null == minZIndex
           ? _self.minZIndex
           : minZIndex // ignore: cast_nullable_to_non_nullable
@@ -242,10 +224,14 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.maxZIndex
           : maxZIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      isPanZoomLocked: null == isPanZoomLocked
-          ? _self.isPanZoomLocked
-          : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
-              as bool,
+      nodeIndex: null == nodeIndex
+          ? _self.nodeIndex
+          : nodeIndex // ignore: cast_nullable_to_non_nullable
+              as NodeIndex,
+      edgeIndex: null == edgeIndex
+          ? _self.edgeIndex
+          : edgeIndex // ignore: cast_nullable_to_non_nullable
+              as EdgeIndex,
       viewport: null == viewport
           ? _self.viewport
           : viewport // ignore: cast_nullable_to_non_nullable
@@ -254,30 +240,34 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
+      isPanZoomLocked: null == isPanZoomLocked
+          ? _self.isPanZoomLocked
+          : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
+              as bool,
       dragMode: null == dragMode
           ? _self.dragMode
           : dragMode // ignore: cast_nullable_to_non_nullable
               as DragMode,
-      connection: freezed == connection
-          ? _self.connection
-          : connection // ignore: cast_nullable_to_non_nullable
+      activeConnection: freezed == activeConnection
+          ? _self.activeConnection
+          : activeConnection // ignore: cast_nullable_to_non_nullable
               as FlowConnection?,
-      connectionState: freezed == connectionState
+      connectionState: null == connectionState
           ? _self.connectionState
           : connectionState // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionRuntimeState?,
-      selectionRect: freezed == selectionRect
+              as FlowConnectionRuntimeState,
+      selectionRect: null == selectionRect
           ? _self.selectionRect
           : selectionRect // ignore: cast_nullable_to_non_nullable
-              as Rect?,
-      hoveredEdgeId: freezed == hoveredEdgeId
+              as Rect,
+      hoveredEdgeId: null == hoveredEdgeId
           ? _self.hoveredEdgeId
           : hoveredEdgeId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lastClickedEdgeId: freezed == lastClickedEdgeId
+              as String,
+      lastClickedEdgeId: null == lastClickedEdgeId
           ? _self.lastClickedEdgeId
           : lastClickedEdgeId // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as String,
     ));
   }
 
@@ -295,13 +285,13 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $FlowConnectionCopyWith<$Res>? get connection {
-    if (_self.connection == null) {
+  $FlowConnectionCopyWith<$Res>? get activeConnection {
+    if (_self.activeConnection == null) {
       return null;
     }
 
-    return $FlowConnectionCopyWith<$Res>(_self.connection!, (value) {
-      return _then(_self.copyWith(connection: value));
+    return $FlowConnectionCopyWith<$Res>(_self.activeConnection!, (value) {
+      return _then(_self.copyWith(activeConnection: value));
     });
   }
 
@@ -309,12 +299,8 @@ class _$FlowCanvasStateCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $FlowConnectionRuntimeStateCopyWith<$Res>? get connectionState {
-    if (_self.connectionState == null) {
-      return null;
-    }
-
-    return $FlowConnectionRuntimeStateCopyWith<$Res>(_self.connectionState!,
+  $FlowConnectionRuntimeStateCopyWith<$Res> get connectionState {
+    return $FlowConnectionRuntimeStateCopyWith<$Res>(_self.connectionState,
         (value) {
       return _then(_self.copyWith(connectionState: value));
     });
@@ -422,20 +408,19 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, Set<String>> spatialHash,
-            EdgeIndex edgeIndex,
-            NodeIndex nodeIndex,
             int minZIndex,
             int maxZIndex,
-            bool isPanZoomLocked,
+            NodeIndex nodeIndex,
+            EdgeIndex edgeIndex,
             FlowViewport viewport,
             Size? viewportSize,
+            bool isPanZoomLocked,
             DragMode dragMode,
-            FlowConnection? connection,
-            FlowConnectionRuntimeState? connectionState,
-            Rect? selectionRect,
-            String? hoveredEdgeId,
-            String? lastClickedEdgeId)?
+            FlowConnection? activeConnection,
+            FlowConnectionRuntimeState connectionState,
+            Rect selectionRect,
+            String hoveredEdgeId,
+            String lastClickedEdgeId)?
         $default, {
     required TResult orElse(),
   }) {
@@ -450,16 +435,15 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
-            _that.spatialHash,
-            _that.edgeIndex,
-            _that.nodeIndex,
             _that.minZIndex,
             _that.maxZIndex,
-            _that.isPanZoomLocked,
+            _that.nodeIndex,
+            _that.edgeIndex,
             _that.viewport,
             _that.viewportSize,
+            _that.isPanZoomLocked,
             _that.dragMode,
-            _that.connection,
+            _that.activeConnection,
             _that.connectionState,
             _that.selectionRect,
             _that.hoveredEdgeId,
@@ -492,20 +476,19 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, Set<String>> spatialHash,
-            EdgeIndex edgeIndex,
-            NodeIndex nodeIndex,
             int minZIndex,
             int maxZIndex,
-            bool isPanZoomLocked,
+            NodeIndex nodeIndex,
+            EdgeIndex edgeIndex,
             FlowViewport viewport,
             Size? viewportSize,
+            bool isPanZoomLocked,
             DragMode dragMode,
-            FlowConnection? connection,
-            FlowConnectionRuntimeState? connectionState,
-            Rect? selectionRect,
-            String? hoveredEdgeId,
-            String? lastClickedEdgeId)
+            FlowConnection? activeConnection,
+            FlowConnectionRuntimeState connectionState,
+            Rect selectionRect,
+            String hoveredEdgeId,
+            String lastClickedEdgeId)
         $default,
   ) {
     final _that = this;
@@ -519,16 +502,15 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
-            _that.spatialHash,
-            _that.edgeIndex,
-            _that.nodeIndex,
             _that.minZIndex,
             _that.maxZIndex,
-            _that.isPanZoomLocked,
+            _that.nodeIndex,
+            _that.edgeIndex,
             _that.viewport,
             _that.viewportSize,
+            _that.isPanZoomLocked,
             _that.dragMode,
-            _that.connection,
+            _that.activeConnection,
             _that.connectionState,
             _that.selectionRect,
             _that.hoveredEdgeId,
@@ -560,20 +542,19 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             Map<String, HandleRuntimeState> handleStates,
             Set<String> selectedNodes,
             Set<String> selectedEdges,
-            Map<String, Set<String>> spatialHash,
-            EdgeIndex edgeIndex,
-            NodeIndex nodeIndex,
             int minZIndex,
             int maxZIndex,
-            bool isPanZoomLocked,
+            NodeIndex nodeIndex,
+            EdgeIndex edgeIndex,
             FlowViewport viewport,
             Size? viewportSize,
+            bool isPanZoomLocked,
             DragMode dragMode,
-            FlowConnection? connection,
-            FlowConnectionRuntimeState? connectionState,
-            Rect? selectionRect,
-            String? hoveredEdgeId,
-            String? lastClickedEdgeId)?
+            FlowConnection? activeConnection,
+            FlowConnectionRuntimeState connectionState,
+            Rect selectionRect,
+            String hoveredEdgeId,
+            String lastClickedEdgeId)?
         $default,
   ) {
     final _that = this;
@@ -587,16 +568,15 @@ extension FlowCanvasStatePatterns on FlowCanvasState {
             _that.handleStates,
             _that.selectedNodes,
             _that.selectedEdges,
-            _that.spatialHash,
-            _that.edgeIndex,
-            _that.nodeIndex,
             _that.minZIndex,
             _that.maxZIndex,
-            _that.isPanZoomLocked,
+            _that.nodeIndex,
+            _that.edgeIndex,
             _that.viewport,
             _that.viewportSize,
+            _that.isPanZoomLocked,
             _that.dragMode,
-            _that.connection,
+            _that.activeConnection,
             _that.connectionState,
             _that.selectionRect,
             _that.hoveredEdgeId,
@@ -618,20 +598,19 @@ class _FlowCanvasState extends FlowCanvasState {
       final Map<String, HandleRuntimeState> handleStates = const {},
       final Set<String> selectedNodes = const {},
       final Set<String> selectedEdges = const {},
-      final Map<String, Set<String>> spatialHash = const {},
-      required this.edgeIndex,
-      required this.nodeIndex,
       this.minZIndex = 0,
       this.maxZIndex = 0,
-      this.isPanZoomLocked = false,
+      required this.nodeIndex,
+      required this.edgeIndex,
       this.viewport = const FlowViewport(),
       this.viewportSize,
+      this.isPanZoomLocked = false,
       this.dragMode = DragMode.none,
-      this.connection,
-      this.connectionState,
-      this.selectionRect,
-      this.hoveredEdgeId,
-      this.lastClickedEdgeId})
+      this.activeConnection,
+      this.connectionState = const FlowConnectionRuntimeState.idle(),
+      this.selectionRect = Rect.zero,
+      this.hoveredEdgeId = '',
+      this.lastClickedEdgeId = ''})
       : _nodes = nodes,
         _edges = edges,
         _nodeStates = nodeStates,
@@ -639,12 +618,11 @@ class _FlowCanvasState extends FlowCanvasState {
         _handleStates = handleStates,
         _selectedNodes = selectedNodes,
         _selectedEdges = selectedEdges,
-        _spatialHash = spatialHash,
         super._();
 
-// Core data
+// Core graph data
   final Map<String, FlowNode> _nodes;
-// Core data
+// Core graph data
   @override
   @JsonKey()
   Map<String, FlowNode> get nodes {
@@ -662,7 +640,9 @@ class _FlowCanvasState extends FlowCanvasState {
     return EqualUnmodifiableMapView(_edges);
   }
 
+// Runtime node/edge/handle states
   final Map<String, NodeRuntimeState> _nodeStates;
+// Runtime node/edge/handle states
   @override
   @JsonKey()
   Map<String, NodeRuntimeState> get nodeStates {
@@ -689,7 +669,9 @@ class _FlowCanvasState extends FlowCanvasState {
     return EqualUnmodifiableMapView(_handleStates);
   }
 
+// Selection and z-ordering
   final Set<String> _selectedNodes;
+// Selection and z-ordering
   @override
   @JsonKey()
   Set<String> get selectedNodes {
@@ -707,50 +689,44 @@ class _FlowCanvasState extends FlowCanvasState {
     return EqualUnmodifiableSetView(_selectedEdges);
   }
 
-  final Map<String, Set<String>> _spatialHash;
-  @override
-  @JsonKey()
-  Map<String, Set<String>> get spatialHash {
-    if (_spatialHash is EqualUnmodifiableMapView) return _spatialHash;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_spatialHash);
-  }
-
-// Edge indexing
-  @override
-  final EdgeIndex edgeIndex;
-  @override
-  final NodeIndex nodeIndex;
-// Z-index management
   @override
   @JsonKey()
   final int minZIndex;
   @override
   @JsonKey()
   final int maxZIndex;
-// Viewport state
+// Spatial indexing
   @override
-  @JsonKey()
-  final bool isPanZoomLocked;
+  final NodeIndex nodeIndex;
+  @override
+  final EdgeIndex edgeIndex;
+// Viewport
   @override
   @JsonKey()
   final FlowViewport viewport;
   @override
   final Size? viewportSize;
+  @override
+  @JsonKey()
+  final bool isPanZoomLocked;
 // Interaction state
   @override
   @JsonKey()
   final DragMode dragMode;
   @override
-  final FlowConnection? connection;
+  final FlowConnection? activeConnection;
   @override
-  final FlowConnectionRuntimeState? connectionState;
+  @JsonKey()
+  final FlowConnectionRuntimeState connectionState;
   @override
-  final Rect? selectionRect;
+  @JsonKey()
+  final Rect selectionRect;
   @override
-  final String? hoveredEdgeId;
+  @JsonKey()
+  final String hoveredEdgeId;
   @override
-  final String? lastClickedEdgeId;
+  @JsonKey()
+  final String lastClickedEdgeId;
 
   /// Create a copy of FlowCanvasState
   /// with the given fields replaced by the non-null parameter values.
@@ -777,26 +753,24 @@ class _FlowCanvasState extends FlowCanvasState {
                 .equals(other._selectedNodes, _selectedNodes) &&
             const DeepCollectionEquality()
                 .equals(other._selectedEdges, _selectedEdges) &&
-            const DeepCollectionEquality()
-                .equals(other._spatialHash, _spatialHash) &&
-            (identical(other.edgeIndex, edgeIndex) ||
-                other.edgeIndex == edgeIndex) &&
-            (identical(other.nodeIndex, nodeIndex) ||
-                other.nodeIndex == nodeIndex) &&
             (identical(other.minZIndex, minZIndex) ||
                 other.minZIndex == minZIndex) &&
             (identical(other.maxZIndex, maxZIndex) ||
                 other.maxZIndex == maxZIndex) &&
-            (identical(other.isPanZoomLocked, isPanZoomLocked) ||
-                other.isPanZoomLocked == isPanZoomLocked) &&
+            (identical(other.nodeIndex, nodeIndex) ||
+                other.nodeIndex == nodeIndex) &&
+            (identical(other.edgeIndex, edgeIndex) ||
+                other.edgeIndex == edgeIndex) &&
             (identical(other.viewport, viewport) ||
                 other.viewport == viewport) &&
             (identical(other.viewportSize, viewportSize) ||
                 other.viewportSize == viewportSize) &&
+            (identical(other.isPanZoomLocked, isPanZoomLocked) ||
+                other.isPanZoomLocked == isPanZoomLocked) &&
             (identical(other.dragMode, dragMode) ||
                 other.dragMode == dragMode) &&
-            (identical(other.connection, connection) ||
-                other.connection == connection) &&
+            (identical(other.activeConnection, activeConnection) ||
+                other.activeConnection == activeConnection) &&
             (identical(other.connectionState, connectionState) ||
                 other.connectionState == connectionState) &&
             (identical(other.selectionRect, selectionRect) ||
@@ -817,16 +791,15 @@ class _FlowCanvasState extends FlowCanvasState {
         const DeepCollectionEquality().hash(_handleStates),
         const DeepCollectionEquality().hash(_selectedNodes),
         const DeepCollectionEquality().hash(_selectedEdges),
-        const DeepCollectionEquality().hash(_spatialHash),
-        edgeIndex,
-        nodeIndex,
         minZIndex,
         maxZIndex,
-        isPanZoomLocked,
+        nodeIndex,
+        edgeIndex,
         viewport,
         viewportSize,
+        isPanZoomLocked,
         dragMode,
-        connection,
+        activeConnection,
         connectionState,
         selectionRect,
         hoveredEdgeId,
@@ -835,7 +808,7 @@ class _FlowCanvasState extends FlowCanvasState {
 
   @override
   String toString() {
-    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, spatialHash: $spatialHash, edgeIndex: $edgeIndex, nodeIndex: $nodeIndex, minZIndex: $minZIndex, maxZIndex: $maxZIndex, isPanZoomLocked: $isPanZoomLocked, viewport: $viewport, viewportSize: $viewportSize, dragMode: $dragMode, connection: $connection, connectionState: $connectionState, selectionRect: $selectionRect, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
+    return 'FlowCanvasState(nodes: $nodes, edges: $edges, nodeStates: $nodeStates, edgeStates: $edgeStates, handleStates: $handleStates, selectedNodes: $selectedNodes, selectedEdges: $selectedEdges, minZIndex: $minZIndex, maxZIndex: $maxZIndex, nodeIndex: $nodeIndex, edgeIndex: $edgeIndex, viewport: $viewport, viewportSize: $viewportSize, isPanZoomLocked: $isPanZoomLocked, dragMode: $dragMode, activeConnection: $activeConnection, connectionState: $connectionState, selectionRect: $selectionRect, hoveredEdgeId: $hoveredEdgeId, lastClickedEdgeId: $lastClickedEdgeId)';
   }
 }
 
@@ -855,27 +828,26 @@ abstract mixin class _$FlowCanvasStateCopyWith<$Res>
       Map<String, HandleRuntimeState> handleStates,
       Set<String> selectedNodes,
       Set<String> selectedEdges,
-      Map<String, Set<String>> spatialHash,
-      EdgeIndex edgeIndex,
-      NodeIndex nodeIndex,
       int minZIndex,
       int maxZIndex,
-      bool isPanZoomLocked,
+      NodeIndex nodeIndex,
+      EdgeIndex edgeIndex,
       FlowViewport viewport,
       Size? viewportSize,
+      bool isPanZoomLocked,
       DragMode dragMode,
-      FlowConnection? connection,
-      FlowConnectionRuntimeState? connectionState,
-      Rect? selectionRect,
-      String? hoveredEdgeId,
-      String? lastClickedEdgeId});
+      FlowConnection? activeConnection,
+      FlowConnectionRuntimeState connectionState,
+      Rect selectionRect,
+      String hoveredEdgeId,
+      String lastClickedEdgeId});
 
   @override
   $FlowViewportCopyWith<$Res> get viewport;
   @override
-  $FlowConnectionCopyWith<$Res>? get connection;
+  $FlowConnectionCopyWith<$Res>? get activeConnection;
   @override
-  $FlowConnectionRuntimeStateCopyWith<$Res>? get connectionState;
+  $FlowConnectionRuntimeStateCopyWith<$Res> get connectionState;
 }
 
 /// @nodoc
@@ -898,20 +870,19 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
     Object? handleStates = null,
     Object? selectedNodes = null,
     Object? selectedEdges = null,
-    Object? spatialHash = null,
-    Object? edgeIndex = null,
-    Object? nodeIndex = null,
     Object? minZIndex = null,
     Object? maxZIndex = null,
-    Object? isPanZoomLocked = null,
+    Object? nodeIndex = null,
+    Object? edgeIndex = null,
     Object? viewport = null,
     Object? viewportSize = freezed,
+    Object? isPanZoomLocked = null,
     Object? dragMode = null,
-    Object? connection = freezed,
-    Object? connectionState = freezed,
-    Object? selectionRect = freezed,
-    Object? hoveredEdgeId = freezed,
-    Object? lastClickedEdgeId = freezed,
+    Object? activeConnection = freezed,
+    Object? connectionState = null,
+    Object? selectionRect = null,
+    Object? hoveredEdgeId = null,
+    Object? lastClickedEdgeId = null,
   }) {
     return _then(_FlowCanvasState(
       nodes: null == nodes
@@ -942,18 +913,6 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self._selectedEdges
           : selectedEdges // ignore: cast_nullable_to_non_nullable
               as Set<String>,
-      spatialHash: null == spatialHash
-          ? _self._spatialHash
-          : spatialHash // ignore: cast_nullable_to_non_nullable
-              as Map<String, Set<String>>,
-      edgeIndex: null == edgeIndex
-          ? _self.edgeIndex
-          : edgeIndex // ignore: cast_nullable_to_non_nullable
-              as EdgeIndex,
-      nodeIndex: null == nodeIndex
-          ? _self.nodeIndex
-          : nodeIndex // ignore: cast_nullable_to_non_nullable
-              as NodeIndex,
       minZIndex: null == minZIndex
           ? _self.minZIndex
           : minZIndex // ignore: cast_nullable_to_non_nullable
@@ -962,10 +921,14 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.maxZIndex
           : maxZIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      isPanZoomLocked: null == isPanZoomLocked
-          ? _self.isPanZoomLocked
-          : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
-              as bool,
+      nodeIndex: null == nodeIndex
+          ? _self.nodeIndex
+          : nodeIndex // ignore: cast_nullable_to_non_nullable
+              as NodeIndex,
+      edgeIndex: null == edgeIndex
+          ? _self.edgeIndex
+          : edgeIndex // ignore: cast_nullable_to_non_nullable
+              as EdgeIndex,
       viewport: null == viewport
           ? _self.viewport
           : viewport // ignore: cast_nullable_to_non_nullable
@@ -974,30 +937,34 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
           ? _self.viewportSize
           : viewportSize // ignore: cast_nullable_to_non_nullable
               as Size?,
+      isPanZoomLocked: null == isPanZoomLocked
+          ? _self.isPanZoomLocked
+          : isPanZoomLocked // ignore: cast_nullable_to_non_nullable
+              as bool,
       dragMode: null == dragMode
           ? _self.dragMode
           : dragMode // ignore: cast_nullable_to_non_nullable
               as DragMode,
-      connection: freezed == connection
-          ? _self.connection
-          : connection // ignore: cast_nullable_to_non_nullable
+      activeConnection: freezed == activeConnection
+          ? _self.activeConnection
+          : activeConnection // ignore: cast_nullable_to_non_nullable
               as FlowConnection?,
-      connectionState: freezed == connectionState
+      connectionState: null == connectionState
           ? _self.connectionState
           : connectionState // ignore: cast_nullable_to_non_nullable
-              as FlowConnectionRuntimeState?,
-      selectionRect: freezed == selectionRect
+              as FlowConnectionRuntimeState,
+      selectionRect: null == selectionRect
           ? _self.selectionRect
           : selectionRect // ignore: cast_nullable_to_non_nullable
-              as Rect?,
-      hoveredEdgeId: freezed == hoveredEdgeId
+              as Rect,
+      hoveredEdgeId: null == hoveredEdgeId
           ? _self.hoveredEdgeId
           : hoveredEdgeId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lastClickedEdgeId: freezed == lastClickedEdgeId
+              as String,
+      lastClickedEdgeId: null == lastClickedEdgeId
           ? _self.lastClickedEdgeId
           : lastClickedEdgeId // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as String,
     ));
   }
 
@@ -1015,13 +982,13 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $FlowConnectionCopyWith<$Res>? get connection {
-    if (_self.connection == null) {
+  $FlowConnectionCopyWith<$Res>? get activeConnection {
+    if (_self.activeConnection == null) {
       return null;
     }
 
-    return $FlowConnectionCopyWith<$Res>(_self.connection!, (value) {
-      return _then(_self.copyWith(connection: value));
+    return $FlowConnectionCopyWith<$Res>(_self.activeConnection!, (value) {
+      return _then(_self.copyWith(activeConnection: value));
     });
   }
 
@@ -1029,12 +996,8 @@ class __$FlowCanvasStateCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $FlowConnectionRuntimeStateCopyWith<$Res>? get connectionState {
-    if (_self.connectionState == null) {
-      return null;
-    }
-
-    return $FlowConnectionRuntimeStateCopyWith<$Res>(_self.connectionState!,
+  $FlowConnectionRuntimeStateCopyWith<$Res> get connectionState {
+    return $FlowConnectionRuntimeStateCopyWith<$Res>(_self.connectionState,
         (value) {
       return _then(_self.copyWith(connectionState: value));
     });

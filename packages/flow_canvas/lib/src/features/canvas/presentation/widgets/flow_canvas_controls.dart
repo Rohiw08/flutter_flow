@@ -1,7 +1,7 @@
 import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/flow_options.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/components/controls_theme.dart';
-import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extensions.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/control_button.dart';
@@ -42,7 +42,8 @@ class FlowCanvasControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Theme
-    final contextTheme = context.flowCanvasTheme.controls;
+    final contextTheme =
+        context.flowCanvasTheme.controls ?? FlowControlsStyle.system(context);
     final theme = contextTheme.merge(controlsStyle);
 
     // logic
@@ -82,7 +83,7 @@ class FlowCanvasControls extends ConsumerWidget {
     BuildContext context,
     FlowCanvasController controller,
     bool isLocked,
-    FlowOptions options,
+    FlowCanvasOptions options,
     Size? viewportSize,
   ) {
     final screenCenter = viewportSize != null

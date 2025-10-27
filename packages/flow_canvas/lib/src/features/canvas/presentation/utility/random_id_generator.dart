@@ -154,17 +154,3 @@ class IdGenerator {
     return prefix != null ? '${prefix}_$base64' : base64;
   }
 }
-
-/// Legacy function for backwards compatibility.
-///
-/// **Deprecated**: Use [IdGenerator.generateNodeId] instead.
-/// This function is retained for migration purposes but will be removed
-/// in a future version.
-///
-/// The old implementation using timestamp + random had much higher
-/// collision probability (approximately 10^-12 for 1 million IDs)
-/// compared to UUID v4 (10^-24 for 1 million IDs).
-@Deprecated('Use IdGenerator.generateNodeId() instead')
-String generateUniqueId() {
-  return IdGenerator.generateNodeId();
-}

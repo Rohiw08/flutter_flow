@@ -14,10 +14,35 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$NodeRuntimeState {
+  /// Whether this node is currently selected.
+  ///
+  /// Selected nodes are typically rendered with an outline, bring-to-front
+  /// highlight, or show resize handles.
   bool get selected;
+
+  /// Whether this node is currently being dragged.
+  ///
+  /// This flag is set when the user initiates a drag gesture to move
+  /// the node across the canvas.
   bool get dragging;
+
+  /// Whether this node is in resize mode.
+  ///
+  /// This is true if the user is currently resizing the node via
+  /// corner or edge controls.
   bool get resizing;
+
+  /// Whether this node triggers an automatic expansion of its parent group.
+  ///
+  /// Useful when dragging or resizing causes a containing node or group
+  /// to expand dynamically to fit this node.
   bool get expandParent;
+
+  /// The rectangular bounds that define the node's
+  /// interactive or layout extent.
+  ///
+  /// This can represent spatial constraints (drag limits) or
+  /// the node's visual boundary on the canvas during a gesture.
   Rect? get extent;
 
   /// Create a copy of NodeRuntimeState
@@ -288,18 +313,43 @@ class _NodeRuntimeState implements NodeRuntimeState {
       this.expandParent = false,
       this.extent});
 
+  /// Whether this node is currently selected.
+  ///
+  /// Selected nodes are typically rendered with an outline, bring-to-front
+  /// highlight, or show resize handles.
   @override
   @JsonKey()
   final bool selected;
+
+  /// Whether this node is currently being dragged.
+  ///
+  /// This flag is set when the user initiates a drag gesture to move
+  /// the node across the canvas.
   @override
   @JsonKey()
   final bool dragging;
+
+  /// Whether this node is in resize mode.
+  ///
+  /// This is true if the user is currently resizing the node via
+  /// corner or edge controls.
   @override
   @JsonKey()
   final bool resizing;
+
+  /// Whether this node triggers an automatic expansion of its parent group.
+  ///
+  /// Useful when dragging or resizing causes a containing node or group
+  /// to expand dynamically to fit this node.
   @override
   @JsonKey()
   final bool expandParent;
+
+  /// The rectangular bounds that define the node's
+  /// interactive or layout extent.
+  ///
+  /// This can represent spatial constraints (drag limits) or
+  /// the node's visual boundary on the canvas during a gesture.
   @override
   final Rect? extent;
 
