@@ -106,6 +106,8 @@ class NodeOptions with Diagnosticable {
   /// Defaults to true.
   final bool draggable;
 
+  final bool hoverable;
+
   /// Whether the node can be selected by clicking or dragging.
   ///
   /// When false, the node cannot be interacted with for selection.
@@ -160,6 +162,7 @@ class NodeOptions with Diagnosticable {
     this.nodeType,
     this.hidden = false,
     this.draggable = true,
+    this.hoverable = true,
     this.selectable = true,
     this.connectable = true,
     this.deletable = true,
@@ -181,11 +184,10 @@ class NodeOptions with Diagnosticable {
   /// );
   /// ```
   const NodeOptions.readOnly({
-    String? nodeType,
-    bool hidden = false,
-  })  : nodeType = nodeType,
-        hidden = hidden,
-        draggable = false,
+    this.nodeType,
+    this.hidden = false,
+  })  : draggable = false,
+        hoverable = true,
         selectable = true,
         connectable = false,
         deletable = false,
@@ -206,10 +208,10 @@ class NodeOptions with Diagnosticable {
   /// );
   /// ```
   const NodeOptions.interactive({
-    String? nodeType,
-  })  : nodeType = nodeType,
-        hidden = false,
+    this.nodeType,
+  })  : hidden = false,
         draggable = true,
+        hoverable = true,
         selectable = true,
         connectable = true,
         deletable = true,
@@ -230,10 +232,10 @@ class NodeOptions with Diagnosticable {
   /// );
   /// ```
   const NodeOptions.template({
-    String? nodeType,
-  })  : nodeType = nodeType,
-        hidden = false,
+    this.nodeType,
+  })  : hidden = false,
         draggable = false,
+        hoverable = true,
         selectable = true,
         connectable = false,
         deletable = false,
@@ -254,10 +256,10 @@ class NodeOptions with Diagnosticable {
   /// );
   /// ```
   const NodeOptions.decorative({
-    String? nodeType,
-  })  : nodeType = nodeType,
-        hidden = false,
+    this.nodeType,
+  })  : hidden = false,
         draggable = false,
+        hoverable = false,
         selectable = false,
         connectable = false,
         deletable = false,
@@ -429,6 +431,15 @@ extension ResolvedNodeOptions on FlowNode {
   bool isDraggable(BuildContext context) {
     final globalOptions = context.flowCanvasOptions.nodeOptions;
     return draggable ?? globalOptions.draggable;
+  }
+
+  /// Returns whether this node can be hovered.
+  ///
+  /// Uses the node's specific `hoverable` option if set, otherwise
+  /// falls back to the global default from [FlowCanvasOptions].
+  bool isHoverable(BuildContext context) {
+    final globalOptions = context.flowCanvasOptions.nodeOptions;
+    return hoverable ?? globalOptions.hoverable;
   }
 
   /// Returns whether this node can be selected.

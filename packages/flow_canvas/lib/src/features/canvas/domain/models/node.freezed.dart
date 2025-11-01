@@ -86,6 +86,11 @@ mixin _$FlowNode implements DiagnosticableTreeMixin {
   /// Whether this node can be selected by the user.
   ///
   /// If null, uses the global canvas setting.
+  bool? get hoverable;
+
+  /// Whether this node can be selected by the user.
+  ///
+  /// If null, uses the global canvas setting.
   bool? get selectable;
 
   /// Whether edges can be connected to/from this node.
@@ -130,6 +135,7 @@ mixin _$FlowNode implements DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('hitTestPadding', hitTestPadding))
       ..add(DiagnosticsProperty('hidden', hidden))
       ..add(DiagnosticsProperty('draggable', draggable))
+      ..add(DiagnosticsProperty('hoverable', hoverable))
       ..add(DiagnosticsProperty('selectable', selectable))
       ..add(DiagnosticsProperty('connectable', connectable))
       ..add(DiagnosticsProperty('deletable', deletable))
@@ -158,6 +164,8 @@ mixin _$FlowNode implements DiagnosticableTreeMixin {
             (identical(other.hidden, hidden) || other.hidden == hidden) &&
             (identical(other.draggable, draggable) ||
                 other.draggable == draggable) &&
+            (identical(other.hoverable, hoverable) ||
+                other.hoverable == hoverable) &&
             (identical(other.selectable, selectable) ||
                 other.selectable == selectable) &&
             (identical(other.connectable, connectable) ||
@@ -184,6 +192,7 @@ mixin _$FlowNode implements DiagnosticableTreeMixin {
       hitTestPadding,
       hidden,
       draggable,
+      hoverable,
       selectable,
       connectable,
       deletable,
@@ -192,7 +201,7 @@ mixin _$FlowNode implements DiagnosticableTreeMixin {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, hoverable: $hoverable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -213,6 +222,7 @@ abstract mixin class $FlowNodeCopyWith<$Res> {
       double hitTestPadding,
       bool? hidden,
       bool? draggable,
+      bool? hoverable,
       bool? selectable,
       bool? connectable,
       bool? deletable,
@@ -243,6 +253,7 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
     Object? hitTestPadding = null,
     Object? hidden = freezed,
     Object? draggable = freezed,
+    Object? hoverable = freezed,
     Object? selectable = freezed,
     Object? connectable = freezed,
     Object? deletable = freezed,
@@ -293,6 +304,10 @@ class _$FlowNodeCopyWithImpl<$Res> implements $FlowNodeCopyWith<$Res> {
       draggable: freezed == draggable
           ? _self.draggable
           : draggable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hoverable: freezed == hoverable
+          ? _self.hoverable
+          : hoverable // ignore: cast_nullable_to_non_nullable
               as bool?,
       selectable: freezed == selectable
           ? _self.selectable
@@ -423,6 +438,7 @@ extension FlowNodePatterns on FlowNode {
             double hitTestPadding,
             bool? hidden,
             bool? draggable,
+            bool? hoverable,
             bool? selectable,
             bool? connectable,
             bool? deletable,
@@ -446,6 +462,7 @@ extension FlowNodePatterns on FlowNode {
             _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
+            _that.hoverable,
             _that.selectable,
             _that.connectable,
             _that.deletable,
@@ -483,6 +500,7 @@ extension FlowNodePatterns on FlowNode {
             double hitTestPadding,
             bool? hidden,
             bool? draggable,
+            bool? hoverable,
             bool? selectable,
             bool? connectable,
             bool? deletable,
@@ -505,6 +523,7 @@ extension FlowNodePatterns on FlowNode {
             _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
+            _that.hoverable,
             _that.selectable,
             _that.connectable,
             _that.deletable,
@@ -541,6 +560,7 @@ extension FlowNodePatterns on FlowNode {
             double hitTestPadding,
             bool? hidden,
             bool? draggable,
+            bool? hoverable,
             bool? selectable,
             bool? connectable,
             bool? deletable,
@@ -563,6 +583,7 @@ extension FlowNodePatterns on FlowNode {
             _that.hitTestPadding,
             _that.hidden,
             _that.draggable,
+            _that.hoverable,
             _that.selectable,
             _that.connectable,
             _that.deletable,
@@ -589,6 +610,7 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
       this.hitTestPadding = 10.0,
       this.hidden,
       this.draggable,
+      this.hoverable,
       this.selectable,
       this.connectable,
       this.deletable,
@@ -715,6 +737,12 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
   ///
   /// If null, uses the global canvas setting.
   @override
+  final bool? hoverable;
+
+  /// Whether this node can be selected by the user.
+  ///
+  /// If null, uses the global canvas setting.
+  @override
   final bool? selectable;
 
   /// Whether edges can be connected to/from this node.
@@ -764,6 +792,7 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('hitTestPadding', hitTestPadding))
       ..add(DiagnosticsProperty('hidden', hidden))
       ..add(DiagnosticsProperty('draggable', draggable))
+      ..add(DiagnosticsProperty('hoverable', hoverable))
       ..add(DiagnosticsProperty('selectable', selectable))
       ..add(DiagnosticsProperty('connectable', connectable))
       ..add(DiagnosticsProperty('deletable', deletable))
@@ -792,6 +821,8 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
             (identical(other.hidden, hidden) || other.hidden == hidden) &&
             (identical(other.draggable, draggable) ||
                 other.draggable == draggable) &&
+            (identical(other.hoverable, hoverable) ||
+                other.hoverable == hoverable) &&
             (identical(other.selectable, selectable) ||
                 other.selectable == selectable) &&
             (identical(other.connectable, connectable) ||
@@ -818,6 +849,7 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
       hitTestPadding,
       hidden,
       draggable,
+      hoverable,
       selectable,
       connectable,
       deletable,
@@ -826,7 +858,7 @@ class _FlowNode extends FlowNode with DiagnosticableTreeMixin {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
+    return 'FlowNode(id: $id, type: $type, position: $position, size: $size, parentId: $parentId, handles: $handles, data: $data, zIndex: $zIndex, hitTestPadding: $hitTestPadding, hidden: $hidden, draggable: $draggable, hoverable: $hoverable, selectable: $selectable, connectable: $connectable, deletable: $deletable, focusable: $focusable, elevateNodeOnSelected: $elevateNodeOnSelected)';
   }
 }
 
@@ -849,6 +881,7 @@ abstract mixin class _$FlowNodeCopyWith<$Res>
       double hitTestPadding,
       bool? hidden,
       bool? draggable,
+      bool? hoverable,
       bool? selectable,
       bool? connectable,
       bool? deletable,
@@ -879,6 +912,7 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
     Object? hitTestPadding = null,
     Object? hidden = freezed,
     Object? draggable = freezed,
+    Object? hoverable = freezed,
     Object? selectable = freezed,
     Object? connectable = freezed,
     Object? deletable = freezed,
@@ -929,6 +963,10 @@ class __$FlowNodeCopyWithImpl<$Res> implements _$FlowNodeCopyWith<$Res> {
       draggable: freezed == draggable
           ? _self.draggable
           : draggable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hoverable: freezed == hoverable
+          ? _self.hoverable
+          : hoverable // ignore: cast_nullable_to_non_nullable
               as bool?,
       selectable: freezed == selectable
           ? _self.selectable

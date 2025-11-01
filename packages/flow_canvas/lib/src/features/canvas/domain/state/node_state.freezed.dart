@@ -14,6 +14,9 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$NodeRuntimeState {
+  /// Whether this node is currently hovered.
+  bool get hovered;
+
   /// Whether this node is currently selected.
   ///
   /// Selected nodes are typically rendered with an outline, bring-to-front
@@ -58,6 +61,7 @@ mixin _$NodeRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is NodeRuntimeState &&
+            (identical(other.hovered, hovered) || other.hovered == hovered) &&
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.dragging, dragging) ||
@@ -71,11 +75,11 @@ mixin _$NodeRuntimeState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, selected, dragging, resizing, expandParent, extent);
+      runtimeType, hovered, selected, dragging, resizing, expandParent, extent);
 
   @override
   String toString() {
-    return 'NodeRuntimeState(selected: $selected, dragging: $dragging, resizing: $resizing, expandParent: $expandParent, extent: $extent)';
+    return 'NodeRuntimeState(hovered: $hovered, selected: $selected, dragging: $dragging, resizing: $resizing, expandParent: $expandParent, extent: $extent)';
   }
 }
 
@@ -86,7 +90,8 @@ abstract mixin class $NodeRuntimeStateCopyWith<$Res> {
       _$NodeRuntimeStateCopyWithImpl;
   @useResult
   $Res call(
-      {bool selected,
+      {bool hovered,
+      bool selected,
       bool dragging,
       bool resizing,
       bool expandParent,
@@ -106,6 +111,7 @@ class _$NodeRuntimeStateCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? hovered = null,
     Object? selected = null,
     Object? dragging = null,
     Object? resizing = null,
@@ -113,6 +119,10 @@ class _$NodeRuntimeStateCopyWithImpl<$Res>
     Object? extent = freezed,
   }) {
     return _then(_self.copyWith(
+      hovered: null == hovered
+          ? _self.hovered
+          : hovered // ignore: cast_nullable_to_non_nullable
+              as bool,
       selected: null == selected
           ? _self.selected
           : selected // ignore: cast_nullable_to_non_nullable
@@ -230,7 +240,7 @@ extension NodeRuntimeStatePatterns on NodeRuntimeState {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(bool selected, bool dragging, bool resizing,
+    TResult Function(bool hovered, bool selected, bool dragging, bool resizing,
             bool expandParent, Rect? extent)?
         $default, {
     required TResult orElse(),
@@ -238,8 +248,8 @@ extension NodeRuntimeStatePatterns on NodeRuntimeState {
     final _that = this;
     switch (_that) {
       case _NodeRuntimeState() when $default != null:
-        return $default(_that.selected, _that.dragging, _that.resizing,
-            _that.expandParent, _that.extent);
+        return $default(_that.hovered, _that.selected, _that.dragging,
+            _that.resizing, _that.expandParent, _that.extent);
       case _:
         return orElse();
     }
@@ -260,15 +270,15 @@ extension NodeRuntimeStatePatterns on NodeRuntimeState {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(bool selected, bool dragging, bool resizing,
+    TResult Function(bool hovered, bool selected, bool dragging, bool resizing,
             bool expandParent, Rect? extent)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _NodeRuntimeState():
-        return $default(_that.selected, _that.dragging, _that.resizing,
-            _that.expandParent, _that.extent);
+        return $default(_that.hovered, _that.selected, _that.dragging,
+            _that.resizing, _that.expandParent, _that.extent);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -288,15 +298,15 @@ extension NodeRuntimeStatePatterns on NodeRuntimeState {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(bool selected, bool dragging, bool resizing,
+    TResult? Function(bool hovered, bool selected, bool dragging, bool resizing,
             bool expandParent, Rect? extent)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _NodeRuntimeState() when $default != null:
-        return $default(_that.selected, _that.dragging, _that.resizing,
-            _that.expandParent, _that.extent);
+        return $default(_that.hovered, _that.selected, _that.dragging,
+            _that.resizing, _that.expandParent, _that.extent);
       case _:
         return null;
     }
@@ -307,11 +317,17 @@ extension NodeRuntimeStatePatterns on NodeRuntimeState {
 
 class _NodeRuntimeState implements NodeRuntimeState {
   const _NodeRuntimeState(
-      {this.selected = false,
+      {this.hovered = false,
+      this.selected = false,
       this.dragging = false,
       this.resizing = false,
       this.expandParent = false,
       this.extent});
+
+  /// Whether this node is currently hovered.
+  @override
+  @JsonKey()
+  final bool hovered;
 
   /// Whether this node is currently selected.
   ///
@@ -366,6 +382,7 @@ class _NodeRuntimeState implements NodeRuntimeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _NodeRuntimeState &&
+            (identical(other.hovered, hovered) || other.hovered == hovered) &&
             (identical(other.selected, selected) ||
                 other.selected == selected) &&
             (identical(other.dragging, dragging) ||
@@ -379,11 +396,11 @@ class _NodeRuntimeState implements NodeRuntimeState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, selected, dragging, resizing, expandParent, extent);
+      runtimeType, hovered, selected, dragging, resizing, expandParent, extent);
 
   @override
   String toString() {
-    return 'NodeRuntimeState(selected: $selected, dragging: $dragging, resizing: $resizing, expandParent: $expandParent, extent: $extent)';
+    return 'NodeRuntimeState(hovered: $hovered, selected: $selected, dragging: $dragging, resizing: $resizing, expandParent: $expandParent, extent: $extent)';
   }
 }
 
@@ -396,7 +413,8 @@ abstract mixin class _$NodeRuntimeStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {bool selected,
+      {bool hovered,
+      bool selected,
       bool dragging,
       bool resizing,
       bool expandParent,
@@ -416,6 +434,7 @@ class __$NodeRuntimeStateCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? hovered = null,
     Object? selected = null,
     Object? dragging = null,
     Object? resizing = null,
@@ -423,6 +442,10 @@ class __$NodeRuntimeStateCopyWithImpl<$Res>
     Object? extent = freezed,
   }) {
     return _then(_NodeRuntimeState(
+      hovered: null == hovered
+          ? _self.hovered
+          : hovered // ignore: cast_nullable_to_non_nullable
+              as bool,
       selected: null == selected
           ? _self.selected
           : selected // ignore: cast_nullable_to_non_nullable

@@ -12,12 +12,12 @@ import '../../../../shared/providers.dart';
 /// A styled, theme-aware container for wrapping custom node widgets.
 /// It provides handles, selection/hover states, and animations automatically.
 /// An optional [style] can be provided to override the context theme for this specific node.
-class DefaultNodeWidget extends ConsumerStatefulWidget {
+class DefaultNodeWidget extends ConsumerWidget {
   final FlowNode node;
-  final bool? enableAnimations;
-  final Curve? animationCurve;
-  final Duration? animationDuration;
-  final EdgeInsetsGeometry? padding;
+  final bool enableAnimations;
+  final Curve animationCurve;
+  final Duration animationDuration;
+  final EdgeInsetsGeometry padding;
   final FlowNodeStyle? style;
   final Widget? child;
   final HandleBuilder? handleBuilder;
@@ -36,18 +36,10 @@ class DefaultNodeWidget extends ConsumerStatefulWidget {
     this.handleStyle,
   });
 
-  @override
-  ConsumerState<DefaultNodeWidget> createState() => _DefaultNodeWidgetState();
-}
-
-class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
-  bool _isHovered = false;
-
   // /// Computes the current set of states for this node
   Set<FlowNodeState> _computeStates(
-    NodeRuntimeState nodeRuntimeState,
-    FlowNode node,
-  ) {
+      NodeRuntimeState nodeRuntimeState, FlowNode node, BuildContext context) {
+    print("------------- ${node.isHoverable(context)} -----------------");
     final states = <FlowNodeState>{FlowNodeState.normal};
     // Check if node is hidden (disabled state)
     if (node.isHidden(context)) {
@@ -61,72 +53,59 @@ class _DefaultNodeWidgetState extends ConsumerState<DefaultNodeWidget> {
       states.add(FlowNodeState.selected);
     }
     // Add hovered state if currently hovered
-    if (_isHovered) {
+    if (node.isHoverable(context) && nodeRuntimeState.hovered) {
       states.add(FlowNodeState.hovered);
     }
     return states;
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Get base node theme and merge with any custom style override
     final baseTheme =
         context.flowCanvasTheme.node ?? FlowNodeStyle.system(context);
-    final theme = baseTheme.merge(widget.style);
+    final theme = baseTheme.merge(style);
 
     // Watch node runtime state (selected, dragging, etc.)
     final nodeRuntimeState = ref.watch(
       internalControllerProvider.select(
-        (state) => state.nodeStates[widget.node.id]!,
-      ),
-    );
-
-    // Watch node configuration state
-    final node = ref.watch(
-      internalControllerProvider.select(
-        (state) => state.nodes[widget.node.id]!,
+        (state) => state.nodeStates[node.id]!,
       ),
     );
 
     // Compute current visual states
-    final states = _computeStates(nodeRuntimeState, node);
+    final states = _computeStates(nodeRuntimeState, node, context);
 
     // Resolve decoration based on current states
     final decoration = theme.resolveDecoration(states);
-
+    print("${node.id} built");
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        MouseRegion(
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: AnimatedContainer(
-            duration: widget.enableAnimations!
-                ? widget.animationDuration!
-                : Duration.zero,
-            curve: widget.animationCurve!,
-            width: widget.node.size.width,
-            height: widget.node.size.height,
-            padding: widget.padding,
-            decoration: decoration,
-            transformAlignment: Alignment.center,
-            child: Material(
-              color: Colors.transparent,
-              child: widget.child,
-            ),
+        AnimatedContainer(
+          duration: enableAnimations ? animationDuration : Duration.zero,
+          curve: animationCurve,
+          width: node.size.width,
+          height: node.size.height,
+          padding: padding,
+          decoration: decoration,
+          transformAlignment: Alignment.center,
+          child: Material(
+            color: Colors.transparent,
+            child: child,
           ),
         ),
 
         // Render all node handles
-        ...widget.node.handles.values.map(
+        ...node.handles.values.map(
           (handle) => Handle(
-            nodeId: widget.node.id,
+            nodeId: node.id,
             handleId: handle.id,
             type: handle.type,
             position: handle.position,
-            handleBuilder: widget.handleBuilder,
-            handleStyle: widget.handleStyle,
+            handleBuilder: handleBuilder,
+            handleStyle: handleStyle,
           ),
         ),
       ],

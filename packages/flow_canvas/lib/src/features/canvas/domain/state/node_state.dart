@@ -28,6 +28,9 @@ abstract class NodeRuntimeState with _$NodeRuntimeState {
   /// The [extent] represents visual or movement boundaries that apply
   /// only while the node is actively being manipulated.
   const factory NodeRuntimeState({
+    /// Whether this node is currently hovered.
+    @Default(false) bool hovered,
+
     /// Whether this node is currently selected.
     ///
     /// Selected nodes are typically rendered with an outline, bring-to-front

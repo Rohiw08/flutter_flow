@@ -1,90 +1,90 @@
+import 'package:equatable/equatable.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/utility/flow_positioned.dart';
 import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/node_options.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// A layer that renders all node widgets.
-///
-/// This widget is highly optimized. It only rebuilds when the list of node IDs
-/// changes (i.e., a node is added or removed), preventing unnecessary rebuilds
-/// when nodes are dragged or other canvas state changes occur.
+class NodeKeys extends Equatable {
+  final Map<String, int> nodes;
+
+  const NodeKeys({required this.nodes});
+
+  static const _deepEq = DeepCollectionEquality.unordered();
+
+  @override
+  List<Object?> get props => [_deepEq.hash(nodes)];
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NodeKeys && _deepEq.equals(nodes, other.nodes);
+
+  @override
+  int get hashCode => _deepEq.hash(nodes);
+}
+
+final nodesProvider = Provider<NodeKeys>((ref) {
+  final nodes = ref.watch(internalControllerProvider.select((s) => s.nodes));
+  final nodesMap = nodes.map((key, value) => MapEntry(key, value.zIndex));
+  return NodeKeys(nodes: nodesMap);
+});
+
 class FlowNodesLayer extends ConsumerWidget {
   const FlowNodesLayer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(
-      internalControllerProvider.select((state) => state.nodes.length),
-    );
-    final nodeIds = ref.watch(
-      internalControllerProvider.select((state) {
-        final keys = state.nodes.keys.toList();
-        return keys;
-      }),
-    );
-    // final nodes = ref.watch(
-    //   internalControllerProvider.select((state) {
-    //     final values = state.nodes.values.toList();
-    //     return values;
-    //   }),
-    // );
-    // print(nodes);
+    // stack is only responsible for z indexing of nodes and list of nodes
+    final nodes = ref.watch(nodesProvider);
+    List<MapEntry<String, int>> entries = nodes.nodes.entries.toList();
+    entries.sort((a, b) => a.value.compareTo(b.value));
+
+    print("Nodes Layer Rebuilt");
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ...nodeIds.map(
-          (nodeId) => _NodeWidget(
-            key: ValueKey(nodeId),
-            nodeId: nodeId,
-          ),
-        ),
+        for (final MapEntry<String, int> node in entries)
+          _NodeWidget(
+            key: ValueKey(node.key),
+            nodeId: node.key,
+          )
       ],
     );
   }
 }
 
-/// A widget for rendering a single, highly optimized node.
-///
-/// This widget listens only to changes for its specific node's data, ensuring
-/// that only the nodes that are actually updated (e.g., during a drag) will
-/// rebuild. This is the core of the performance optimization.
-class _NodeWidget extends ConsumerStatefulWidget {
+/// This node Widget handle behaviour of node not theming
+class _NodeWidget extends ConsumerWidget {
   final String nodeId;
 
-  const _NodeWidget({
+  _NodeWidget({
     super.key,
     required this.nodeId,
   });
 
-  @override
-  ConsumerState<_NodeWidget> createState() => _NodeWidgetState();
-}
-
-class _NodeWidgetState extends ConsumerState<_NodeWidget> {
   final FocusNode _focusNode = FocusNode(debugLabel: 'FlowNode');
 
   @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // print("${nodeId} Built");
     // Watch only the data for this specific node.
     final node = ref.watch(
       internalControllerProvider.select(
-        (state) => state.nodes[widget.nodeId]!,
+        (state) => state.nodes[nodeId],
       ),
     );
-    final controller = ref.read(internalControllerProvider.notifier);
+    if (node == null) return const SizedBox.shrink();
+    final controller = ref.read(internalControllerProvider.notifier).nodes;
     final nodeRegistry = ref.read(nodeRegistryProvider);
 
     // Resolve effective options (consider node overrides and global defaults)
     final resolved = NodeOptions.resolve(context);
     final isHidden = node.hidden ?? resolved.hidden;
     final isDraggable = node.draggable ?? resolved.draggable;
+    final isHoverable = node.hoverable ?? resolved.hoverable;
     final isSelectable = node.selectable ?? resolved.selectable;
     final isFocusable = node.focusable ?? resolved.focusable;
     if (isHidden) return const SizedBox.shrink();
@@ -98,7 +98,7 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
     final hitTestPadding = node.hitTestPadding > maxHandleSize
         ? node.hitTestPadding
         : maxHandleSize;
-    print("node: ${node.id} rebuilt");
+
     return FlowPositioned(
       dx: node.position.dx,
       dy: node.position.dy,
@@ -107,32 +107,33 @@ class _NodeWidgetState extends ConsumerState<_NodeWidget> {
         width: node.size.width + hitTestPadding,
         child: MouseRegion(
           cursor: SystemMouseCursors.grab,
-          onEnter: (e) => controller.nodes.onNodeMouseEnter(widget.nodeId, e),
-          onHover: (e) => controller.nodes.onNodeMouseMove(widget.nodeId, e),
-          onExit: (e) => controller.nodes.onNodeMouseLeave(widget.nodeId, e),
+          onEnter: isHoverable
+              ? (e) => controller.onNodeMouseEnter(nodeId, e)
+              : null,
+          onHover:
+              isHoverable ? (e) => controller.onNodeMouseMove(nodeId, e) : null,
+          onExit: isHoverable
+              ? (e) => controller.onNodeMouseLeave(nodeId, e)
+              : null,
           child: Focus(
             focusNode: _focusNode,
             canRequestFocus: isFocusable,
             child: GestureDetector(
               behavior: HitTestBehavior.deferToChild,
-              // TODO: Simplify this
-              onTapDown: (details) => controller.nodes.onNodeTap(widget.nodeId,
-                  details, isSelectable, _focusNode, isFocusable),
-              onDoubleTap: () =>
-                  controller.nodes.onNodeDoubleClick(widget.nodeId),
+              onTapDown: (details) =>
+                  controller.onNodeTap(nodeId, details, isSelectable),
+              onDoubleTap: () => controller.onNodeDoubleClick(nodeId),
               onLongPressStart: (details) =>
-                  controller.nodes.onNodeContextMenu(widget.nodeId, details),
+                  controller.onNodeLongPress(nodeId, details),
               onPanStart: isDraggable
-                  ? (details) =>
-                      controller.nodes.onNodeDragStart(widget.nodeId, details)
+                  ? (details) => controller.onNodeDragStart(nodeId, details)
                   : null,
               onPanUpdate: isDraggable
-                  ? (details) => controller.nodes
-                      .onNodeDragUpdate(widget.nodeId, details, isSelectable)
+                  ? (details) =>
+                      controller.onNodeDragUpdate(nodeId, details, isSelectable)
                   : null,
               onPanEnd: isDraggable
-                  ? (details) =>
-                      controller.nodes.onNodeDragEnd(widget.nodeId, details)
+                  ? (details) => controller.onNodeDragEnd(nodeId, details)
                   : null,
               // Build the user-defined widget for the node.
               child: nodeRegistry.buildWidget(node),

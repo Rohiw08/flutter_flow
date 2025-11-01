@@ -41,19 +41,26 @@ class KeyboardActionService {
       case KeyboardAction.deselectAll:
         return selectionService.deselectAll(state);
       case KeyboardAction.deleteSelection:
-        return nodeService.removeNodesAndConnections(
-            state, state.selectedNodes.toList());
+        final selectedNodeIds = state.selectedNodes.toList();
+        if (selectedNodeIds.isEmpty) return state;
+        final connectedEdgeIds =
+            edgeService.getEdgesFromNodes(state, selectedNodeIds);
+        final stateAfterEdges =
+            edgeService.removeEdges(state, connectedEdgeIds);
+        final newState =
+            nodeService.removeNodes(stateAfterEdges, selectedNodeIds);
+        return newState;
       case KeyboardAction.moveUp:
-        return nodeService.dragSelectedNodes(
+        return nodeService.moveSelectedNodes(
             state, Offset(0, arrowMoveDelta.dy));
       case KeyboardAction.moveDown:
-        return nodeService.dragSelectedNodes(
+        return nodeService.moveSelectedNodes(
             state, Offset(0, -arrowMoveDelta.dy));
       case KeyboardAction.moveLeft:
-        return nodeService.dragSelectedNodes(
+        return nodeService.moveSelectedNodes(
             state, Offset(-arrowMoveDelta.dx, 0));
       case KeyboardAction.moveRight:
-        return nodeService.dragSelectedNodes(
+        return nodeService.moveSelectedNodes(
             state, Offset(arrowMoveDelta.dx, 0));
       case KeyboardAction.duplicateSelection:
         final payload = clipboardService.copy(state);

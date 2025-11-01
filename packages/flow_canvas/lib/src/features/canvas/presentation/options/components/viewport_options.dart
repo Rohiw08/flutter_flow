@@ -1,6 +1,5 @@
 import 'package:flow_canvas/src/features/canvas/domain/models/snap_grid.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/coordinate_extent.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/options/components/fitview_options.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/viewport_state.dart';

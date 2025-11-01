@@ -244,8 +244,8 @@ extension FlowViewportPatterns on FlowViewport {
 
 /// @nodoc
 
-class _FlowViewport implements FlowViewport {
-  const _FlowViewport({this.offset = Offset.zero, this.zoom = 1.0});
+class _FlowViewport extends FlowViewport {
+  const _FlowViewport({this.offset = Offset.zero, this.zoom = 1.0}) : super._();
 
   /// Canvas translation offset in Cartesian space.
   @override
@@ -282,13 +282,6 @@ class _FlowViewport implements FlowViewport {
   @override
   String toString() {
     return 'FlowViewport(offset: $offset, zoom: $zoom)';
-  }
-
-  @override
-  FlowViewport clampZoom({double minZoom = 0.25, double maxZoom = 2.5}) {
-    return copyWith(
-      zoom: zoom.clamp(minZoom, maxZoom),
-    );
   }
 }
 

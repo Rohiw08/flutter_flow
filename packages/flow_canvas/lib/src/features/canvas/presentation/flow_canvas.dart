@@ -1,8 +1,16 @@
+import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
 import 'package:flow_canvas/src/features/canvas/domain/indexes/edge_index.dart';
 import 'package:flow_canvas/src/features/canvas/domain/indexes/node_index.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/edge_state.dart';
 import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/adapters/controller_adapter.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/inputs/keymap.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/edges_layer.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/flow_background.dart';
+import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/nodes_layer.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/widgets/layers/selection_layer.dart';
+import 'package:flow_canvas/src/shared/enums.dart';
+import 'package:flow_canvas/src/shared/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flow_canvas/src/features/canvas/application/callbacks/connection_callbacks.dart';
@@ -19,15 +27,6 @@ import 'package:flow_canvas/src/features/canvas/presentation/options/flow_option
 import 'package:flow_canvas/src/features/canvas/presentation/options/options_provider.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/flow_theme.dart';
 import 'package:flow_canvas/src/features/canvas/presentation/theme/theme_provider.dart';
-
-import '../../../shared/enums.dart';
-import '../../../shared/providers.dart';
-import '../application/flow_canvas_controller.dart';
-import 'widgets/layers/edges_layer.dart';
-import 'widgets/layers/nodes_layer.dart';
-import 'adapters/controller_adapter.dart';
-import 'inputs/keymap.dart';
-import 'widgets/layers/flow_background.dart';
 
 typedef FlowCanvasCreatedCallback = void Function(
     FlowCanvasController controller);
@@ -264,6 +263,8 @@ class _InteractiveViewerWrapper extends ConsumerWidget {
               ...backgroundOverlays,
               const FlowEdgeLayer(),
               const FlowNodesLayer(),
+              // const FlowNodesResizerLayer(),
+              // const FlowNodesPanelsLayer(),
               const SelectionLayer(),
             ],
           ),

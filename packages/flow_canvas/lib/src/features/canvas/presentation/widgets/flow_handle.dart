@@ -28,10 +28,6 @@ class Handle extends ConsumerWidget {
   final HandleType type;
   final Offset position;
   final Size size;
-  final bool? enableAnimations;
-  final Curve? animationCurve;
-  final Duration? animationDuration;
-  final double? animationScale;
   final FlowHandleStyle? handleStyle;
   final HandleBuilder? handleBuilder;
 
@@ -42,10 +38,6 @@ class Handle extends ConsumerWidget {
     this.position = Offset.zero,
     this.size = const Size(10.0, 10.0),
     this.type = HandleType.both,
-    this.animationScale = 1.5,
-    this.enableAnimations = true,
-    this.animationCurve = Curves.easeInOut,
-    this.animationDuration = const Duration(milliseconds: 200),
     this.handleBuilder,
     this.handleStyle,
   });
@@ -80,9 +72,6 @@ class Handle extends ConsumerWidget {
         ? handleBuilder!(context, handleState, theme)
         : _DefaultHandle(decoration: decoration);
 
-    final bool isAnimated = handleState.hovered || handleState.active;
-    final double targetScale = isAnimated ? (animationScale ?? 1.5) : 1.0;
-
     return FlowPositioned(
       dx: position.dx,
       dy: position.dy,
@@ -111,22 +100,11 @@ class Handle extends ConsumerWidget {
             if (type == HandleType.target) return;
             controller.connection.endConnection();
           },
-          child: (enableAnimations ?? true)
-              ? AnimatedContainer(
-                  transformAlignment: Alignment.center,
-                  duration:
-                      animationDuration ?? const Duration(milliseconds: 200),
-                  transform: Matrix4.identity()..scale(targetScale),
-                  curve: animationCurve ?? Curves.easeInOut,
-                  width: size.width,
-                  height: size.height,
-                  child: Center(child: handleCore),
-                )
-              : SizedBox(
-                  width: size.width,
-                  height: size.height,
-                  child: Center(child: handleCore),
-                ),
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: Center(child: handleCore),
+          ),
         ),
       ),
     );
@@ -142,3 +120,34 @@ class _DefaultHandle extends StatelessWidget {
     return Container(decoration: decoration);
   }
 }
+
+
+/*
+  removed for performance
+
+  final bool? enableAnimations;
+  final Curve? animationCurve;
+  final Duration? animationDuration;
+  final double? animationScale;
+
+  this.animationScale = 1.5,
+  this.enableAnimations = true,
+  this.animationCurve = Curves.easeInOut,
+  this.animationDuration = const Duration(milliseconds: 200),
+
+      final bool isAnimated = handleState.hovered || handleState.active;
+    final double targetScale = isAnimated ? (animationScale ?? 1.5) : 1.0;
+
+    
+AnimatedContainer(
+                  transformAlignment: Alignment.center,
+                  duration:
+                      animationDuration ?? const Duration(milliseconds: 200),
+                  transform: Matrix4.identity()..scale(targetScale),
+                  curve: animationCurve ?? Curves.easeInOut,
+                  width: size.width,
+                  height: size.height,
+                  child: Center(child: handleCore),
+                )
+              : 
+*/

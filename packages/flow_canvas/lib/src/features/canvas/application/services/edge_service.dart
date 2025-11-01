@@ -1,7 +1,6 @@
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
+import 'package:flow_canvas/src/features/canvas/domain/indexes/edge_index.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/edge.dart';
-
-import '../../domain/indexes/edge_index.dart';
 
 /// A function type for updating the data map of a FlowEdge.
 ///
@@ -14,26 +13,58 @@ typedef EdgeDataUpdater = Map<String, dynamic> Function(
 /// This service operates on a `FlowCanvasState` object and returns a new, updated
 /// state, ensuring immutability.
 class EdgeService {
+  List<String> getEdgesFromNodes(
+      FlowCanvasState state, Iterable<String> nodeIds) {
+    final nodeIdSet = nodeIds.toSet();
+    return state.edges.values
+        .where((e) =>
+            nodeIdSet.contains(e.sourceNodeId) ||
+            nodeIdSet.contains(e.targetNodeId))
+        .map((e) => e.id)
+        .toList();
+  }
+
   /// Adds a single edge to the canvas state.
   FlowCanvasState addEdge(FlowCanvasState state, FlowEdge edge) {
-    // 1. Validation
     if (state.edges.containsKey(edge.id)) return state; // Already exists
     if (!state.nodes.containsKey(edge.sourceNodeId) ||
         !state.nodes.containsKey(edge.targetNodeId)) {
       return state; // Source or target node does not exist
     }
 
-    // 2. Create new immutable map
     final newEdges = Map<String, FlowEdge>.from(state.edges);
     newEdges[edge.id] = edge;
 
-    // 3. Update the index
     final newIndex = state.edgeIndex.addEdge(edge, edge.id);
 
     return state.copyWith(
       edges: newEdges,
       edgeIndex: newIndex,
     );
+  }
+
+  /// Imports a list of edges, skipping any that already exist or are invalid.
+  FlowCanvasState addEdges(FlowCanvasState state, List<FlowEdge> edges) {
+    if (edges.isEmpty) return state;
+
+    Map<String, FlowEdge> newEdges = Map.from(state.edges);
+    EdgeIndex newIndex = state.edgeIndex;
+    bool changed = false;
+
+    for (final edge in edges) {
+      if (newEdges.containsKey(edge.id)) continue;
+      if (!state.nodes.containsKey(edge.sourceNodeId) ||
+          !state.nodes.containsKey(edge.targetNodeId)) {
+        continue;
+      }
+      newEdges[edge.id] = edge;
+      newIndex = newIndex.addEdge(edge, edge.id);
+      changed = true;
+    }
+
+    return changed
+        ? state.copyWith(edges: newEdges, edgeIndex: newIndex)
+        : state;
   }
 
   /// Removes a single edge from the canvas state.
@@ -123,29 +154,5 @@ class EdgeService {
     // This is an atomic operation: the index is updated for the new connection.
     final stateWithoutOldEdge = removeEdge(state, edgeId);
     return addEdge(stateWithoutOldEdge, updatedEdge);
-  }
-
-  /// Imports a list of edges, skipping any that already exist or are invalid.
-  FlowCanvasState addEdges(FlowCanvasState state, List<FlowEdge> edges) {
-    if (edges.isEmpty) return state;
-
-    Map<String, FlowEdge> newEdges = Map.from(state.edges);
-    EdgeIndex newIndex = state.edgeIndex;
-    bool changed = false;
-
-    for (final edge in edges) {
-      if (newEdges.containsKey(edge.id)) continue;
-      if (!state.nodes.containsKey(edge.sourceNodeId) ||
-          !state.nodes.containsKey(edge.targetNodeId)) {
-        continue;
-      }
-      newEdges[edge.id] = edge;
-      newIndex = newIndex.addEdge(edge, edge.id);
-      changed = true;
-    }
-
-    return changed
-        ? state.copyWith(edges: newEdges, edgeIndex: newIndex)
-        : state;
   }
 }

@@ -32,6 +32,11 @@ class NodeRegistry {
   /// Creates an empty registry with no default node types.
   NodeRegistry.empty() : _builders = {};
 
+  /// Registers the built-in/default node types.
+  void _registerDefaultTypes() {
+    register('default', buildDefaultNode);
+  }
+
   /// Registers a new node type.
   ///
   /// If a type already exists, this will overwrite its builder.
@@ -58,15 +63,12 @@ class NodeRegistry {
   Widget buildWidget(FlowNode node) =>
       _builders[node.type]?.call(node) ?? buildDefaultNode(node);
 
-  /// Registers the built-in/default node types.
-  void _registerDefaultTypes() {
-    register('default', buildDefaultNode);
-  }
-
   /// Returns an immutable copy of the current registered type map.
   Map<String, NodeWidgetBuilder> get builders => Map.unmodifiable(_builders);
+}
 
-  /// Builds a red-outlined error widget for debugging missing node types.
+/*
+/// Builds a red-outlined error widget for debugging missing node types.
   Widget buildErrorWidget(Size size, String type) => Container(
         width: size.width,
         height: size.height,
@@ -82,4 +84,4 @@ class NodeRegistry {
           ),
         ),
       );
-}
+*/

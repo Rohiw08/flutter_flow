@@ -145,6 +145,11 @@ abstract class FlowNode with _$FlowNode {
     /// Whether this node can be selected by the user.
     ///
     /// If null, uses the global canvas setting.
+    bool? hoverable,
+
+    /// Whether this node can be selected by the user.
+    ///
+    /// If null, uses the global canvas setting.
     bool? selectable,
 
     /// Whether edges can be connected to/from this node.

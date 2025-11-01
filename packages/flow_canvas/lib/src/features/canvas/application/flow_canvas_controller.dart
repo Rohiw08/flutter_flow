@@ -14,11 +14,9 @@ import 'package:flow_canvas/src/features/canvas/application/controllers/z_index_
 import 'package:flow_canvas/src/features/canvas/application/services/clipboard_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/connection_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_geometry_service.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/edge_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/history_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/keyboard_action_service.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/node_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/node_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/selection_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/serialization_service.dart';
@@ -65,8 +63,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   late final KeyboardActionService _keyboardActionService;
   late final CanvasCoordinateConverter coordinateConverter;
   late final EdgeGeometryService edgeGeometryService;
-  late final NodeQueryService _nodeQueryService;
-  late final EdgeQueryService _edgeQueryService;
 
   // --- Sub-Controllers ---
   late final NodesController nodes;
@@ -78,7 +74,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
   late final HistoryController history;
   late final HandleController handle;
   late final EdgeGeometryController edgeGeometry;
-  late final CanvasQuerier querier;
+  // late final CanvasQuerier querier;
   late final ZIndexController zIndex;
   late final SerializationController serialization;
   late final KeyboardController keyboard;
@@ -97,8 +93,6 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     _clipboardService = ref.read(clipboardServiceProvider);
     _history = ref.read(historyServiceProvider);
     _serializationService = ref.read(serializationServiceProvider);
-    _nodeQueryService = ref.read(nodeQueryServiceProvider);
-    _edgeQueryService = ref.read(edgeQueryServiceProvider);
     _keyboardActionService = ref.read(keyboardActionServiceProvider);
     edgeGeometryService = ref.read(edgeGeometryServiceProvider);
     coordinateConverter = ref.read(coordinateConverterProvider);
@@ -108,11 +102,11 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       controller: this,
       selectionService: _selectionService,
       selectionStreams: _selectionStreams,
-      nodeQueryService: _nodeQueryService,
     );
     nodes = NodesController(
       controller: this,
       nodeService: _nodeService,
+      edgeService: _edgeService,
       nodeInteractionCallbacks: ref.read(nodeCallbacksProvider),
       nodeStateCallbacks: ref.read(nodesStateCallbacksProvider),
       nodeStreams: _nodeStreams,
@@ -153,13 +147,14 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     handle = HandleController(controller: this);
     edgeGeometry = EdgeGeometryController(
         controller: this, edgeGeometryService: edgeGeometryService);
-    querier = CanvasQuerier(
-      controller: this,
-      nodeQueryService: _nodeQueryService,
-      edgeQueryService: _edgeQueryService,
-      connectionService: _connectionService,
-      viewportService: _viewportService,
-    );
+    // TODO: create querier service for users
+    // querier = CanvasQuerier(
+    //   controller: this,
+    //   nodeQueryService: _nodeQueryService,
+    //   edgeQueryService: _edgeQueryService,
+    //   connectionService: _connectionService,
+    //   viewportService: _viewportService,
+    // );
     zIndex = ZIndexController(controller: this, zIndexService: _zIndexService);
     serialization = SerializationController(
         controller: this, serializationService: _serializationService);
@@ -209,6 +204,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
       _history.record(newState);
       state = newState;
     }
+    print("state updated");
   }
 
   /// Updates state WITHOUT saving to history (for transient/intermediate states).
@@ -216,6 +212,7 @@ class FlowCanvasController extends StateNotifier<FlowCanvasState> {
     if (!identical(newState, state)) {
       state = newState;
     }
+    print("state updated");
   }
 
   void _updateTransformationController() {

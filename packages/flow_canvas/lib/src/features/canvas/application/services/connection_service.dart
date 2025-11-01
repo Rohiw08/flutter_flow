@@ -275,8 +275,9 @@ class ConnectionService {
       final potentialTargetNode = state.nodes[potentialTargetNodeId];
       final potentialTargetHandle =
           potentialTargetNode?.handles[potentialTargetHandleId];
-      if (potentialTargetNode == null || potentialTargetHandle == null)
+      if (potentialTargetNode == null || potentialTargetHandle == null) {
         continue;
+      }
       if (potentialTargetHandle.type == HandleType.source) continue;
 
       final handleCenter =

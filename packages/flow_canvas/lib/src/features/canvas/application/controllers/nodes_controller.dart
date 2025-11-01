@@ -3,10 +3,12 @@ import 'package:flow_canvas/src/features/canvas/application/controllers/selectio
 import 'package:flow_canvas/src/features/canvas/application/events/node_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/events/nodes_flow_state_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
+import 'package:flow_canvas/src/features/canvas/application/services/edge_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/node_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/streams/node_change_stream.dart';
 import 'package:flow_canvas/src/features/canvas/application/streams/nodes_flow_state_change_stream.dart';
 import 'package:flow_canvas/src/features/canvas/domain/models/node.dart';
+import 'package:flow_canvas/src/features/canvas/domain/state/node_state.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +19,7 @@ import 'package:flutter/material.dart';
 class NodesController {
   final FlowCanvasController _controller;
   final NodeService _nodeService;
+  final EdgeService _edgeService;
   final NodeStateCallbacks _nodeStateCallbacks;
   final NodeInteractionCallbacks _nodeInteractionCallbacks;
   final NodeInteractionStreams _nodeStreams;
@@ -30,6 +33,7 @@ class NodesController {
   NodesController({
     required FlowCanvasController controller,
     required NodeService nodeService,
+    required EdgeService edgeService,
     required NodeStateCallbacks nodeStateCallbacks,
     required NodeInteractionCallbacks nodeInteractionCallbacks,
     required NodeInteractionStreams nodeStreams,
@@ -37,6 +41,7 @@ class NodesController {
     required SelectionController selectionController,
   })  : _controller = controller,
         _nodeService = nodeService,
+        _edgeService = edgeService,
         _nodeStateCallbacks = nodeStateCallbacks,
         _nodeInteractionCallbacks = nodeInteractionCallbacks,
         _nodeStreams = nodeStreams,
@@ -80,12 +85,25 @@ class NodesController {
   }
 
   void removeSelectedNodes() {
-    final oldState = _controller.currentState;
-    if (oldState.selectedNodes.isEmpty) return;
+    final state = _controller.currentState;
+    if (state.selectedNodes.isEmpty) return;
 
-    final removedNodeIds = Set<String>.from(oldState.selectedNodes);
-    _controller.mutate((s) =>
-        _nodeService.removeNodesAndConnections(s, removedNodeIds.toList()));
+    final removedNodeIds = Set<String>.from(state.selectedNodes);
+    removeNodes(removedNodeIds);
+  }
+
+  void removeNodes(Iterable<String> nodeIds) {
+    final oldState = _controller.currentState;
+    if (nodeIds.isEmpty) return;
+    final removedNodeIds = nodeIds.toSet();
+
+    final edgeIds = _edgeService.getEdgesFromNodes(oldState, nodeIds);
+    final stateAfterEdges = _edgeService.removeEdges(oldState, edgeIds);
+    _controller.updateStateOnly(stateAfterEdges);
+
+    final newState =
+        _nodeService.removeNodes(stateAfterEdges, removedNodeIds.toList());
+    _controller.mutate((_) => newState);
 
     final nodeEvents = removedNodeIds
         .map((id) => NodeLifecycleEvent(
@@ -94,6 +112,7 @@ class NodesController {
               nodeId: id,
             ))
         .toList();
+
     _nodesStateStreams.emitBulk(nodeEvents);
     for (final event in nodeEvents) {
       _nodeStateCallbacks.onNodeRemove(event);
@@ -102,7 +121,7 @@ class NodesController {
 
   void updateNode(FlowNode node) {
     final oldNode = _controller.currentState.nodes[node.id];
-    if (oldNode == null) return;
+    if (oldNode == null || oldNode == node) return;
 
     _controller.mutate((s) => _nodeService.updateNode(s, node));
 
@@ -117,14 +136,10 @@ class NodesController {
     _nodeStateCallbacks.onNodeUpdate(event);
   }
 
-  void onNodeTap(String nodeId, TapDownDetails details, bool isSelectable,
-      FocusNode focusNode, bool isFocusable) {
-    if (isSelectable) {
-      // Assuming SelectionController will have this method
+  void onNodeTap(String nodeId, TapDownDetails details, bool isSelectable) {
+    if (isSelectable &&
+        !_controller.currentState.selectedNodes.contains(nodeId)) {
       _selectionController.selectNode(nodeId, addToSelection: false);
-    }
-    if (isFocusable) {
-      focusNode.requestFocus();
     }
     _nodeInteractionCallbacks.onClick(nodeId, details);
     _nodeStreams.emitEvent(NodeClickEvent(nodeId: nodeId, details: details));
@@ -135,7 +150,7 @@ class NodesController {
     _nodeStreams.emitEvent(NodeDoubleClickEvent(nodeId: nodeId));
   }
 
-  void onNodeContextMenu(String nodeId, LongPressStartDetails details) {
+  void onNodeLongPress(String nodeId, LongPressStartDetails details) {
     _nodeInteractionCallbacks.onContextMenu(nodeId, details);
     _nodeStreams
         .emitEvent(NodeContextMenuEvent(nodeId: nodeId, details: details));
@@ -193,30 +208,13 @@ class NodesController {
     _nodeStreams.emitEvent(NodeDragStopEvent(nodeId: nodeId, details: details));
   }
 
-  void onNodeMouseEnter(String nodeId, PointerEvent details) {
-    _nodeInteractionCallbacks.onMouseEnter(nodeId, details);
-    _nodeStreams
-        .emitEvent(NodeMouseEnterEvent(nodeId: nodeId, details: details));
-  }
-
-  void onNodeMouseLeave(String nodeId, PointerEvent details) {
-    _nodeInteractionCallbacks.onMouseLeave(nodeId, details);
-    _nodeStreams
-        .emitEvent(NodeMouseLeaveEvent(nodeId: nodeId, details: details));
-  }
-
-  void onNodeMouseMove(String nodeId, PointerEvent details) {
-    _nodeInteractionCallbacks.onMouseMove(nodeId, details);
-    _nodeStreams
-        .emitEvent(NodeMouseMoveEvent(nodeId: nodeId, details: details));
-  }
-
+  // TODO: Implement batching or throttling
   void moveSelectedNodesBy(Offset screenDelta, DragUpdateDetails details) {
     if (_controller.currentState.dragMode != DragMode.node) return;
     final cartesianDelta =
         _controller.coordinateConverter.toCartesianDelta(screenDelta);
 
-    _controller.updateStateOnly(_nodeService.dragSelectedNodes(
+    _controller.updateStateOnly(_nodeService.moveSelectedNodes(
         _controller.currentState, cartesianDelta));
 
     _controller.edgeGeometryService.updateEdgesForNodes(
@@ -237,5 +235,38 @@ class NodesController {
         details: details,
       ));
     }
+  }
+
+  void onNodeMouseEnter(String nodeId, PointerEvent details) {
+    final state = _controller.currentState;
+    final newNodes = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    if (newNodes[nodeId]?.hovered == true) return;
+    newNodes[nodeId] = newNodes[nodeId]!.copyWith(hovered: true);
+    final newState = state.copyWith(
+      nodeStates: newNodes,
+    );
+    _controller.updateStateOnly(newState);
+    _nodeInteractionCallbacks.onMouseEnter(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseEnterEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeMouseMove(String nodeId, PointerEvent details) {
+    _nodeInteractionCallbacks.onMouseMove(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseMoveEvent(nodeId: nodeId, details: details));
+  }
+
+  void onNodeMouseLeave(String nodeId, PointerEvent details) {
+    final state = _controller.currentState;
+    final newNodes = Map<String, NodeRuntimeState>.from(state.nodeStates);
+    newNodes[nodeId] = newNodes[nodeId]!.copyWith(hovered: false);
+    final newState = state.copyWith(
+      nodeStates: newNodes,
+    );
+    _controller.updateStateOnly(newState);
+    _nodeInteractionCallbacks.onMouseLeave(nodeId, details);
+    _nodeStreams
+        .emitEvent(NodeMouseLeaveEvent(nodeId: nodeId, details: details));
   }
 }

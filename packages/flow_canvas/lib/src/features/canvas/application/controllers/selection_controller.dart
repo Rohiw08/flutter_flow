@@ -1,6 +1,5 @@
 import 'package:flow_canvas/src/features/canvas/application/events/selection_change_event.dart';
 import 'package:flow_canvas/src/features/canvas/application/flow_canvas_controller.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/node_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/services/selection_service.dart';
 import 'package:flow_canvas/src/features/canvas/application/streams/selection_change_stream.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
@@ -10,7 +9,6 @@ class SelectionController {
   final FlowCanvasController _controller;
   final SelectionService _selectionService;
   final SelectionStreams _selectionStreams;
-  final NodeQueryService _nodeQueryService;
 
   // Assumes a SelectionController will be created and passed in
 
@@ -18,11 +16,9 @@ class SelectionController {
     required FlowCanvasController controller,
     required SelectionService selectionService,
     required SelectionStreams selectionStreams,
-    required NodeQueryService nodeQueryService,
   })  : _controller = controller,
         _selectionService = selectionService,
-        _selectionStreams = selectionStreams,
-        _nodeQueryService = nodeQueryService;
+        _selectionStreams = selectionStreams;
 
   Set<String> _getNodesInSelectionRect() {
     final rect = _controller.currentState.selectionRect;
@@ -30,7 +26,7 @@ class SelectionController {
     final cartesianRect =
         _controller.coordinateConverter.renderRectToCartesianRect(rect);
     final foundNodes =
-        _nodeQueryService.queryInRect(_controller.currentState, cartesianRect);
+        _controller.currentState.nodeIndex.queryNodesInRect(cartesianRect);
     return foundNodes;
   }
 
@@ -107,7 +103,6 @@ class SelectionController {
       _selectionDragOrigin!,
       position,
       selectionMode: selectionMode ?? SelectionMode.partial,
-      nodeQueryService: _nodeQueryService,
     );
 
     // Now, find which nodes are inside this new rectangle.

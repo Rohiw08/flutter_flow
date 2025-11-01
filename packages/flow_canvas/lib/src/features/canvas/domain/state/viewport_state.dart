@@ -17,6 +17,7 @@ part 'viewport_state.freezed.dart';
 /// * Reset or fit-to-view → set both offset and zoom programmatically.
 @freezed
 abstract class FlowViewport with _$FlowViewport {
+  const FlowViewport._();
   const factory FlowViewport({
     /// Canvas translation offset in Cartesian space.
     @Default(Offset.zero) Offset offset,

@@ -1,8 +1,6 @@
 import 'package:flutter/painting.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/node_query_service.dart';
 import 'package:flow_canvas/src/features/canvas/domain/flow_canvas_state.dart';
 import 'package:flow_canvas/src/shared/enums.dart';
-import 'package:flow_canvas/src/features/canvas/application/services/edge_query_service.dart';
 
 import '../../domain/state/edge_state.dart';
 import '../../domain/state/node_state.dart';
@@ -137,17 +135,15 @@ class SelectionService {
     Offset origin,
     Offset position, {
     SelectionMode selectionMode = SelectionMode.partial,
-    required NodeQueryService nodeQueryService,
   }) {
     if (state.selectionRect == Rect.zero) return state;
 
     final newSelectionRect = Rect.fromPoints(origin, position);
-    final nodesInRect = nodeQueryService.queryInRect(state, newSelectionRect);
+    final nodesInRect = state.nodeIndex.queryNodesInRect(newSelectionRect);
 
-    final edgeQuery = EdgeQueryService();
     final edgesInArea = <String>{};
     for (final nodeId in nodesInRect) {
-      final connectedEdges = edgeQuery.getEdgesForNode(state, nodeId);
+      final connectedEdges = state.edgeIndex.getEdgesForNode(nodeId);
       for (final edgeId in connectedEdges) {
         final edge = state.edges[edgeId];
         if (edge != null &&

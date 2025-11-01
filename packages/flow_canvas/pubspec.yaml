@@ -28,6 +28,6 @@ dev_dependencies:
 flutter:
   shaders:
     - lib/src/features/canvas/presentation/shaders/background.frag
-    - lib/src/features/canvas/presentation/shaders/dot_pattern.frag
-    - lib/src/features/canvas/presentation/shaders/cross_pattern.frag
-    - lib/src/features/canvas/presentation/shaders/grid_pattern.frag
+    # - lib/src/features/canvas/presentation/shaders/dot_pattern.frag
+    # - lib/src/features/canvas/presentation/shaders/cross_pattern.frag
+    # - lib/src/features/canvas/presentation/shaders/grid_pattern.frag

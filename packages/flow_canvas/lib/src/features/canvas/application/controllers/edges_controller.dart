@@ -48,6 +48,10 @@ class EdgesController {
         _paneCallbacks = paneCallbacks,
         _selectionController = selectionController;
 
+  List<String> getEdgesFromNodes(Iterable<String> nodeIds) {
+    return _edgeService.getEdgesFromNodes(_controller.currentState, nodeIds);
+  }
+
   void addEdge(FlowEdge edge) {
     _controller.mutate((s) => _edgeService.addEdge(s, edge));
     _edgeGeometryService.updateEdge(_controller.currentState, edge.id);
@@ -153,11 +157,9 @@ class EdgesController {
     if (hit != currentHoveredId) {
       _controller.updateStateOnly(state.copyWith(hoveredEdgeId: hit ?? ""));
 
-      if (currentHoveredId != null) {
-        _edgeInteractionCallbacks.onMouseLeave(currentHoveredId, event);
-        _edgeStreams.emitEvent(
-            EdgeMouseLeaveEvent(edgeId: currentHoveredId, details: event));
-      }
+      _edgeInteractionCallbacks.onMouseLeave(currentHoveredId, event);
+      _edgeStreams.emitEvent(
+          EdgeMouseLeaveEvent(edgeId: currentHoveredId, details: event));
       if (hit != null) {
         _edgeInteractionCallbacks.onMouseEnter(hit, event);
         _edgeStreams
@@ -194,10 +196,8 @@ class EdgesController {
 
   void onEdgeDoubleTap() {
     final lastDownEdgeId = _controller.currentState.lastClickedEdgeId;
-    if (lastDownEdgeId != null) {
-      _edgeInteractionCallbacks.onDoubleClick(lastDownEdgeId);
-      _edgeStreams.emitEvent(EdgeDoubleClickEvent(edgeId: lastDownEdgeId));
-    }
+    _edgeInteractionCallbacks.onDoubleClick(lastDownEdgeId);
+    _edgeStreams.emitEvent(EdgeDoubleClickEvent(edgeId: lastDownEdgeId));
   }
 
   void onEdgeLongPressStart(

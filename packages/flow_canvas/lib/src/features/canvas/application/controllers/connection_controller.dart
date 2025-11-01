@@ -60,8 +60,9 @@ class ConnectionController {
     final state = _controller.currentState;
     final activeConnection = state.activeConnection;
 
-    if (state.dragMode != DragMode.connection || activeConnection == null)
+    if (state.dragMode != DragMode.connection || activeConnection == null) {
       return;
+    }
     final cartesianPosition =
         _coordinateConverter.toCartesianPosition(cursorScreenPosition);
 

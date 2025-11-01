@@ -10,11 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/canvas/application/flow_canvas_controller.dart';
 import '../features/canvas/application/services/clipboard_service.dart';
 import '../features/canvas/application/services/connection_service.dart';
-import '../features/canvas/application/services/edge_query_service.dart';
 import '../features/canvas/application/services/edge_service.dart';
 import '../features/canvas/application/services/history_service.dart';
 import '../features/canvas/application/services/keyboard_action_service.dart';
-import '../features/canvas/application/services/node_query_service.dart';
 import '../features/canvas/application/services/node_service.dart';
 import '../features/canvas/application/services/selection_service.dart';
 import '../features/canvas/application/services/serialization_service.dart';
@@ -125,10 +123,6 @@ final historyServiceProvider =
     Provider<HistoryService>((ref) => HistoryService());
 final serializationServiceProvider =
     Provider<SerializationService>((ref) => SerializationService());
-final edgeQueryServiceProvider =
-    Provider<EdgeQueryService>((ref) => EdgeQueryService());
-final nodeQueryServiceProvider =
-    Provider<NodeQueryService>((ref) => NodeQueryService());
 final edgeGeometryServiceProvider = Provider<EdgeGeometryService>((ref) {
   final coordinateConverter = ref.watch(coordinateConverterProvider);
   return EdgeGeometryService(coordinateConverter);
