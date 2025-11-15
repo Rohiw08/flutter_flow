@@ -1,0 +1,9 @@
+name: flow_canvas_example
+description: Demonstrates how to use the flow_canvas library.
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flow_canvas:
+    path: ../../flow_canvas

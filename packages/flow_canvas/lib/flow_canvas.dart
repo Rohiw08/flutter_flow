@@ -6,6 +6,7 @@ library flow_canvas;
 
 // --- Core ---
 export 'src/features/canvas/presentation/flow_canvas.dart';
+export 'src/features/canvas/application/flow_canvas_facade.dart';
 
 // --- Domain Models ---
 export 'src/features/canvas/domain/models/node.dart';
@@ -30,17 +31,12 @@ export 'src/features/canvas/presentation/options/components/node_options.dart';
 export 'src/features/canvas/presentation/options/components/viewport_options.dart';
 
 // --- Callbacks & Events ---
-export 'src/features/canvas/application/callbacks/connection_callbacks.dart';
-export 'src/features/canvas/application/callbacks/edge_callbacks.dart';
-export 'src/features/canvas/application/callbacks/node_callbacks.dart';
-export 'src/features/canvas/application/callbacks/pane_callbacks.dart';
 export 'src/features/canvas/application/events/connection_change_event.dart';
 export 'src/features/canvas/application/events/edge_change_event.dart';
 export 'src/features/canvas/application/events/node_change_event.dart';
 export 'src/features/canvas/application/events/pane_change.dart';
 export 'src/features/canvas/application/events/selection_change_event.dart';
 export 'src/features/canvas/application/events/viewport_change_event.dart';
-export 'src/features/canvas/application/flow_canvas_controller.dart';
 
 // --- Streams ---
 export 'src/features/canvas/application/streams/connection_change_stream.dart';
@@ -64,3 +60,4 @@ export 'src/features/canvas/presentation/widgets/flow_edge_label.dart';
 
 // --- Utility ---
 export 'src/features/canvas/presentation/utility/flow_positioned.dart';
+export 'src/features/canvas/presentation/utility/random_id_generator.dart';

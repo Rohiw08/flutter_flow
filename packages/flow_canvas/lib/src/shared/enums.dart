@@ -1,16 +1,38 @@
-enum DragMode { none, canvas, node, edge, selection, connection }
+enum DragMode {
+  none,
+  canvas,
+  node,
+  edge,
+  selection,
+  connection,
+}
 
-enum HandlePosition { top, right, bottom, left }
+enum HandlePosition {
+  top,
+  right,
+  bottom,
+  left,
+}
 
-enum HandleType { both, source, target }
+enum HandleType {
+  both,
+  source,
+  target,
+}
 
-enum EdgePathType { bezier, step, straight, smoothStep }
+enum EdgePathType {
+  bezier,
+  step,
+  straight,
+  smoothStep,
+}
 
+// never change this enum
 enum BackgroundVariant {
-  dots, // index 0
-  grid, // index 1
-  cross, // index 2
-  none, // index 3 (or wherever)
+  dots,
+  grid,
+  cross,
+  none,
 }
 
 enum ControlPanelAlignment {
@@ -99,4 +121,15 @@ enum ConnectionValidity {
   valid,
   invalid,
   none,
+}
+
+enum ResizeDirection {
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+  top,
+  bottom,
+  left,
+  right,
 }
